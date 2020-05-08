@@ -1,0 +1,45 @@
+{
+  "name": "shop-server",
+  "version": "1.0.0",
+  "description": "online shop server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "if-env NODE_ENV=production ?? npm run start:prod || npm run start:dev",
+    "start:dev": "npm run eslint && nodemon .",
+    "start:prod": "node .",
+    "start:debug": "npm run eslint && nodemon port=9229 --inspect-brk .",
+    "eslint": "eslint 'src/**/*.js'"
+  },
+  "author": "Yuliia Bozhek",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/cli": "^7.6.2",
+    "@babel/core": "^7.9.6",
+    "@babel/node": "^7.8.7",
+    "@babel/preset-env": "^7.9.6",
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0",
+    "body-parser": "^1.19.0",
+    "colors": "^1.4.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "fs-extra": "^9.0.0",
+    "if-env": "^1.0.4",
+    "mongoose": "^5.9.11",
+    "mongoose-autopopulate": "^0.12.2",
+    "mongoose-id-validator": "^0.6.0",
+    "nodemon": "^2.0.2",
+    "unique-random": "^2.1.0",
+    "validator": "^13.0.0",
+    "multer": "^1.4.2"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-plugin-node": "^11.1.0"
+  },
+  "engines": {
+    "node": ">=8.10.0"
+  }
+}
