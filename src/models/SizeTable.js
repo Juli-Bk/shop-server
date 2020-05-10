@@ -51,6 +51,6 @@ const SizeTableSchema = new Schema({
 );
 
 SizeTableSchema.plugin(validator);
-SizeTableSchema.plugin(autoPopulate());
+SizeTableSchema.plugin(autoPopulate);
 
 export default model("sizeTables", SizeTableSchema);

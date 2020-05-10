@@ -65,7 +65,7 @@ const ProductSchema = new mongoose.Schema({
 );
 
 ProductSchema.plugin(validator);
-ProductSchema.plugin(autoPopulate());
+ProductSchema.plugin(autoPopulate);
 
 ProductSchema.index({'$**': 'text'});
 

@@ -4,6 +4,7 @@ import brandRout from "./brandRout";
 import sizeRout from "./sizeRout";
 import sizeTableRout from "./sizeTableRout";
 import quantityRout from "./quantityRout";
+import userRout from "./userRout";
 
 const addRoutes = (app) => {
     app.use("/products", productsRout);
@@ -12,6 +13,7 @@ const addRoutes = (app) => {
     app.use("/sizes", sizeRout);
     app.use("/sizeTables", sizeTableRout);
     app.use("/quantity", quantityRout);
+    app.use("/users", userRout);
 };
 
 export default addRoutes;

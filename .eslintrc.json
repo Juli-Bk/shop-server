@@ -17,6 +17,9 @@
     "node/prefer-promises/dns": "error",
     "node/prefer-promises/fs": "error",
     "node/file-extension-in-import": 0,
-    "node/no-deprecated-api": 0
+    "node/no-deprecated-api": 0,
+    "node/no-unpublished-import": ["error", {
+      "allowModules": ["passport-jwt"]
+    }]
   }
 }

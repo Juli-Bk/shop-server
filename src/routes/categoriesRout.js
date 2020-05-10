@@ -9,22 +9,33 @@ import {
     getCategoryById,
     updateCategoryById
 } from "../controllers/categoryController";
+import passport from "passport";
 
 const router = express.Router();
 
 //create
-router.put("/", upload.single("category-image"), addCategory);
+router.put("/",
+    passport.authenticate("jwt-admin", {session: false}),
+    upload.single("category-image"),
+    addCategory);
 
 //read
 router.get("/", getAllCategories);
 router.get("/:id", getCategoryById);
 
 //update
-router.post("/:id", upload.single("category-image"), updateCategoryById);
+router.post("/:id",
+    passport.authenticate("jwt-admin", {session: false}),
+    upload.single("category-image"),
+    updateCategoryById);
 
 //delete
-router.delete("/:id", deleteCategoryById);
-router.delete("/", deleteAllCategories);
+router.delete("/:id",
+    passport.authenticate("jwt-admin", {session: false}),
+    deleteCategoryById);
+router.delete("/",
+    passport.authenticate("jwt-admin", {session: false}),
+    deleteAllCategories);
 
 
 export default router;

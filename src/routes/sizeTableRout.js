@@ -8,22 +8,31 @@ import {
     getSizeTableById,
     updateSizeTableById
 } from "../controllers/sizeTableController";
+import passport from "passport";
 
 const router = express.Router();
 
 //create
-router.put("/", addSizeTable);
+router.put("/",
+    passport.authenticate("jwt-admin", {session: false}),
+    addSizeTable);
 
 //read
 router.get("/", getAllSizeTables);
 router.get("/:id", getSizeTableById);
 
 //update
-router.post("/:id", updateSizeTableById);
+router.post("/:id",
+    passport.authenticate("jwt-admin", {session: false}),
+    updateSizeTableById);
 
 //delete
-router.delete("/:id", deleteSizeTableById);
-router.delete("/", deleteAllSizeTables);
+router.delete("/:id",
+    passport.authenticate("jwt-admin", {session: false}),
+    deleteSizeTableById);
+router.delete("/",
+    passport.authenticate("jwt-admin", {session: false}),
+    deleteAllSizeTables);
 
 
 export default router;

@@ -33,6 +33,6 @@ const QuantitySchema = new Schema({
 QuantitySchema.index({'$**': 'text'});
 
 QuantitySchema.plugin(validator);
-QuantitySchema.plugin(autoPopulate());
+QuantitySchema.plugin(autoPopulate);
 
 export default model("quantities", QuantitySchema);

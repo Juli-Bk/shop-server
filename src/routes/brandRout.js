@@ -9,22 +9,32 @@ import {
     getBrandById,
     updateBrandById
 } from "../controllers/brandController";
+import passport from "passport";
 
 const router = express.Router();
 
 //create
-router.put("/", upload.single("brand-image"), addBrand);
+router.put("/",
+    passport.authenticate("jwt-admin", {session: false}),
+    upload.single("brand-image"), addBrand);
 
 //read
 router.get("/", getAllBrands);
 router.get("/:id", getBrandById);
 
 //update
-router.post("/:id", upload.single("brand-image"), updateBrandById);
+router.post("/:id",
+    passport.authenticate("jwt-admin", {session: false}),
+    upload.single("brand-image"),
+    updateBrandById);
 
 //delete
-router.delete("/:id", deleteBrandById);
-router.delete("/", deleteAllBrands);
+router.delete("/:id",
+    passport.authenticate("jwt-admin", {session: false}),
+    deleteBrandById);
+router.delete("/",
+    passport.authenticate("jwt-admin", {session: false}),
+    deleteAllBrands);
 
 
 export default router;

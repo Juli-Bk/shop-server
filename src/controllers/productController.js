@@ -91,7 +91,6 @@ export const updateProductById = (req, res, next) => {
         }
         : {...req.body};
 
-    //todo надо добавлять в список картинок файлы? или полностью замещать их новым списком как сейчас?
     Product
         .findOne({_id: productId})
         .then(product => {

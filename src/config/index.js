@@ -13,5 +13,11 @@ export default {
     DB_string: process.env.MONGO_URI,
     allowCors: process.env.ALLOW_CORS,
     environment: process.env.NODE_ENV,
-    secret: process.env.SECRET_OR_KEY
+    secret: process.env.SECRET_OR_KEY,
+    //Signing a token with 1 hour of expiration by default on production
+    expiresInMinutes: process.env.NODE_ENV === "development"
+        ? 45000
+        : process.env.JWT_EXPIRES || 60
+    ,
+    tokenPrefix: "Bearer"
 };
