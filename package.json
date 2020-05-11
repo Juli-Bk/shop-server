@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "if-env NODE_ENV=production ?? npm run start:prod || npm run start:dev",
     "start:dev": "npm run eslint && nodemon .",
-    "start:prod": "node .",
+    "start:prod": "nodemon .",
     "start:debug": "npm run eslint && nodemon port=9229 --inspect-brk .",
     "eslint": "eslint \"src/**/*.js\""
   },

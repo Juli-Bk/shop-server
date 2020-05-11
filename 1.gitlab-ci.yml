@@ -1,13 +1,5 @@
 image: node:latest
 
-####### Global var
-variables:
-  NODE_ENV: "production"
-  ALLOW_CORS: "true"
-  MONGO_URI: "mongodb+srv://atlasMongoDBadmin:atlasMongoDBadmin@vigocluster-fywki:mongodb:net/VigoDB?retryWrites=true&w=majority"
-  SECRET_OR_KEY: "random very very secret string"
-  JWT_EXPIRES: "60"
-
 stages:
   - production
 
