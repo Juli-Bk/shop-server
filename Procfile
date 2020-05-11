@@ -1,1 +1,1 @@
-web: npm install && nodemon
+web: nodemon
