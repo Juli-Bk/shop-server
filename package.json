@@ -9,7 +9,7 @@
     "start:dev": "npm run eslint && nodemon .",
     "start:prod": "node .",
     "start:debug": "npm run eslint && nodemon port=9229 --inspect-brk .",
-    "eslint": "eslint 'src/**/*.js'"
+    "eslint": "eslint \"src/**/*.js\""
   },
   "author": "Yuliia Bozhek",
   "license": "ISC",
