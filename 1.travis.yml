@@ -8,5 +8,3 @@ script:
   - npm run test
   - npm run stylelint-build
   - npm run eslint
-  - git push heroku master
-
