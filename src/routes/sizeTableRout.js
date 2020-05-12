@@ -1,4 +1,4 @@
-import express from "express";
+import express from 'express';
 
 import {
     addSizeTable,
@@ -7,32 +7,31 @@ import {
     getAllSizeTables,
     getSizeTableById,
     updateSizeTableById
-} from "../controllers/sizeTableController";
-import passport from "passport";
+} from '../controllers/sizeTableController';
+import passport from 'passport';
 
 const router = express.Router();
 
 //create
-router.put("/",
-    passport.authenticate("jwt-admin", {session: false}),
+router.put('/',
+    passport.authenticate('jwt-admin', {session: false}),
     addSizeTable);
 
 //read
-router.get("/", getAllSizeTables);
-router.get("/:id", getSizeTableById);
+router.get('/', getAllSizeTables);
+router.get('/:id', getSizeTableById);
 
 //update
-router.post("/:id",
-    passport.authenticate("jwt-admin", {session: false}),
+router.post('/:id',
+    passport.authenticate('jwt-admin', {session: false}),
     updateSizeTableById);
 
 //delete
-router.delete("/:id",
-    passport.authenticate("jwt-admin", {session: false}),
+router.delete('/:id',
+    passport.authenticate('jwt-admin', {session: false}),
     deleteSizeTableById);
-router.delete("/",
-    passport.authenticate("jwt-admin", {session: false}),
+router.delete('/',
+    passport.authenticate('jwt-admin', {session: false}),
     deleteAllSizeTables);
-
 
 export default router;

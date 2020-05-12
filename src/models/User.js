@@ -1,8 +1,8 @@
-import {model, Schema} from "mongoose";
-import schemaOptions from "./modelHelper";
-import bcryptjs from "bcryptjs";
-import validationRules from "../config/validation";
-import validator from "validator";
+import {model, Schema} from 'mongoose';
+import schemaOptions from './modelHelper';
+import bcryptjs from 'bcryptjs';
+import validationRules from '../config/validation';
+import validator from 'validator';
 
 const UserSchema = new Schema({
         firstName: {
@@ -31,11 +31,11 @@ const UserSchema = new Schema({
         },
         gender: {
             type: String,
-            enum: ['male', "female"],
+            enum: ['male', 'female'],
         },
         email: {
             type: String,
-            required: [true, "Email is required"],
+            required: [true, 'Email is required'],
             validate: {
                 validator: function (email) {
                     return validator.isEmail(email);
@@ -45,11 +45,11 @@ const UserSchema = new Schema({
         },
         password: {
             type: String,
-            required: [true, "Password is required"]
+            required: [true, 'Password is required']
         },
         login: {
             type: String,
-            required: [true, "Login is required"],
+            required: [true, 'Login is required'],
             maxlength: 30
         },
         avatarUrl: {
@@ -84,4 +84,4 @@ UserSchema.methods.comparePassword = function (candidatePassword, cb) {
     });
 };
 
-export default model("users", UserSchema);
+export default model('users', UserSchema);

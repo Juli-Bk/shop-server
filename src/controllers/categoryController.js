@@ -1,5 +1,5 @@
-import Category from "../models/Category";
-import {log} from "../utils/helper";
+import Category from '../models/Category';
+import {log} from '../utils/helper';
 
 export const addCategory = (req, res, next) => {
     const filePath = req.file ? req.file.path : null;
@@ -14,7 +14,7 @@ export const addCategory = (req, res, next) => {
         .then(product => res
             .status(200)
             .json({
-                message: "success",
+                message: 'success',
                 product
             })
         )
@@ -89,7 +89,7 @@ export const updateCategoryById = (req, res, next) => {
             if (!category) {
                 res.status(200).json({
                     message: `Category with id ${categoryId} is not found`
-                })
+                });
             } else {
                 res.status(200).json(category);
             }
@@ -110,12 +110,12 @@ export const deleteCategoryById = (req, res, next) => {
             if (!category) {
                 res.status(200).json({
                     message: `Category with id ${categoryId} is not found`
-                })
+                });
             } else {
                 res.status(200)
                     .json({
                         message: `Category with id ${req.params.id} is deleted`
-                    })
+                    });
             }
         })
         .catch(error => {
@@ -133,7 +133,7 @@ export const deleteAllCategories = (req, res, next) => {
     Category.deleteMany({})
         .then(() => res.status(200)
             .json({
-                message: "all categories are deleted"
+                message: 'all categories are deleted'
             })
         )
         .catch(error => {
@@ -146,9 +146,3 @@ export const deleteAllCategories = (req, res, next) => {
             }
         );
 };
-
-
-
-
-
-

@@ -1,5 +1,5 @@
-import Brand from "../models/Brand";
-import {log} from "../utils/helper";
+import Brand from '../models/Brand';
+import {log} from '../utils/helper';
 
 export const addBrand = (req, res, next) => {
     const filePath = req.file ? req.file.path : null;
@@ -15,7 +15,7 @@ export const addBrand = (req, res, next) => {
         .then(item => res
             .status(200)
             .json({
-                message: "success",
+                message: 'success',
                 item
             })
         )
@@ -91,7 +91,7 @@ export const updateBrandById = (req, res, next) => {
             if (!item) {
                 res.status(200).json({
                     message: `Brand with id ${id} is not found`
-                })
+                });
             } else {
                 res.status(200).json(item);
             }
@@ -112,12 +112,12 @@ export const deleteBrandById = (req, res, next) => {
             if (!item) {
                 res.status(200).json({
                     message: `Brand with id ${id} is not found`
-                })
+                });
             } else {
                 res.status(200)
                     .json({
                         message: `Brand with id ${req.params.id} is deleted`
-                    })
+                    });
             }
         })
         .catch(error => {
@@ -135,7 +135,7 @@ export const deleteAllBrands = (req, res, next) => {
     Brand.deleteMany({})
         .then(() => res.status(200)
             .json({
-                message: "all brands are deleted"
+                message: 'all brands are deleted'
             })
         )
         .catch(error => {

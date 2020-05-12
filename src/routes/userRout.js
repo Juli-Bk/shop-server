@@ -1,6 +1,6 @@
-import upload from "../config/upload";
-import passport from "passport";
-import express from "express";
+import upload from '../config/upload';
+import passport from 'passport';
+import express from 'express';
 
 import {
     createUser,
@@ -11,41 +11,40 @@ import {
     updateUserInfo,
     loginUser,
     updatePassword
-} from "../controllers/userController";
+} from '../controllers/userController';
 
 const router = express.Router();
 
 //create
-router.put("/register", createUser);
+router.put('/register', createUser);
 
 //read
-router.get("/",
-    passport.authenticate("jwt-admin", {session: false}),
+router.get('/',
+    passport.authenticate('jwt-admin', {session: false}),
     getAllUsers);
 
-router.get("/customer",
-    passport.authenticate("jwt", {session: false}),
+router.get('/customer',
+    passport.authenticate('jwt', {session: false}),
     getUser);
 
-router.post("/login", loginUser);
+router.post('/login', loginUser);
 
 //update
-router.post("/",
-    passport.authenticate("jwt", {session: false}),
-    upload.single("user-avatar"),
+router.post('/',
+    passport.authenticate('jwt', {session: false}),
+    upload.single('user-avatar'),
     updateUserInfo);
 
-router.post("/password",
-    passport.authenticate("jwt", {session: false}),
+router.post('/password',
+    passport.authenticate('jwt', {session: false}),
     updatePassword);
 
 //delete
-router.delete("/:id",
-    passport.authenticate("jwt-admin", {session: false}),
+router.delete('/:id',
+    passport.authenticate('jwt-admin', {session: false}),
     deleteUserById);
-router.delete("/",
-    passport.authenticate("jwt-admin", {session: false}),
+router.delete('/',
+    passport.authenticate('jwt-admin', {session: false}),
     deleteAllUsers);
 
 export default router;
-

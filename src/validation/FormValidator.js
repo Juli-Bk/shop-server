@@ -1,4 +1,4 @@
-import validator from "validator";
+import validator from 'validator';
 
 class FormValidator {
     constructor(validations) {
@@ -13,7 +13,7 @@ class FormValidator {
             const field_value = data[rule.field].toString();
             const args = rule.args || [];
             const validation_method =
-                typeof rule.method === "string" ? validator[rule.method] : rule.method;
+                typeof rule.method === 'string' ? validator[rule.method] : rule.method;
 
             if (validation_method(field_value, ...args, data) !== rule.validWhen) {
                 validation.errors = {
@@ -43,8 +43,8 @@ class FormValidator {
         return (
             value === undefined ||
             value === null ||
-            (typeof value === "object" && Object.keys(value).length === 0) ||
-            (typeof value === "string" && value.trim().length === 0)
+            (typeof value === 'object' && Object.keys(value).length === 0) ||
+            (typeof value === 'string' && value.trim().length === 0)
         );
     }
 }

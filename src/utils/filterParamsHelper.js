@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const excludedParams = ["perPage", "startPage", "minPrice", "maxPrice", "sort"];
+const excludedParams = ['perPage', 'startPage', 'minPrice', 'maxPrice', 'sort'];
 
 const {Types: {ObjectId}} = mongoose;
 const validateObjectId = (id) => ObjectId.isValid(id) && (new ObjectId(id)).toString() === id;
@@ -18,10 +18,10 @@ const filterParser = (filtersQueryString) => {
     return Object.keys(filtersQueryString).reduce(
         (mongooseQuery, filterParam) => {
             const parameterValue = filtersQueryString[filterParam];
-            if (parameterValue.includes && parameterValue.includes(",")) {
+            if (parameterValue.includes && parameterValue.includes(',')) {
                 mongooseQuery[filterParam] = {
                     $in: filtersQueryString[filterParam]
-                        .split(",")
+                        .split(',')
                         .map(item => {
                             const decoded = decodeURI(item.trim());
                             if (validateObjectId(decoded)) {
@@ -35,7 +35,7 @@ const filterParser = (filtersQueryString) => {
                 const decoded = decodeURI(filterValue.trim());
 
                 if (validateObjectId(decoded)) {
-                    mongooseQuery[filterParam] = decoded
+                    mongooseQuery[filterParam] = decoded;
                 } else {
                     mongooseQuery[filterParam] = {
                         $regex: decoded

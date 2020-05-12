@@ -1,7 +1,7 @@
-import User from "../models/User";
-import {log} from "../utils/helper";
-import bcrypt from "bcryptjs";
-import signUp from "../utils/authJWT";
+import User from '../models/User';
+import {log} from '../utils/helper';
+import bcrypt from 'bcryptjs';
+import signUp from '../utils/authJWT';
 
 export const createUser = (req, res, next) => {
     const data = req.body;
@@ -9,7 +9,7 @@ export const createUser = (req, res, next) => {
 
     if (!email || !login || !password) {
         res.status(400)
-            .json({message: `Email or login, password are required`});
+            .json({message: 'Email or login, password are required'});
         return;
     }
 
@@ -85,8 +85,8 @@ export const getAllUsers = (req, res, next) => {
         .then(users => {
             const usersData = users.map((user) => {
                 //hiding user private data
-                user.phone = "XXXX-XXXX-" + user.phone.slice(8);
-                user.email = "XXXX-XXXX-" + user.email.split("@")[1];
+                user.phone = 'XXXX-XXXX-' + user.phone.slice(8);
+                user.email = 'XXXX-XXXX-' + user.email.split('@')[1];
                 delete user.password;
                 return user;
             });
@@ -144,7 +144,7 @@ export const loginUser = (req, res, next) => {
 
     if (!login || !password) {
         res.status(400)
-            .json({message: `Login and password are required`});
+            .json({message: 'Login and password are required'});
     }
 
     User.findOne({
@@ -154,7 +154,7 @@ export const loginUser = (req, res, next) => {
             if (!user) {
                 res.status(400)
                     .json({
-                        message: `User is not found`
+                        message: 'User is not found'
                     });
             }
 
@@ -170,7 +170,7 @@ export const loginUser = (req, res, next) => {
                     } else {
                         res.status(400)
                             .json({
-                                message: "Password doesnt match"
+                                message: 'Password doesnt match'
                             });
                     }
                 });
@@ -192,7 +192,7 @@ export const updatePassword = (req, res, next) => {
 
     if (!oldPassword || !newPassword) {
         res.status(400)
-            .json({message: "newPassword, oldPassword are required"});
+            .json({message: 'newPassword, oldPassword are required'});
         return;
     }
 
@@ -201,7 +201,7 @@ export const updatePassword = (req, res, next) => {
             if (!user) {
                 res.status(400)
                     .json({
-                        message: "User is not found"
+                        message: 'User is not found'
                     });
                 return;
             }
@@ -210,7 +210,7 @@ export const updatePassword = (req, res, next) => {
                 if (!isMatch) {
                     res.status(400)
                         .json({
-                            message: "old password doesnt match"
+                            message: 'old password doesnt match'
                         });
                 } else {
                     bcrypt.genSalt(10, (err, salt) => {
@@ -222,7 +222,7 @@ export const updatePassword = (req, res, next) => {
                             user.save()
                                 .then(user => {
                                     res.json({
-                                        message: "Password successfully changed",
+                                        message: 'Password successfully changed',
                                         customer: user
                                     });
                                 })
@@ -258,7 +258,7 @@ export const deleteUserById = (req, res, next) => {
             res.status(200)
                 .json({
                     message: `User with id "${req.params.id}" is deleted`
-                })
+                });
         })
         .catch(error => {
                 res.status(400)
@@ -276,7 +276,7 @@ export const deleteAllUsers = (req, res, next) => {
     User.deleteMany({isAdmin: false})
         .then(() => res.status(200)
             .json({
-                message: "all users except admins are deleted"
+                message: 'all users except admins are deleted'
             })
         )
         .catch(error => {

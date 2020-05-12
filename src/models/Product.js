@@ -1,7 +1,7 @@
-import mongoose, {Schema} from "mongoose";
-import schemaOptions from "./modelHelper";
-import validator from "mongoose-id-validator";
-import autoPopulate from "mongoose-autopopulate";
+import mongoose, {Schema} from 'mongoose';
+import schemaOptions from './modelHelper';
+import validator from 'mongoose-id-validator';
+import autoPopulate from 'mongoose-autopopulate';
 
 const ProductSchema = new mongoose.Schema({
         enabled: {
@@ -10,21 +10,21 @@ const ProductSchema = new mongoose.Schema({
         },
         description: {
             type: String,
-            required: [true, "Description is required"]
+            required: [true, 'Description is required']
         },
         name: {
             type: String,
-            required: [true, "Product name is required"]
+            required: [true, 'Product name is required']
         },
         price: {
-            required: [true, "Price is required"],
+            required: [true, 'Price is required'],
             type: Number
         },
         salePrice: {
             type: Number
         },
         imageUrls: [{
-            required: [true, "imageUrl is required"],
+            required: [true, 'imageUrl is required'],
             type: String
         }],
         videoUrl: {
@@ -39,25 +39,25 @@ const ProductSchema = new mongoose.Schema({
         },
         quantityTableId: [{
             type: mongoose.ObjectId,
-            ref: "quantities",
+            ref: 'quantities',
             default: null
         }],
         sizeTableId: {
             type: mongoose.ObjectId,
-            ref: "sizeTables",
+            ref: 'sizeTables',
             default: null,
             autopopulate: true
         },
         brandId: {
             type: mongoose.ObjectId,
-            ref: "brands",
+            ref: 'brands',
             default: null,
             autopopulate: true
         },
         categoryId: {
             type: Schema.Types.ObjectId,
-            ref: "categories",
-            required: [true, "Category for a product must be specified"],
+            ref: 'categories',
+            required: [true, 'Category for a product must be specified'],
             autopopulate: true
         }
     },
@@ -69,4 +69,4 @@ ProductSchema.plugin(autoPopulate);
 
 ProductSchema.index({'$**': 'text'});
 
-export default mongoose.model("products", ProductSchema);
+export default mongoose.model('products', ProductSchema);

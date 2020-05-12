@@ -1,7 +1,7 @@
-import {model, Schema} from "mongoose";
-import schemaOptions from "./modelHelper";
-import validator from "mongoose-id-validator";
-import autoPopulate from "mongoose-autopopulate";
+import {model, Schema} from 'mongoose';
+import schemaOptions from './modelHelper';
+import validator from 'mongoose-id-validator';
+import autoPopulate from 'mongoose-autopopulate';
 
 //table with measurements of concrete model
 const SizeTableSchema = new Schema({
@@ -53,4 +53,4 @@ const SizeTableSchema = new Schema({
 SizeTableSchema.plugin(validator);
 SizeTableSchema.plugin(autoPopulate);
 
-export default model("sizeTables", SizeTableSchema);
+export default model('sizeTables', SizeTableSchema);

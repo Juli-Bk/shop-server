@@ -1,11 +1,11 @@
-import passportJWT from "passport-jwt";
-import mongoose from "mongoose";
-import config from "./index.js";
+import passportJWT from 'passport-jwt';
+import mongoose from 'mongoose';
+import config from './index.js';
 
 const JwtStrategy = passportJWT.Strategy;
 const ExtractJwt = passportJWT.ExtractJwt;
 
-const User = mongoose.model("users");
+const User = mongoose.model('users');
 
 const setJWTrules = async (passport) => {
     const opts = {};
@@ -13,7 +13,7 @@ const setJWTrules = async (passport) => {
     opts.secretOrKey = config.secret;
 
     passport.use(
-        "jwt",
+        'jwt',
         new JwtStrategy(opts, (jwt_payload, done) => {
             User.findById(jwt_payload.id)
                 .then(user => {
@@ -27,7 +27,7 @@ const setJWTrules = async (passport) => {
     );
 
     passport.use(
-        "jwt-admin",
+        'jwt-admin',
         new JwtStrategy(opts, (jwt_payload, done) => {
             User.findById(jwt_payload.id)
                 .then(user => {
@@ -35,7 +35,7 @@ const setJWTrules = async (passport) => {
                         return done(null, user);
                     }
                     return done(null, false, {
-                        message: "You have not enough permissions for this operation"
+                        message: 'You have not enough permissions for this operation'
                     });
                 })
                 .catch(err => console.log(err));
@@ -43,4 +43,4 @@ const setJWTrules = async (passport) => {
     );
 };
 
-export default setJWTrules
+export default setJWTrules;

@@ -1,6 +1,6 @@
-import Product from "../models/Product";
-import {log} from "../utils/helper";
-import filterParamsHelper from "../utils/filterParamsHelper"
+import Product from '../models/Product';
+import {log} from '../utils/helper';
+import filterParamsHelper from '../utils/filterParamsHelper';
 
 export const addProduct = (req, res, next) => {
     const filePath = req.files ? req.files.map(file => file.path) : [];
@@ -16,7 +16,7 @@ export const addProduct = (req, res, next) => {
         .then(product => res
             .status(200)
             .json({
-                message: "Success operation. New product is added",
+                message: 'Success operation. New product is added',
                 product
             })
         )
@@ -132,7 +132,7 @@ export const deleteProductById = (req, res, next) => {
             res.status(200)
                 .json({
                     message: `Product with id "${req.params.id}" is deleted`
-                })
+                });
         })
         .catch(error => {
                 res.status(400)
@@ -150,7 +150,7 @@ export const deleteAllProducts = (req, res, next) => {
     Product.deleteMany({})
         .then(() => res.status(200)
             .json({
-                message: "all products are deleted"
+                message: 'all products are deleted'
             })
         )
         .catch(error => {
@@ -165,12 +165,12 @@ export const deleteAllProducts = (req, res, next) => {
 };
 
 export const searchProducts = (req, res, next) => {
-    log("searchProducts");
+    log('searchProducts');
     const queryString = req.body.query;
 
     if (!queryString) {
         res.status(400)
-            .json({message: "Products: Search query string is empty"});
+            .json({message: 'Products: Search query string is empty'});
         return;
     }
 
@@ -179,9 +179,9 @@ export const searchProducts = (req, res, next) => {
     const query = queryString
         .toLowerCase()
         .trim()
-        .replace(/\s\s+/g, " ")
-        .split(" ")
-        .join(" ");
+        .replace(/\s\s+/g, ' ')
+        .split(' ')
+        .join(' ');
 
     // For example,
     // to find all stores containing “java” or “shop” but not “coffee”, use the following:
@@ -203,7 +203,6 @@ export const searchProducts = (req, res, next) => {
                 next(error);
             }
         );
-
 
 };
 
@@ -229,5 +228,3 @@ export const getProductsByFilterParams = async (req, res, next) => {
         next(err);
     }
 };
-
-

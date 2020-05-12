@@ -1,4 +1,4 @@
-import express from "express";
+import express from 'express';
 
 import {
     addQuantity,
@@ -7,32 +7,31 @@ import {
     getAllQuantity,
     getQuantityById,
     updateQuantityById
-} from "../controllers/quantityController";
-import passport from "passport";
+} from '../controllers/quantityController';
+import passport from 'passport';
 
 const router = express.Router();
 
 //create
-router.put("/",
-    passport.authenticate("jwt-admin", {session: false}),
+router.put('/',
+    passport.authenticate('jwt-admin', {session: false}),
     addQuantity);
 
 //read
-router.get("/", getAllQuantity);
-router.get("/:id", getQuantityById);
+router.get('/', getAllQuantity);
+router.get('/:id', getQuantityById);
 
 //update
-router.post("/:id",
-    passport.authenticate("jwt-admin", {session: false}),
+router.post('/:id',
+    passport.authenticate('jwt-admin', {session: false}),
     updateQuantityById);
 
 //delete
-router.delete("/:id",
-    passport.authenticate("jwt-admin", {session: false}),
+router.delete('/:id',
+    passport.authenticate('jwt-admin', {session: false}),
     deleteQuantityById);
-router.delete("/",
-    passport.authenticate("jwt-admin", {session: false}),
+router.delete('/',
+    passport.authenticate('jwt-admin', {session: false}),
     deleteAllQuantitys);
-
 
 export default router;

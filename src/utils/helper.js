@@ -1,6 +1,6 @@
-import uniqueRandom from "unique-random";
-import util from "util";
-import colors from "colors";
+import uniqueRandom from 'unique-random';
+import util from 'util';
+import colors from 'colors';
 
 const rand = uniqueRandom(0, 999999);
 

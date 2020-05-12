@@ -1,5 +1,5 @@
-import commonValidationRules from "./formValidationRules";
-import FormValidator from "./FormValidator";
+import commonValidationRules from './formValidationRules';
+import FormValidator from './FormValidator';
 
 const validationHelper = (data) => {
     const fields = Object.keys(data);

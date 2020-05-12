@@ -1,10 +1,10 @@
-import {model, Schema} from "mongoose";
-import schemaOptions from "./modelHelper";
+import {model, Schema} from 'mongoose';
+import schemaOptions from './modelHelper';
 
 const BrandSchema = new Schema({
         name: {
             type: String,
-            required: [true, "Brand name is required"]
+            required: [true, 'Brand name is required']
         },
         imageUrl: {
             type: String
@@ -13,4 +13,4 @@ const BrandSchema = new Schema({
     schemaOptions
 );
 BrandSchema.index({'$**': 'text'});
-export default model("brands", BrandSchema);
+export default model('brands', BrandSchema);

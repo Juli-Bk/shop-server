@@ -1,5 +1,5 @@
-import Quantity from "../models/Quantity";
-import {getRandomItemId, log} from "../utils/helper";
+import Quantity from '../models/Quantity';
+import {getRandomItemId, log} from '../utils/helper';
 
 export const addQuantity = (req, res, next) => {
     const data = {...req.body, itemId: getRandomItemId()};
@@ -10,7 +10,7 @@ export const addQuantity = (req, res, next) => {
         .then(item => res
             .status(200)
             .json({
-                message: "success",
+                message: 'success',
                 item
             })
         )
@@ -79,7 +79,7 @@ export const updateQuantityById = (req, res, next) => {
             if (!item) {
                 res.status(200).json({
                     message: `Quantity with id ${id} is not found`
-                })
+                });
             } else {
                 res.status(200).json(item);
             }
@@ -100,12 +100,12 @@ export const deleteQuantityById = (req, res, next) => {
             if (!item) {
                 res.status(200).json({
                     message: `Quantity with id ${id} is not found`
-                })
+                });
             } else {
                 res.status(200)
                     .json({
                         message: `Quantity with id ${req.params.id} is deleted`
-                    })
+                    });
             }
         })
         .catch(error => {
@@ -123,7 +123,7 @@ export const deleteAllQuantitys = (req, res, next) => {
     Quantity.deleteMany({})
         .then(() => res.status(200)
             .json({
-                message: "all Quantity data are deleted"
+                message: 'all Quantity data are deleted'
             })
         )
         .catch(error => {

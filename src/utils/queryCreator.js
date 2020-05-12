@@ -1,7 +1,7 @@
-import FormValidator from "../validation/FormValidator";
-import {isJSON} from "./helper";
+import FormValidator from '../validation/FormValidator';
+import {isJSON} from './helper';
 
-const excludedParams = ["letterSubject", "letterHtml"];
+const excludedParams = ['letterSubject', 'letterHtml'];
 
 const queryCreator = (data) => {
 

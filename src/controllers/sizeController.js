@@ -1,5 +1,5 @@
-import Size from "../models/Size";
-import {getRandomItemId, log} from "../utils/helper";
+import Size from '../models/Size';
+import {getRandomItemId, log} from '../utils/helper';
 
 export const addSize = (req, res, next) => {
     const data = {...req.body, itemId: getRandomItemId()};
@@ -10,7 +10,7 @@ export const addSize = (req, res, next) => {
         .then(item => res
             .status(200)
             .json({
-                message: "success",
+                message: 'success',
                 item
             })
         )
@@ -79,7 +79,7 @@ export const updateSizeById = (req, res, next) => {
             if (!item) {
                 res.status(200).json({
                     message: `Size with id ${id} is not found`
-                })
+                });
             } else {
                 res.status(200).json(item);
             }
@@ -100,12 +100,12 @@ export const deleteSizeById = (req, res, next) => {
             if (!item) {
                 res.status(200).json({
                     message: `Size with id ${id} is not found`
-                })
+                });
             } else {
                 res.status(200)
                     .json({
                         message: `Size with id ${req.params.id} is deleted`
-                    })
+                    });
             }
         })
         .catch(error => {
@@ -123,7 +123,7 @@ export const deleteAllSizes = (req, res, next) => {
     Size.deleteMany({})
         .then(() => res.status(200)
             .json({
-                message: "all Sizes are deleted"
+                message: 'all Sizes are deleted'
             })
         )
         .catch(error => {

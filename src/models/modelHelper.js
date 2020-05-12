@@ -1,4 +1,4 @@
-import config from "../config/index";
+import config from '../config/index';
 
 const schemaOptions = {
     //if client pass extra props, they will not be saved in DB

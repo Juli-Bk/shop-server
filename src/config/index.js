@@ -5,7 +5,7 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 const envFound = dotenv.config();
 
 if (!envFound) {
-    throw new Error(`⚠ Couldn't find .env file. Please check the .env.example and create your own copy of that file. ⚠`);
+    throw new Error('⚠ Couldn\'t find .env file. Please check the .env.example and create your own copy of that file. ⚠');
 }
 
 export default {
@@ -15,9 +15,9 @@ export default {
     environment: process.env.NODE_ENV,
     secret: process.env.SECRET_OR_KEY,
     //Signing a token with 1 hour of expiration by default on production
-    expiresInMinutes: process.env.NODE_ENV === "development"
+    expiresInMinutes: process.env.NODE_ENV === 'development'
         ? 45000
         : process.env.JWT_EXPIRES
     ,
-    tokenPrefix: "Bearer"
+    tokenPrefix: 'Bearer'
 };

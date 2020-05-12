@@ -1,5 +1,5 @@
-import multer from "multer";
-import fse from "fs-extra";
+import multer from 'multer';
+import fse from 'fs-extra';
 
 // Video Type	   Extension	MIME Type
 // __________________________________________
@@ -14,13 +14,13 @@ import fse from "fs-extra";
 
 const fileFilter = (req, file, cb) => {
     // Accept file (only jpeg/jpg/png/avi)
-    if (file.mimetype === "image/jpeg"
-        || file.mimetype === "image/png"
-        || file.mimetype === "image/jpg"
-        || file.mimetype === "video/quicktime"
-        || file.mimetype === "video/x-msvideo"
-        || file.mimetype === "video/mp4"
-        || file.mimetype === "video/mp3"
+    if (file.mimetype === 'image/jpeg'
+        || file.mimetype === 'image/png'
+        || file.mimetype === 'image/jpg'
+        || file.mimetype === 'video/quicktime'
+        || file.mimetype === 'video/x-msvideo'
+        || file.mimetype === 'video/mp4'
+        || file.mimetype === 'video/mp3'
     ) {
         cb(null, true);
     } else {
@@ -34,7 +34,7 @@ const storage = multer.diskStorage({
         cb(null, file.originalname);
     },
     destination: function (req, file, cb) {
-        const folderName = "./uploads/" + req.baseUrl.split("/").pop();
+        const folderName = './uploads/' + req.baseUrl.split('/').pop();
         fse.mkdirsSync(folderName);
         cb(null, folderName);
     },
