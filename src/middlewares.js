@@ -11,7 +11,7 @@ const addMiddlewares = (app) => {
 
     app.use(bodyParser.json());
     app.use(passport.initialize());
-    jwt(    passport);
+    jwt(    passpor);
 };
 
 export default addMiddlewares;
