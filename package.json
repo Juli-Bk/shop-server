@@ -8,8 +8,8 @@
     "start:dev": "npm run eslint && nodemon .",
     "start:prod": "nodemon .",
     "start:debug": "npm run eslint && nodemon port=9229 --inspect-brk .",
-    "eslint": "eslint --fix \"src/**/*.js\"",
-    "eslint-fix": "eslint \"src/**/*.js\""
+    "eslint": "eslint \"src/**/*.js\"",
+    "eslint-fix": "eslint --fix \"src/**/*.js\""
   },
   "author": "Yuliia Bozhek",
   "license": "ISC",
