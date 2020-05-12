@@ -46,6 +46,7 @@ export const createUser = (req, res, next) => {
                     }
 
                     newCustomer.password = hash;
+                    newCustomer.createdDate = Date.now();
                     newCustomer
                         .save()
                         .then(customer => res.json(customer))
@@ -160,6 +161,8 @@ export const loginUser = (req, res, next) => {
             bcrypt.compare(password, user.password)
                 .then(isMatch => {
                     if (isMatch) {
+                        user.last_login = Date.now();
+                        user.save();
                         res.status(200)
                             .json({
                                 token: signUp(user)

@@ -59,6 +59,10 @@ const UserSchema = new Schema({
             type: Boolean,
             default: false
         },
+        last_login: {
+            type: Date,
+            default: Date.now()
+        },
         enabled: {
             type: Boolean,
             default: true

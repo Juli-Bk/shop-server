@@ -10,14 +10,14 @@ if (!envFound) {
 
 export default {
     port: parseInt(process.env.PORT, 10),
-    DB_string: process.env.MONGO_URI || "mongodb+srv://atlasMongoDBadmin:atlasMongoDBadmin@vigocluster-fywki.mongodb.net/VigoDB?retryWrites=true&w=majority",
+    DB_string: process.env.MONGO_URI,
     allowCors: process.env.ALLOW_CORS,
-    environment: process.env.NODE_ENV || "production",
-    secret: process.env.SECRET_OR_KEY || "radftghjnb vcgzafsygdq6r534r6768yriudghzjcbzjsk",
+    environment: process.env.NODE_ENV,
+    secret: process.env.SECRET_OR_KEY,
     //Signing a token with 1 hour of expiration by default on production
     expiresInMinutes: process.env.NODE_ENV === "development"
         ? 45000
-        : process.env.JWT_EXPIRES || 60
+        : process.env.JWT_EXPIRES
     ,
     tokenPrefix: "Bearer"
 };
