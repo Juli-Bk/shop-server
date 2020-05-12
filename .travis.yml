@@ -5,6 +5,4 @@ cache:
   directories:
   - node_modules
 script:
-  - npm run test
-  - npm run stylelint-build
   - npm run eslint
