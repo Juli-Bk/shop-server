@@ -145,6 +145,7 @@ export const loginUser = (req, res, next) => {
     if (!login || !password) {
         res.status(400)
             .json({message: 'Login and password are required'});
+        return;
     }
 
     User.findOne({

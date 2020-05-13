@@ -5,6 +5,7 @@ import sizeRout from './sizeRout';
 import sizeTableRout from './sizeTableRout';
 import quantityRout from './quantityRout';
 import userRout from './userRout';
+import express from 'express';
 import path from 'path';
 import favicon from "serve-favicon";
 
@@ -20,6 +21,8 @@ const addRoutes = (app) => {
     app.use('/sizeTables', sizeTableRout);
     app.use('/quantity', quantityRout);
     app.use('/users', userRout);
+
+    app.use('/uploads', express.static('uploads'));
 
     app.get("*", (req, res) => {
         res.status(201).sendFile(path.resolve(__dirname, 'public', 'index.html'));
