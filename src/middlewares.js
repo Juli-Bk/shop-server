@@ -8,7 +8,6 @@ const addMiddlewares = (app) => {
     if (config.allowCors) {
         app.use(cors());
     }
-
     app.use(bodyParser.json());
     app.use(passport.initialize());
     jwt(passport);

@@ -1,12 +1,13 @@
 import express from 'express';
-import mongoose from "mongoose";
-import {log} from "./src/utils/helper";
+import mongoose from 'mongoose';
+import {log} from './src/utils/helper';
 import config from './src/config';
 import os from 'os';
-import models from "./src/models/index";
+// eslint-disable-next-line no-unused-vars
+import models from './src/models/index';
 
-import addMiddlewares from "./src/middlewares";
-import addRoutes from "./src/routes";
+import addMiddlewares from './src/middlewares';
+import addRoutes from './src/routes';
 
 export const startServer = async () => {
     const app = express();
@@ -15,23 +16,8 @@ export const startServer = async () => {
 
     app.listen(config.port, err => {
         if (err) {
-            process.exit(1);
-            return;
+            throw new Error(err.message);
         }
-
-        app.get('/', (request, response, next) => {
-            try {
-                response
-                    .status(201)
-                    .json({
-                        message: 'server response!!!'
-                    });
-            } catch (e) {
-                console.log(e);
-                next(e);
-            }
-        });
-
         log(`🛡  Server is listening: ${os.hostname()} 🏆  on port: ${config.port}`);
         log(`🛡  environment: ${config.environment}`);
     });
@@ -59,15 +45,15 @@ mongoose.connection.on('reconnectFailed', () => {
     });
 });
 
-if (config.environment === "development") {
+if (config.environment === 'development') {
     mongoose.set('debug', (collectionName, method, query, doc, options) => {
         console.log(`${collectionName}.${method}`, JSON.stringify(query), doc, options);
     });
 }
 
-process.once("uncaughtExeption", (error) => {
+process.once('uncaughtExeption', (error) => {
     console.log(error);
-
     //force exit process anyway
+    // eslint-disable-next-line no-process-exit
     process.exit(1);
 });

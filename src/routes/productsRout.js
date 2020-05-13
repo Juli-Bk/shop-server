@@ -11,6 +11,7 @@ import {
     searchProducts,
     updateProductById
 } from '../controllers/productController';
+
 import passport from 'passport';
 
 const router = express.Router();

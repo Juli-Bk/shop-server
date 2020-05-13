@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "online shop server",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Juli-Bk/shop-server.git"
+  },
   "scripts": {
     "start": "if-env NODE_ENV=production ?? npm run start:prod || npm run start:dev",
     "start:dev": "npm run eslint && nodemon .",
@@ -36,14 +40,13 @@
     "nodemon": "^2.0.2",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
+    "serve-favicon": "^2.5.0",
     "unique-random": "^2.1.0",
     "validator": "^13.0.0"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
-    "eslint-plugin-import": "^2.20.2",
-    "eslint-plugin-node": "^11.1.0",
-    "standard": "^14.3.4"
+    "eslint-plugin-node": "^11.1.0"
   },
   "engines": {
     "node": ">=8.10.0"
