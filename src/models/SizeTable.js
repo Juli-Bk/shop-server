@@ -2,7 +2,6 @@ import {model, Schema} from 'mongoose';
 import schemaOptions from './modelHelper';
 import validator from 'mongoose-id-validator';
 import autoPopulate from 'mongoose-autopopulate';
-import moment from "moment";
 
 //table with measurements of concrete model
 const SizeTableSchema = new Schema({
