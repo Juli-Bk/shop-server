@@ -8,6 +8,15 @@ const ProductSchema = new mongoose.Schema({
             type: Boolean,
             default: true
         },
+        featured: {
+            type: Boolean
+        },
+        special: {
+            type: Boolean
+        },
+        bestseller: {
+            type: Boolean
+        },
         description: {
             type: String,
             required: [true, 'Description is required']
@@ -30,9 +39,12 @@ const ProductSchema = new mongoose.Schema({
         videoUrl: {
             type: String
         },
-        date: {
+        createdDate: {
+            type: Date
+        },
+        updatedDate: {
             type: Date,
-            default: Date.now
+            default: Date.now()
         },
         manufacturedCountry: {
             type: String

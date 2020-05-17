@@ -7,6 +7,7 @@ export const addProduct = (req, res, next) => {
 
     const productData = {
         ...req.body,
+        createdDate: Date.now(),
         imageUrls: filePath
     };
 
@@ -90,6 +91,8 @@ export const updateProductById = (req, res, next) => {
             imageUrls: filePath
         }
         : {...req.body};
+
+    productData.updatedDate = Date.now();
 
     Product
         .findOne({_id: productId})
