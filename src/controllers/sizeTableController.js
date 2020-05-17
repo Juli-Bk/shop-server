@@ -27,7 +27,7 @@ export const addSizeTable = (req, res, next) => {
 export const getAllSizeTables = (req, res, next) => {
     SizeTable
         .find()
-        .then(items => res.send(items))
+        .then(items => res.status(200).send(items))
         .catch(error => {
                 res.status(400)
                     .json({

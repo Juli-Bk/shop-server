@@ -49,7 +49,7 @@ export const createUser = (req, res, next) => {
                     newCustomer.createdDate = Date.now();
                     newCustomer
                         .save()
-                        .then(customer => res.json(customer))
+                        .then(customer => res.status(200).json(customer))
                         .catch(error => {
                                 res.status(400).json({
                                     message: `Error happened on server: "${error.message}" `
@@ -90,7 +90,7 @@ export const getAllUsers = (req, res, next) => {
                 delete user.password;
                 return user;
             });
-            return res.send(usersData);
+            return res.status(200).send(usersData);
         })
         .catch(error => {
                 res.status(400)
@@ -222,7 +222,7 @@ export const updatePassword = (req, res, next) => {
                             user.password = newPassword;
                             user.save()
                                 .then(user => {
-                                    res.json({
+                                    res.status(200).json({
                                         message: 'Password successfully changed',
                                         customer: user
                                     });

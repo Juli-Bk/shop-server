@@ -32,7 +32,7 @@ export const addBrand = (req, res, next) => {
 export const getAllBrands = (req, res, next) => {
     Brand
         .find()
-        .then(items => res.send(items))
+        .then(items => res.status(200).send(items))
         .catch(error => {
                 res.status(400)
                     .json({

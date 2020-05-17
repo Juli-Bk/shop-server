@@ -27,7 +27,7 @@ export const addSize = (req, res, next) => {
 export const getAllSizes = (req, res, next) => {
     Size
         .find()
-        .then(items => res.send(items))
+        .then(items => res.status(200).send(items))
         .catch(error => {
                 res.status(400)
                     .json({
