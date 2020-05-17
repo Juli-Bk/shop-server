@@ -3,6 +3,7 @@ import schemaOptions from './modelHelper';
 import bcryptjs from 'bcryptjs';
 import validationRules from '../config/validation';
 import validator from 'validator';
+import moment from "moment";
 
 const UserSchema = new Schema({
         firstName: {
@@ -24,7 +25,9 @@ const UserSchema = new Schema({
             type: Date,
             validate: {
                 validator: function (birthDate) {
-                    return birthDate < Date.now();
+                    const bd = moment(birthDate);
+                    return bd.isValid()
+                        && (bd.format("MM-DD-YYYY") < moment.utc().format("MM-DD-YYYY"));
                 },
                 message: props => `${props.value} is not a valid!`
             }
@@ -59,18 +62,19 @@ const UserSchema = new Schema({
             type: Boolean,
             default: false
         },
-        last_login: {
-            type: Date,
-            default: Date.now()
+        lastLoginDate: {
+            type: Date
         },
         enabled: {
             type: Boolean,
             default: true
         },
         createdDate: {
-            type: Date,
-            default: Date.now()
-        }
+            type: Date
+        },
+        updatedDate: {
+            type: Date
+        },
     },
     schemaOptions
 );

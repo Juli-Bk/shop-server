@@ -2,6 +2,7 @@ import mongoose, {Schema} from 'mongoose';
 import schemaOptions from './modelHelper';
 import validator from 'mongoose-id-validator';
 import autoPopulate from 'mongoose-autopopulate';
+import moment from 'moment';
 
 const ProductSchema = new mongoose.Schema({
         enabled: {
@@ -43,8 +44,7 @@ const ProductSchema = new mongoose.Schema({
             type: Date
         },
         updatedDate: {
-            type: Date,
-            default: Date.now()
+            type: Date
         },
         manufacturedCountry: {
             type: String

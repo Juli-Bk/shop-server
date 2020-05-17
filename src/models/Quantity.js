@@ -25,6 +25,12 @@ const QuantitySchema = new Schema({
             ref: 'sizes',
             required: [true, 'Size must be specified'],
             autopopulate: true
+        },
+        createdDate: {
+            type: Date
+        },
+        updatedDate: {
+            type: Date
         }
     },
     schemaOptions

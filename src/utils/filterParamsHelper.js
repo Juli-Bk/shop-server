@@ -1,6 +1,9 @@
 import mongoose from 'mongoose';
+import moment from 'moment';
 
-const excludedParams = ['perPage', 'startPage', 'minPrice', 'maxPrice', 'sort'];
+const excludedParams = ['perPage', 'startPage',
+    'minPrice', 'maxPrice', 'sort',
+    'minCreatedDate', 'maxCreatedDate'];
 
 const {Types: {ObjectId}} = mongoose;
 const validateObjectId = (id) => ObjectId.isValid(id) && (new ObjectId(id)).toString() === id;
@@ -13,6 +16,14 @@ const filterParser = (filtersQueryString) => {
             $gt: Number(filtersQueryString.minPrice),
             $lt: Number(filtersQueryString.maxPrice)
         };
+    }
+    if (filtersQueryString.minCreatedDate || filtersQueryString.maxCreatedDate) {
+        const minDate = moment.utc(filtersQueryString.minCreatedDate);
+        const maxDate = moment.utc(filtersQueryString.maxCreatedDate);
+            mongooseQuery.createdDate = {
+                $gte: minDate,
+                $lte: maxDate
+            };
     }
 
     return Object.keys(filtersQueryString).reduce(

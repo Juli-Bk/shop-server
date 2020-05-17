@@ -1,11 +1,13 @@
 import Category from '../models/Category';
 import {log} from '../utils/helper';
+import moment from "moment";
 
 export const addCategory = (req, res, next) => {
     const filePath = req.file ? req.file.path : null;
 
     const data = {
         ...req.body,
+        createdDate: moment.utc().format( "MM-DD-YYYY"),
         imageUrl: filePath
     };
     const newItem = new Category(data);
@@ -74,6 +76,7 @@ export const updateCategoryById = (req, res, next) => {
 
     const data = {
         ...req.body,
+        updatedDate: moment.utc().format("MM-DD-YYYY"),
         imageUrl: filePath
     };
 
@@ -83,7 +86,7 @@ export const updateCategoryById = (req, res, next) => {
         //what we update
         {$set: data},
         //options. returns new updated data
-        {new: true}
+        {new: true, runValidators: true}
     )
         .then(category => {
             if (!category) {

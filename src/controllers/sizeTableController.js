@@ -1,8 +1,13 @@
 import SizeTable from '../models/SizeTable';
 import {getRandomItemId, log} from '../utils/helper';
+import moment from "moment";
 
 export const addSizeTable = (req, res, next) => {
-    const data = {...req.body, itemId: getRandomItemId()};
+    const data = {
+        ...req.body,
+        createdDate: moment.utc().format("MM-DD-YYYY"),
+        itemId: getRandomItemId()
+    };
 
     const newItem = new SizeTable(data);
     newItem
@@ -71,9 +76,9 @@ export const updateSizeTableById = (req, res, next) => {
         //filter
         id,
         //what we update
-        {$set: req.body},
+        {$set: {...req.body, updatedDate: moment.utc().format("MM-DD-YYYY"),}},
         //options. returns new updated data
-        {new: true}
+        {new: true, runValidators: true}
     )
         .then(item => {
             if (!item) {

@@ -1,5 +1,6 @@
 import {model, Schema} from 'mongoose';
 import schemaOptions from './modelHelper';
+import moment from "moment";
 
 const BrandSchema = new Schema({
         name: {
@@ -8,6 +9,12 @@ const BrandSchema = new Schema({
         },
         imageUrl: {
             type: String
+        },
+        createdDate: {
+            type: Date
+        },
+        updatedDate: {
+            type: Date
         }
     },
     schemaOptions

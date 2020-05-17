@@ -33,6 +33,7 @@
     "fs-extra": "^9.0.0",
     "if-env": "^1.0.4",
     "jsonwebtoken": "^8.5.1",
+    "moment": "^2.25.3",
     "mongoose": "^5.9.11",
     "mongoose-autopopulate": "^0.12.2",
     "mongoose-id-validator": "^0.6.0",

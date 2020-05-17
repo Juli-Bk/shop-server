@@ -2,6 +2,7 @@ import {model, Schema} from 'mongoose';
 import schemaOptions from './modelHelper';
 import validator from 'mongoose-id-validator';
 import autoPopulate from 'mongoose-autopopulate';
+import moment from "moment";
 
 const CategorySchema = new Schema({
         name: {
@@ -16,6 +17,12 @@ const CategorySchema = new Schema({
         },
         imageUrl: {
             type: String
+        },
+        createdDate: {
+            type: Date
+        },
+        updatedDate: {
+            type: Date
         }
     },
     schemaOptions

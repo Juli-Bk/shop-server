@@ -1,8 +1,13 @@
 import Quantity from '../models/Quantity';
 import {getRandomItemId, log} from '../utils/helper';
+import moment from "moment";
 
 export const addQuantity = (req, res, next) => {
-    const data = {...req.body, itemId: getRandomItemId()};
+    const data = {
+        ...req.body,
+        createdDate: moment.utc().format("MM-DD-YYYY"),
+        itemId: getRandomItemId()
+    };
 
     const newItem = new Quantity(data);
     newItem
@@ -66,12 +71,16 @@ export const getQuantityById = (req, res, next) => {
 
 export const updateQuantityById = (req, res, next) => {
     const id = req.params.id;
+    const data = {
+        ...req.body,
+        updatedDate: moment.utc().format("MM-DD-YYYY"),
+    }
 
     Quantity.findByIdAndUpdate(
         //filter
         id,
         //what we update
-        {$set: req.body},
+        {$set: data},
         //options. returns new updated data
         {new: true}
     )

@@ -1,13 +1,14 @@
 import Product from '../models/Product';
 import {log} from '../utils/helper';
 import filterParamsHelper from '../utils/filterParamsHelper';
+import moment from 'moment';
 
 export const addProduct = (req, res, next) => {
     const filePath = req.files ? req.files.map(file => file.path) : [];
 
     const productData = {
         ...req.body,
-        createdDate: Date.now(),
+        createdDate: moment.utc().format("MM-DD-YYYY"),
         imageUrls: filePath
     };
 
@@ -33,22 +34,28 @@ export const addProduct = (req, res, next) => {
 
 };
 
-export const getAllProducts = (req, res, next) => {
+export const getAllProducts = async (req, res, next) => {
     const perPage = Number(req.query.perPage);
     const startPage = Number(req.query.startPage);
 
     const sort = req.query.sort;
+    const count = (await Product.find()).length;
 
     Product
         .find()
         .skip(startPage * perPage - perPage)
         .limit(perPage)
         .sort(sort)
-        .then(products => res.status(200).send(products))
+        .then(products => {
+            res.status(200).json({
+                products,
+                totalCount: count
+            });
+        })
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `Getting products error: ${error}`
+                        message: `Getting products error: ${error.message}`
                     });
                 log(error);
                 next(error);
@@ -92,7 +99,7 @@ export const updateProductById = (req, res, next) => {
         }
         : {...req.body};
 
-    productData.updatedDate = Date.now();
+    productData.updatedDate = moment.utc().format("MM-DD-YYYY");
 
     Product
         .findOne({_id: productId})
@@ -107,7 +114,7 @@ export const updateProductById = (req, res, next) => {
                     //what we update
                     {$set: productData},
                     //options. returns new updated data
-                    {new: true}
+                    {new: true, runValidators: true}
                 )
                     .then(product => res.status(200).json(product))
                     .catch(err =>
@@ -222,7 +229,7 @@ export const getProductsByFilterParams = async (req, res, next) => {
 
         const productsQuantity = await Product.find(mongooseQuery);
 
-        await res.status(200).json({products, productsQuantity: productsQuantity.length});
+        await res.status(200).json({products, totalCount: productsQuantity.length});
     } catch (err) {
         res.status(400).json({
             message: `filter products error: "${err.message}" `

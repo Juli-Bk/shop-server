@@ -2,6 +2,7 @@ import User from '../models/User';
 import {log} from '../utils/helper';
 import bcrypt from 'bcryptjs';
 import signUp from '../utils/authJWT';
+import moment from "moment";
 
 export const createUser = (req, res, next) => {
     const data = req.body;
@@ -34,6 +35,7 @@ export const createUser = (req, res, next) => {
                 }
             }
 
+            data.createdDate = moment.utc().format("MM-DD-YYYY");
             const newCustomer = new User(data);
 
             bcrypt.genSalt(10, (err, salt) => {
@@ -115,10 +117,11 @@ export const updateUserInfo = (req, res, next) => {
 
     const data = {
         ...req.body,
+        updatedDate: moment.utc().format("MM-DD-YYYY"),
         avatarUrl: filePath
     };
 
-    User.findByIdAndUpdate(id, {$set: data}, {new: true})
+    User.findByIdAndUpdate(id, {$set: data}, {new: true, runValidators: true})
         .then(user => {
             if (!user) {
                 return res.status(400)
@@ -162,7 +165,7 @@ export const loginUser = (req, res, next) => {
             bcrypt.compare(password, user.password)
                 .then(isMatch => {
                     if (isMatch) {
-                        user.last_login = Date.now();
+                        user.lastLoginDate = moment.utc();
                         user.save();
                         res.status(200)
                             .json({
@@ -220,6 +223,7 @@ export const updatePassword = (req, res, next) => {
                             newPassword = hash;
 
                             user.password = newPassword;
+                            user.updatedDate = moment.utc().format("MM-DD-YYYY");
                             user.save()
                                 .then(user => {
                                     res.status(200).json({
