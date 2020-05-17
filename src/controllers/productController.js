@@ -43,7 +43,7 @@ export const getAllProducts = (req, res, next) => {
         .skip(startPage * perPage - perPage)
         .limit(perPage)
         .sort(sort)
-        .then(products => res.send(products))
+        .then(products => res.status(200).send(products))
         .catch(error => {
                 res.status(400)
                     .json({
@@ -106,7 +106,7 @@ export const updateProductById = (req, res, next) => {
                     //options. returns new updated data
                     {new: true}
                 )
-                    .then(product => res.json(product))
+                    .then(product => res.status(200).json(product))
                     .catch(err =>
                         res.status(400).json({
                             message: `Error happened on server: "${err}" `
@@ -165,7 +165,6 @@ export const deleteAllProducts = (req, res, next) => {
 };
 
 export const searchProducts = (req, res, next) => {
-    log('searchProducts');
     const queryString = req.body.query;
 
     if (!queryString) {
@@ -220,7 +219,7 @@ export const getProductsByFilterParams = async (req, res, next) => {
 
         const productsQuantity = await Product.find(mongooseQuery);
 
-        await res.json({products, productsQuantity: productsQuantity.length});
+        await res.status(200).json({products, productsQuantity: productsQuantity.length});
     } catch (err) {
         res.status(400).json({
             message: `filter products error: "${err.message}" `
