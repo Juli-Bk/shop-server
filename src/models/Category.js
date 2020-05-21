@@ -8,6 +8,10 @@ const CategorySchema = new Schema({
             type: String,
             required: [true, 'Category name is required']
         },
+        categoryBreadcrumbs: {
+            type: String,
+            required: [true, 'CategoryBreadcrumbs is required']
+        },
         parentId: {
             type: Schema.Types.ObjectId,
             ref: 'categories',

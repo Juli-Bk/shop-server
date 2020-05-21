@@ -11,7 +11,7 @@
     "start": "if-env NODE_ENV=production ?? npm run start:prod || npm run start:dev",
     "start:dev": "npm run eslint && nodemon .",
     "start:prod": "nodemon .",
-    "start:debug": "npm run eslint && nodemon port=9229 --inspect-brk .",
+    "start:debug": "npm run eslint && nodemon port=PORT --inspect-brk .",
     "eslint": "eslint \"src/**/*.js\"",
     "eslint-fix": "eslint --fix \"src/**/*.js\""
   },
@@ -22,6 +22,7 @@
     "@babel/core": "^7.9.6",
     "@babel/node": "^7.8.7",
     "@babel/preset-env": "^7.9.6",
+    "axios": "^0.19.2",
     "babel-preset-env": "^1.7.0",
     "babel-register": "^6.26.0",
     "bcryptjs": "^2.4.3",
@@ -43,7 +44,8 @@
     "passport-jwt": "^4.0.0",
     "serve-favicon": "^2.5.0",
     "unique-random": "^2.1.0",
-    "validator": "^13.0.0"
+    "validator": "^13.0.0",
+    "webp-converter": "^2.2.3"
   },
   "devDependencies": {
     "eslint": "^6.8.0",

@@ -80,7 +80,7 @@ export const getProductById = (req, res, next) => {
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `Error happened on server: "${error}" `
+                        message: `Error happened on server: "${error.message}" `
                     });
                 log(error);
                 next(error);

@@ -17,20 +17,25 @@ const ProductSchema = new mongoose.Schema({
         bestseller: {
             type: Boolean
         },
-        description: {
-            type: String,
-            required: [true, 'Description is required']
+
+        productId:{
+            type: Number,
+            required: [true, 'productId for a product must be specified'],
         },
         name: {
             type: String,
             required: [true, 'Product name is required']
         },
+        description: {
+            type: String,
+            required: [true, 'Description is required']
+        },
         price: {
             required: [true, 'Price is required'],
             type: Number
         },
-        salePrice: {
-            type: Number
+        manufacturerCountry: {
+            type: String
         },
         imageUrls: [{
             required: [true, 'imageUrl is required'],
@@ -39,15 +44,20 @@ const ProductSchema = new mongoose.Schema({
         videoUrl: {
             type: String
         },
+        materials:{
+            type: String
+        },
+        salePrice: {
+            type: Number
+        },
+
         createdDate: {
             type: Date
         },
         updatedDate: {
             type: Date
         },
-        manufacturedCountry: {
-            type: String
-        },
+
         quantityTableId: [{
             type: mongoose.ObjectId,
             ref: 'quantities',
