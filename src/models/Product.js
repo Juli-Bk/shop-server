@@ -9,13 +9,16 @@ const ProductSchema = new mongoose.Schema({
             default: true
         },
         featured: {
-            type: Boolean
+            type: Boolean,
+            default: false
         },
         special: {
-            type: Boolean
+            type: Boolean,
+            default: false
         },
         bestseller: {
-            type: Boolean
+            type: Boolean,
+            default: false
         },
 
         productId:{

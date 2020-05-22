@@ -20,10 +20,10 @@ const filterParser = (filtersQueryString) => {
     if (filtersQueryString.minCreatedDate || filtersQueryString.maxCreatedDate) {
         const minDate = moment.utc(filtersQueryString.minCreatedDate);
         const maxDate = moment.utc(filtersQueryString.maxCreatedDate);
-            mongooseQuery.createdDate = {
-                $gte: minDate,
-                $lte: maxDate
-            };
+        mongooseQuery.createdDate = {
+            $gte: minDate,
+            $lte: maxDate
+        };
     }
 
     return Object.keys(filtersQueryString).reduce(
@@ -41,11 +41,13 @@ const filterParser = (filtersQueryString) => {
                             return new RegExp(decoded, 'i');
                         })
                 };
+
             } else if (!excludedParams.includes(filterParam)) {
                 const filterValue = filtersQueryString[filterParam];
                 const decoded = decodeURI(filterValue.trim());
+                const isBooleanFilter = typeof JSON.parse(decoded.toLowerCase()) === "boolean"
 
-                if (validateObjectId(decoded)) {
+                if (validateObjectId(decoded) || isBooleanFilter) {
                     mongooseQuery[filterParam] = decoded;
                 } else {
                     mongooseQuery[filterParam] = {
