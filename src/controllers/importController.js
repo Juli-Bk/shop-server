@@ -226,6 +226,7 @@ const addBaseImageUrl = (product) => {
 const saveCategories = async (insertedValues) => {
     const rez = [];
     for (const newCategory of insertedValues) {
+        newCategory.createdDate = moment.utc().format("MM-DD-YYYY");
         const category = await new Category(newCategory).save();
         rez.push(category);
     }
@@ -250,6 +251,7 @@ const saveProducts = async (insertedValues, allCategories, allBrands, callback) 
 
             const category = allCategories.find(cat => cat.categoryBreadcrumbs === `${categoryBreadcrumbs}/`);
             newProduct.categoryId = category ? category._id.toString() : null;
+            newProduct.createdDate = moment.utc().format("MM-DD-YYYY");
 
             const product = await new Product(newProduct).save();
 
