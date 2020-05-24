@@ -1,11 +1,11 @@
-import productsRout from './productsRoute';
-import categoriesRout from './categoriesRoute';
-import brandRout from './brandRoute';
-import sizeRout from './sizeRoute';
-import sizeTableRout from './sizeTableRoute';
-import quantityRout from './quantityRoute';
-import userRout from './userRoute';
-import importRout from './importRoute';
+import productsRoute from './productsRoute';
+import categoriesRoute from './categoriesRoute';
+import brandRoute from './brandRoute';
+import sizeRoute from './sizeRoute';
+import sizeTableRoute from './sizeTableRoute';
+import quantityRoute from './quantityRoute';
+import userRoute from './userRoute';
+import importRoute from './importRoute';
 import express from 'express';
 import path from 'path';
 import favicon from "serve-favicon";
@@ -15,15 +15,15 @@ const __dirname = path.resolve();
 const addRoutes = (app) => {
     app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
-    app.use('/products', productsRout);
-    app.use('/categories', categoriesRout);
-    app.use('/brands', brandRout);
-    app.use('/sizes', sizeRout);
-    app.use('/sizeTables', sizeTableRout);
-    app.use('/quantity', quantityRout);
-    app.use('/users', userRout);
+    app.use('/products', productsRoute);
+    app.use('/categories', categoriesRoute);
+    app.use('/brands', brandRoute);
+    app.use('/sizes', sizeRoute);
+    app.use('/sizeTables', sizeTableRoute);
+    app.use('/quantity', quantityRoute);
+    app.use('/users', userRoute);
 
-    app.use('/import-data', importRout);
+    app.use('/import-data', importRoute);
 
     app.use('/uploads', express.static('uploads'));
 
