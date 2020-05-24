@@ -6,7 +6,7 @@ import moment from "moment";
 import Category from "../models/Category";
 import Product from "../models/Product";
 import mongoose from 'mongoose';
-// import config from '../../src/config/index';
+import config from '../../src/config/index';
 
 export const importData = (req, res, next) => {
     const filePath = req.file ? req.file.path : null;
@@ -46,8 +46,8 @@ export const importData = (req, res, next) => {
             const categoriesList = product.categoryBreadcrumbs.split("/");
             fillCategories(categoriesList, categoryHierarchy);
             // todo more universal will be save just folder structure
-            // and add base url when get data request performs?
-            //addBaseImageUrl(product);
+            //and add base url when get data request performs?
+            addBaseImageUrl(product);
         });
 
         let allBrands = [];
@@ -217,13 +217,13 @@ const fillCategories = (categoriesList, categoryHierarchy) => {
     }
 }
 
-// const addBaseImageUrl = (product) => {
-//     const baseUlr = config.imageStorageBaseAddress;
-//     if (!baseUlr) throw new Error('imageStorageBaseAddress env variable is not specified');
-//     if (product.imageUrls) {
-//         product.imageUrls = product.imageUrls.map(imgAdr => baseUlr + imgAdr);
-//     }
-// }
+const addBaseImageUrl = (product) => {
+    const baseUlr = config.imageStorageBaseAddress;
+    if (!baseUlr) throw new Error('imageStorageBaseAddress env variable is not specified');
+    if (product.imageUrls) {
+        product.imageUrls = product.imageUrls.map(imgAdr => baseUlr + imgAdr);
+    }
+}
 
 const saveCategories = async (insertedValues) => {
     const rez = [];
