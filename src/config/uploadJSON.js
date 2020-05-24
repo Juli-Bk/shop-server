@@ -16,7 +16,7 @@ const storage = multer.diskStorage({
         cb(null, file.originalname);
     },
     destination: function (req, file, cb) {
-        const folderName = './uploads/' + req.baseUrl.split('/').pop();
+        const folderName = './uploads/json' + req.baseUrl.split('/').pop();
         fse.mkdirsSync(folderName);
         cb(null, folderName);
     }

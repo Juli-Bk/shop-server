@@ -45,7 +45,9 @@ export const importData = (req, res, next) => {
             if (product.brand) brands.add(product.brand.trim().toLowerCase());
             const categoriesList = product.categoryBreadcrumbs.split("/");
             fillCategories(categoriesList, categoryHierarchy);
-            addBaseImageUrl(product);
+            // todo more universal will be save just folder structure
+            // and add base url when get data request performs?
+            //addBaseImageUrl(product);
         });
 
         let allBrands = [];
@@ -86,7 +88,7 @@ export const importData = (req, res, next) => {
                     .find()
                     .then(savedCategories => {
 
-                        // change parentId for categories with already saved data
+                        // change parentId for already saved categories
                         const newCategories = categories.map(category => {
                             const sc = savedCategories.find(sc => sc.categoryBreadcrumbs === category[0]);
                             const categoryData = category[1];
@@ -116,7 +118,7 @@ export const importData = (req, res, next) => {
                                     if (error) {
                                         res.status(400)
                                             .json({
-                                                message: `new brands import error: ${error.message}`
+                                                message: `products import error: ${error.message}`
                                             });
                                         log(error);
                                         next(error);
@@ -251,6 +253,7 @@ const saveProducts = async (insertedValues, allCategories, allBrands, callback) 
 
             const category = allCategories.find(cat => cat.categoryBreadcrumbs === `${categoryBreadcrumbs}/`);
             newProduct.categoryId = category ? category._id.toString() : null;
+
             newProduct.createdDate = moment.utc().format("MM-DD-YYYY");
 
             const product = await new Product(newProduct).save();

@@ -8,7 +8,7 @@ export const createUser = (req, res, next) => {
     const data = req.body;
     const {email, login, password} = data;
 
-    if (!email || !login || !password) {
+    if ((!email && !login) || !password) {
         res.status(400)
             .json({message: 'Email or login, password are required'});
         return;
@@ -73,11 +73,13 @@ export const createUser = (req, res, next) => {
         );
 };
 
-export const getAllUsers = (req, res, next) => {
+export const getAllUsers = async (req, res, next) => {
     const perPage = Number(req.query.perPage);
     const startPage = Number(req.query.startPage);
 
     const sort = req.query.sort;
+
+    const count = (await User.find()).length;
 
     User
         .find()
@@ -92,7 +94,7 @@ export const getAllUsers = (req, res, next) => {
                 delete user.password;
                 return user;
             });
-            return res.status(200).send(usersData);
+            return res.status(200).send({usersData, totalCount: count});
         })
         .catch(error => {
                 res.status(400)
@@ -112,7 +114,7 @@ export const getUser = (req, res, next) => {
 
 export const updateUserInfo = (req, res, next) => {
 
-    const id = req.user.id;
+    const id = req.body.id;
     const filePath = req.file ? req.file.path : null;
 
     const data = {

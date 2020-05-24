@@ -23,7 +23,16 @@ const storage = multer.diskStorage({
         cb(null, file.originalname);
     },
     destination: function (req, file, cb) {
-        const folderName = './uploads/' + req.baseUrl.split('/').pop();
+        let route = req.baseUrl.split('/').pop();
+        if (route === 'products') {
+            // req.body will be empty, if files are sent before fields
+            // it is multer bug. see more https://github.com/expressjs/multer/issues/322
+            const {categoryBreadcrumbs} = req.body;
+            if (categoryBreadcrumbs) {
+                route = `${route}/${categoryBreadcrumbs}`;
+            }
+        }
+        const folderName = './uploads/img/' + route;
         fse.mkdirsSync(folderName);
         cb(null, folderName);
     }
