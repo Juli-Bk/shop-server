@@ -5,6 +5,7 @@ import sizeRoute from './sizeRoute';
 import sizeTableRoute from './sizeTableRoute';
 import quantityRoute from './quantityRoute';
 import userRoute from './userRoute';
+import subscriberRoute from './subscriberRoute';
 import importRoute from './importRoute';
 import express from 'express';
 import path from 'path';
@@ -22,6 +23,7 @@ const addRoutes = (app) => {
     app.use('/sizeTables', sizeTableRoute);
     app.use('/quantity', quantityRoute);
     app.use('/users', userRoute);
+    app.use('/subscribers', subscriberRoute);
 
     app.use('/import-data', importRoute);
 

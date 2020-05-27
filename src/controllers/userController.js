@@ -8,7 +8,7 @@ export const createUser = (req, res, next) => {
     const data = req.body;
     const {email, login, password} = data;
 
-    if ((!email && !login) || !password) {
+    if (!(email || login) || !password) {
         res.status(400)
             .json({message: 'Email or login, password are required'});
         return;
