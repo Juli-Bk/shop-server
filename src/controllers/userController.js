@@ -51,7 +51,13 @@ export const createUser = (req, res, next) => {
                     newCustomer.createdDate = Date.now();
                     newCustomer
                         .save()
-                        .then(customer => res.status(200).json(customer))
+                        .then(customer => {
+                            return res.status(200).json({
+                                id: customer._id,
+                                email: customer.email,
+                                login: customer.login
+                            });
+                        })
                         .catch(error => {
                                 res.status(400).json({
                                     message: `Error happened on server: "${error.message}" `
