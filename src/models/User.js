@@ -44,7 +44,7 @@ const UserSchema = new Schema({
                     return validator.isEmail(email);
                 },
                 message: props => `${props.value} is not a valid email!`
-            },
+            }
         },
         password: {
             type: String,

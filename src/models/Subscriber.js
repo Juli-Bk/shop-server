@@ -1,10 +1,17 @@
 import {model, Schema} from 'mongoose';
 import schemaOptions from './modelHelper';
+import validator from "validator";
 
 const SubscriberSchema = new Schema({
         email: {
             type: String,
-            required: [true, 'Email is required to subscribe to newsletter']
+            required: [true, 'Email is required to subscribe to newsletter'],
+            validate: {
+                validator: function (email) {
+                    return validator.isEmail(email);
+                },
+                message: props => `${props.value} is not a valid email!`
+            },
         },
         enabled: {
             type: Boolean,
