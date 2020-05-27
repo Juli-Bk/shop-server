@@ -26,7 +26,7 @@ router.post('/unsubscribe',
     unsubscribe);
 
 
-//delete
+//deleteу
 router.delete('/',
     passport.authenticate('jwt-admin', {session: false}),
     deleteAllSubscribers);
