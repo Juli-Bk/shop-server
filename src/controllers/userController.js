@@ -24,13 +24,13 @@ export const createUser = (req, res, next) => {
             if (customer) {
                 if (customer.email === email) {
                     return res
-                        .status(400)
+                        .status(200)
                         .json({message: `Email ${customer.email} already exists"`});
                 }
 
                 if (customer.login === login) {
                     return res
-                        .status(400)
+                        .status(200)
                         .json({message: `Login ${customer.login} already exists`});
                 }
             }
