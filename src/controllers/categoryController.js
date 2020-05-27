@@ -7,7 +7,7 @@ export const addCategory = (req, res, next) => {
 
     const data = {
         ...req.body,
-        createdDate: moment.utc().format( "MM-DD-YYYY"),
+        createdDate: moment.utc().format("MM-DD-YYYY"),
         imageUrl: filePath
     };
     const newItem = new Category(data);
@@ -33,7 +33,16 @@ export const addCategory = (req, res, next) => {
 export const getAllCategories = (req, res, next) => {
     Category
         .find()
-        .then(items => res.status(200).send(items))
+        .then(items => {
+            return res.status(200)
+                .send({
+                    categories: items.sort((a, b) => {
+                        return a.level - b.level;
+                    }),
+                    categoriesTotalCount: items.length,
+                    maxNestingLevel: Math.max(...items.map(i => i.level))
+                });
+        })
         .catch(error => {
                 res.status(400)
                     .json({

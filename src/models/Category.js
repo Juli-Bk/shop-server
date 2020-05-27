@@ -18,6 +18,9 @@ const CategorySchema = new Schema({
             default: null,
             autopopulate: true
         },
+        level: {
+            type: Number
+        },
         imageUrl: {
             type: String
         },

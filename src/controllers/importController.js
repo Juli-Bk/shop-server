@@ -212,6 +212,7 @@ const fillCategories = (categoriesList, categoryHierarchy) => {
         const saved = categoryHierarchy.get(breadCrumbs);
 
         if (!saved) {
+            element.level = element.key;
             categoryHierarchy.set(breadCrumbs, element)
         }
     }
