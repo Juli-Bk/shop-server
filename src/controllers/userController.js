@@ -176,9 +176,7 @@ export const loginUser = (req, res, next) => {
                         user.lastLoginDate = moment.utc();
                         user.save();
                         res.status(200)
-                            .json({
-                                token: signUp(user)
-                            });
+                            .json(signUp(user));
                     } else {
                         res.status(400)
                             .json({
