@@ -18,7 +18,7 @@ const signUp = ({email, login, password, firstName, lastName, _id}) => {
 
     return {
         token: `${config.tokenPrefix} ${sign}`,
-        expiresTime: expiresTime
+        expiresInMinutes: config.expiresInMinutes
     }
 };
 export default signUp;
