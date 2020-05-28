@@ -176,7 +176,17 @@ export const loginUser = (req, res, next) => {
                         user.lastLoginDate = moment.utc();
                         user.save();
                         res.status(200)
-                            .json(signUp(user));
+                            .json({
+                                user: {
+                                    login: user.login,
+                                    email: user.email,
+                                    avatarUrl: user.avatarUrl,
+                                    isAdmin: user.isAdmin,
+                                    firstName: user.firstName,
+                                    lastName: user.lastName
+                                },
+                                token: signUp(user)
+                            });
                     } else {
                         res.status(400)
                             .json({
