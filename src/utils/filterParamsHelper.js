@@ -11,12 +11,22 @@ const validateObjectId = (id) => ObjectId.isValid(id) && (new ObjectId(id)).toSt
 const filterParser = (filtersQueryString) => {
     const mongooseQuery = {};
 
-    if (filtersQueryString.minPrice || filtersQueryString.maxPrice) {
-        mongooseQuery.currentPrice = {
+    if (filtersQueryString.minPrice && filtersQueryString.maxPrice) {
+        mongooseQuery.price = {
             $gt: Number(filtersQueryString.minPrice),
             $lt: Number(filtersQueryString.maxPrice)
         };
+    } else if (filtersQueryString.minPrice) {
+        mongooseQuery.price = {
+            $gt: Number(filtersQueryString.minPrice)
+        };
+    } else if (filtersQueryString.maxPrice) {
+        mongooseQuery.price = {
+            $lt: Number(filtersQueryString.maxPrice)
+        };
     }
+
+
     if (filtersQueryString.minCreatedDate || filtersQueryString.maxCreatedDate) {
         const minDate = moment.utc(filtersQueryString.minCreatedDate);
         const maxDate = moment.utc(filtersQueryString.maxCreatedDate);
