@@ -12,7 +12,7 @@ const router = express.Router();
 
 //create
 router.put('/subscribe',
-    passport.authenticate('jwt', {session: false}),
+    // passport.authenticate('jwt', {session: false}),
     subscribe);
 
 //read
