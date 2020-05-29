@@ -44,7 +44,8 @@ export const getAllCategories = (req, res, next) => {
                     return {
                         id: item.id,
                         name: item.name,
-                        breadcrumbs: item.categoryBreadcrumbs
+                        breadcrumbs: item.categoryBreadcrumbs,
+                        imageUrl: item.imageUrl,
                     }
                 });
                 return {
