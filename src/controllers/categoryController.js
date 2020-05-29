@@ -31,54 +31,67 @@ export const addCategory = (req, res, next) => {
 };
 
 export const getAllCategories = (req, res, next) => {
-    Category
-        .find()
-        .then(items => {
+        Category
+            .find()
+            .then(items => {
+                    const maxNestingLevel = Math.max(...items.map(i => i.level));
 
-            const categories = items.map((current, index, array) => {
-                const id = current._id.toString();
-                current.children = array.filter((item => {
-                    const parentId = item.parentId;
-                    return parentId && (parentId.id.toString() === id)
-                })).map(item => {
-                    return {
-                        id: item.id,
-                        name: item.name,
-                        breadcrumbs: item.categoryBreadcrumbs,
-                        imageUrl: item.imageUrl,
+                    const findChildren = (id) => {
+                        return items.filter((item => {
+                            const parentId = item.parentId;
+                            return parentId && (parentId.id.toString() === id);
+                        }));
                     }
-                });
-                return {
-                    id: current.id,
-                    name: current.name,
-                    imageUrl: current.imageUrl,
-                    breadcrumbs: current.categoryBreadcrumbs,
-                    parentId: current.parentId,
-                    children: current.children,
-                    level: current.level
-                };
-            }).sort((a, b) => {
-                return a.level - b.level;
-            });
 
-            const maxNestingLevel = Math.max(...categories.map(i => i.level));
+                    const filterFields = (category) => {
+                        return {
+                            id: category.id.toString(),
+                            name: category.name,
+                            level: category.level,
+                            categoryBreadcrumbs: category.categoryBreadcrumbs,
+                            children: category.children
+                        }
+                    }
 
-            return res.status(200)
-                .send({
-                    categories: categories,
-                    categoriesTotalCount: categories.length,
-                    maxNestingLevel: maxNestingLevel
-                });
-        })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `Getting categories error: ${error}`
-                    });
-                next(error);
-            }
-        );
-};
+                    const searchChildren = (arr) => {
+                        arr.forEach(el => {
+                            el.children = findChildren(el.id);
+                            if (el.children.length) {
+                                searchChildren(el.children);
+                                el.children = el.children.map(item => filterFields(item));
+                            }
+                        })
+                    }
+
+                    const roots = items.filter(el => el.level === 1);
+
+                    const rez = roots.map((category) => {
+                        category.children = findChildren(category.id);
+                        if (category.children.length) {
+                            searchChildren(category.children);
+                            category.children = category.children.map(item => filterFields(item));
+                        }
+                        return filterFields(category);
+                    })
+
+                    return res.status(200)
+                        .send({
+                            categories: rez,
+                            categoriesTotalCount: items.length,
+                            maxNestingLevel: maxNestingLevel
+                        });
+                }
+            )
+            .catch(error => {
+                    res.status(400)
+                        .json({
+                            message: `Getting categories error: ${error}`
+                        });
+                    next(error);
+                }
+            );
+    }
+;
 
 export const getCategoryById = (req, res, next) => {
     const categoryId = req.params.id;
