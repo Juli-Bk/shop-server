@@ -34,13 +34,39 @@ export const getAllCategories = (req, res, next) => {
     Category
         .find()
         .then(items => {
+
+            const categories = items.map((current, index, array) => {
+                const id = current._id.toString();
+                current.children = array.filter((item => {
+                    const parentId = item.parentId;
+                    return parentId && (parentId.id.toString() === id)
+                })).map(item => {
+                    return {
+                        id: item.id,
+                        name: item.name,
+                        breadcrumbs: item.categoryBreadcrumbs
+                    }
+                });
+                return {
+                    id: current.id,
+                    name: current.name,
+                    imageUrl: current.imageUrl,
+                    breadcrumbs: current.categoryBreadcrumbs,
+                    parentId: current.parentId,
+                    children: current.children,
+                    level: current.level
+                };
+            }).sort((a, b) => {
+                return a.level - b.level;
+            });
+
+            const maxNestingLevel = Math.max(...categories.map(i => i.level));
+
             return res.status(200)
                 .send({
-                    categories: items.sort((a, b) => {
-                        return a.level - b.level;
-                    }),
-                    categoriesTotalCount: items.length,
-                    maxNestingLevel: Math.max(...items.map(i => i.level))
+                    categories: categories,
+                    categoriesTotalCount: categories.length,
+                    maxNestingLevel: maxNestingLevel
                 });
         })
         .catch(error => {
