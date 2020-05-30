@@ -224,6 +224,9 @@ const addBaseImageUrl = (product) => {
     if (product.imageUrls) {
         product.imageUrls = product.imageUrls.map(imgAdr => baseUlr + imgAdr);
     }
+    if (product.videoUrl) {
+        product.videoUrl = baseUlr + product.videoUrl;
+    }
 }
 
 const saveCategories = async (insertedValues) => {
