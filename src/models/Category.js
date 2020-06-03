@@ -21,6 +21,9 @@ const CategorySchema = new Schema({
         level: {
             type: Number
         },
+        imageAlt: {
+            type: String
+        },
         imageUrl: {
             type: String
         },

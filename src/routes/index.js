@@ -6,6 +6,7 @@ import sizeTableRoute from './sizeTableRoute';
 import quantityRoute from './quantityRoute';
 import userRoute from './userRoute';
 import subscriberRoute from './subscriberRoute';
+import wishListRoute from './wishListRoute';
 import importRoute from './importRoute';
 import express from 'express';
 import path from 'path';
@@ -24,6 +25,7 @@ const addRoutes = (app) => {
     app.use('/quantity', quantityRoute);
     app.use('/users', userRoute);
     app.use('/subscribers', subscriberRoute);
+    app.use('/wishlist', wishListRoute);
 
     app.use('/import-data', importRoute);
 

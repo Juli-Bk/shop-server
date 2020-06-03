@@ -55,9 +55,10 @@ const filterParser = (filtersQueryString) => {
             } else if (!excludedParams.includes(filterParam)) {
                 const filterValue = filtersQueryString[filterParam];
                 const decoded = decodeURI(filterValue.trim());
-                const isBooleanFilter = typeof JSON.parse(decoded.toLowerCase()) === "boolean"
+                const isValidId = validateObjectId(decoded);
+                const isBooleanFilter = isValidId ? false : typeof JSON.parse(decoded.toLowerCase()) === "boolean"
 
-                if (validateObjectId(decoded) || isBooleanFilter) {
+                if (isValidId || isBooleanFilter) {
                     mongooseQuery[filterParam] = decoded;
                 } else {
                     mongooseQuery[filterParam] = {
