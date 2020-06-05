@@ -16,7 +16,6 @@ router.put('/',
     passport.authenticate('jwt', {session: false}),
     addProductToWishList);
 
-
 //read
 router.get('/',
     passport.authenticate('jwt-admin', {session: false}),

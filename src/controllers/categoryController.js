@@ -1,14 +1,14 @@
 import Category from '../models/Category';
 import {log} from '../utils/helper';
-import moment from "moment";
+import moment from 'moment';
 
 export const addCategory = (req, res, next) => {
     const filePath = req.file ? req.file.path : null;
 
     const data = {
         ...req.body,
-        createdDate: moment.utc().format("MM-DD-YYYY"),
-        imageUrl: filePath
+        createdDate: moment.utc().format('MM-DD-YYYY'),
+        imageUrl: filePath,
     };
     const newItem = new Category(data);
     newItem
@@ -17,81 +17,81 @@ export const addCategory = (req, res, next) => {
             .status(200)
             .json({
                 message: 'success',
-                product
-            })
+                product,
+            }),
         )
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `New category adding error: ${error}`
+                        message: `New category adding error: ${error}`,
                     });
                 next(error);
-            }
+            },
         );
 };
 
 export const getAllCategories = (req, res, next) => {
-        Category
-            .find()
-            .then(items => {
-                    const maxNestingLevel = Math.max(...items.map(i => i.level));
+    Category
+        .find()
+        .then(items => {
+                const maxNestingLevel = Math.max(...items.map(i => i.level));
 
-                    const findChildren = (id) => {
-                        return items.filter((item => {
-                            const parentId = item.parentId;
-                            return parentId && (parentId.id.toString() === id);
-                        }));
-                    }
+                const findChildren = (id) => {
+                    return items.filter((item => {
+                        const parentId = item.parentId;
+                        return parentId && (parentId.id.toString() === id);
+                    }));
+                };
 
-                    const filterFields = (category) => {
-                        return {
-                            id: category.id.toString(),
-                            name: category.name,
-                            level: category.level,
-                            categoryBreadcrumbs: category.categoryBreadcrumbs,
-                            children: category.children
+                const filterFields = (category) => {
+                    return {
+                        id: category.id.toString(),
+                        name: category.name,
+                        level: category.level,
+                        categoryBreadcrumbs: category.categoryBreadcrumbs,
+                        children: category.children,
+                    };
+                };
+
+                const searchChildren = (arr) => {
+                    arr.forEach(el => {
+                        el.children = findChildren(el.id);
+                        if (el.children.length) {
+                            searchChildren(el.children);
+                            el.children = el.children.map(item => filterFields(item));
                         }
+                    });
+                };
+
+                const roots = items.filter(el => el.level === 1);
+
+                const rez = roots.map((category) => {
+                    category.children = findChildren(category.id);
+                    if (category.children.length) {
+                        searchChildren(category.children);
+                        category.children = category.children.map(item => filterFields(item));
                     }
+                    return filterFields(category);
+                });
 
-                    const searchChildren = (arr) => {
-                        arr.forEach(el => {
-                            el.children = findChildren(el.id);
-                            if (el.children.length) {
-                                searchChildren(el.children);
-                                el.children = el.children.map(item => filterFields(item));
-                            }
-                        })
-                    }
-
-                    const roots = items.filter(el => el.level === 1);
-
-                    const rez = roots.map((category) => {
-                        category.children = findChildren(category.id);
-                        if (category.children.length) {
-                            searchChildren(category.children);
-                            category.children = category.children.map(item => filterFields(item));
-                        }
-                        return filterFields(category);
-                    })
-
-                    return res.status(200)
-                        .send({
-                            categories: rez,
-                            categoriesTotalCount: items.length,
-                            maxNestingLevel: maxNestingLevel
-                        });
-                }
-            )
-            .catch(error => {
-                    res.status(400)
-                        .json({
-                            message: `Getting categories error: ${error}`
-                        });
-                    next(error);
-                }
-            );
-    }
-;
+                return res.status(200)
+                    .send({
+                        categories: rez,
+                        plainList: items,
+                        categoriesTotalCount: items.length,
+                        maxNestingLevel: maxNestingLevel,
+                    });
+            },
+        )
+        .catch(error => {
+                res.status(400)
+                    .json({
+                        message: `Getting categories error: ${error}`,
+                    });
+                next(error);
+            },
+        );
+};
 
 export const getCategoryById = (req, res, next) => {
     const categoryId = req.params.id;
@@ -102,7 +102,7 @@ export const getCategoryById = (req, res, next) => {
             if (!category) {
                 res.status(400)
                     .json({
-                        message: `Category with id ${categoryId} is not found`
+                        message: `Category with id ${categoryId} is not found`,
                     });
             } else {
                 res.status(200).json(category);
@@ -111,11 +111,11 @@ export const getCategoryById = (req, res, next) => {
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `Error happened on server: "${error}" `
+                        message: `Error happened on server: "${error}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -125,8 +125,8 @@ export const updateCategoryById = (req, res, next) => {
 
     const data = {
         ...req.body,
-        updatedDate: moment.utc().format("MM-DD-YYYY"),
-        imageUrl: filePath
+        updatedDate: moment.utc().format('MM-DD-YYYY'),
+        imageUrl: filePath,
     };
 
     Category.findByIdAndUpdate(
@@ -135,12 +135,12 @@ export const updateCategoryById = (req, res, next) => {
         //what we update
         {$set: data},
         //options. returns new updated data
-        {new: true, runValidators: true}
+        {new: true, runValidators: true},
     )
         .then(category => {
             if (!category) {
                 res.status(200).json({
-                    message: `Category with id ${categoryId} is not found`
+                    message: `Category with id ${categoryId} is not found`,
                 });
             } else {
                 res.status(200).json(category);
@@ -148,10 +148,10 @@ export const updateCategoryById = (req, res, next) => {
         })
         .catch(err => {
                 res.status(400).json({
-                    message: `Error happened on server: "${err}" `
+                    message: `Error happened on server: "${err}" `,
                 });
                 next(err);
-            }
+            },
         );
 };
 
@@ -161,23 +161,23 @@ export const deleteCategoryById = (req, res, next) => {
         .then((category) => {
             if (!category) {
                 res.status(200).json({
-                    message: `Category with id ${categoryId} is not found`
+                    message: `Category with id ${categoryId} is not found`,
                 });
             } else {
                 res.status(200)
                     .json({
-                        message: `Category with id ${req.params.id} is deleted`
+                        message: `Category with id ${req.params.id} is deleted`,
                     });
             }
         })
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `delete category error: "${error.message}" `
+                        message: `delete category error: "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -185,16 +185,16 @@ export const deleteAllCategories = (req, res, next) => {
     Category.deleteMany({})
         .then(() => res.status(200)
             .json({
-                message: 'all categories are deleted'
-            })
+                message: 'all categories are deleted',
+            }),
         )
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `delete categories error "${error.message}" `
+                        message: `delete categories error "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
