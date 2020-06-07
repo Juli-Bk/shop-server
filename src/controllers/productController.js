@@ -1,4 +1,4 @@
-import Product from '../models/Product';
+import Product from '../models/schemas/Product';
 import {log} from '../utils/helper';
 import filterParamsHelper from '../utils/filterParamsHelper';
 import moment from 'moment';

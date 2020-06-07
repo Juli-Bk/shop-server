@@ -1,4 +1,4 @@
-import Category from '../models/Category';
+import Category from '../models/schemas/Category';
 import {log} from '../utils/helper';
 import moment from 'moment';
 

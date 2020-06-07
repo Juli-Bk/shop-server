@@ -1,4 +1,4 @@
-import Subscriber from '../models/Subscriber';
+import Subscriber from '../models/schemas/Subscriber';
 import {log} from '../utils/helper';
 import moment from "moment";
 

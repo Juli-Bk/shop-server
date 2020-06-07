@@ -1,4 +1,4 @@
-import User from '../models/User';
+import User from '../models/schemas/User';
 import {log} from '../utils/helper';
 import bcrypt from 'bcryptjs';
 import signUp from '../utils/authJWT';

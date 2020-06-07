@@ -1,11 +1,11 @@
-import Category from './Category';
-import Brand from './Brand';
-import Quantity from './Quantity';
-import SizeTable from './SizeTable';
-import Size from './Size';
-import Product from './Product';
-import User from './User';
-import WishList from "./WishList";
+import Category from './schemas/Category';
+import Brand from './schemas/Brand';
+import Quantity from './schemas/Quantity';
+import SizeTable from './schemas/SizeTable';
+import Size from './schemas/Size';
+import Product from './schemas/Product';
+import User from './schemas/User';
+import WishList from "./schemas/WishList";
 
 export default {
     Category,

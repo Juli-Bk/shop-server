@@ -1,4 +1,4 @@
-import Quantity from '../models/Quantity';
+import Quantity from '../models/schemas/Quantity';
 import {getRandomItemId, log} from '../utils/helper';
 import moment from "moment";
 
@@ -14,10 +14,7 @@ export const addQuantity = (req, res, next) => {
         .save()
         .then(item => res
             .status(200)
-            .json({
-                message: 'success',
-                item
-            })
+            .json({item})
         )
         .catch(error => {
                 res.status(400)
@@ -82,7 +79,7 @@ export const updateQuantityById = (req, res, next) => {
         //what we update
         {$set: data},
         //options. returns new updated data
-        {new: true}
+        {new: true, runValidators: true}
     )
         .then(item => {
             if (!item) {

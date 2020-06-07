@@ -1,7 +1,7 @@
 import {model, Schema} from 'mongoose';
-import schemaOptions from './modelHelper';
+import schemaOptions from '../modelHelper';
 import bcryptjs from 'bcryptjs';
-import validationRules from '../config/validation';
+import validationRules from '../../config/validation';
 import validator from 'validator';
 import moment from "moment";
 

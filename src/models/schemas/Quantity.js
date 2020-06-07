@@ -1,5 +1,5 @@
 import {model, Schema} from 'mongoose';
-import schemaOptions from './modelHelper';
+import schemaOptions from '../modelHelper';
 import validator from 'mongoose-id-validator';
 import autoPopulate from 'mongoose-autopopulate';
 
@@ -10,10 +10,10 @@ const QuantitySchema = new Schema({
             required: [true, 'To save quantity productId must be specified'],
             autopopulate: true
         },
-        color: {
-            type: String,
-            required: [true, 'Color must be specified'],
-            min: 1
+        colorId: {
+            type: Schema.Types.ObjectId,
+            ref: 'colors',
+            autopopulate: true
         },
         quantity: {
             type: Number,

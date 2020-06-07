@@ -1,4 +1,4 @@
-import WishList from '../models/WishList';
+import WishList from '../models/schemas/WishList';
 import {log} from '../utils/helper';
 
 export const addProductToWishList = (req, res, next) => {

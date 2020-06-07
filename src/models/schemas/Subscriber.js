@@ -1,5 +1,5 @@
 import {model, Schema} from 'mongoose';
-import schemaOptions from './modelHelper';
+import schemaOptions from '../modelHelper';
 import validator from "validator";
 
 const SubscriberSchema = new Schema({

@@ -1,5 +1,5 @@
 import mongoose, {Schema} from 'mongoose';
-import schemaOptions from './modelHelper';
+import schemaOptions from '../modelHelper';
 import validator from 'mongoose-id-validator';
 import autoPopulate from 'mongoose-autopopulate';
 
@@ -61,11 +61,6 @@ const ProductSchema = new mongoose.Schema({
             type: Date
         },
 
-        quantityTableId: [{
-            type: mongoose.ObjectId,
-            ref: 'quantities',
-            default: null
-        }],
         sizeTableId: {
             type: mongoose.ObjectId,
             ref: 'sizeTables',

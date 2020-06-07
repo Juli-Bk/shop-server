@@ -1,4 +1,4 @@
-import SizeTable from '../models/SizeTable';
+import SizeTable from '../models/schemas/SizeTable';
 import {getRandomItemId, log} from '../utils/helper';
 import moment from "moment";
 
