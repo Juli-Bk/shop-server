@@ -1,12 +1,12 @@
 import Size from '../models/schemas/Size';
 import {getRandomItemId, log} from '../utils/helper';
-import moment from "moment";
+import moment from 'moment';
 
 export const addSize = (req, res, next) => {
     const data = {
         ...req.body,
-        createdDate: moment.utc().format("MM-DD-YYYY"),
-        itemId: getRandomItemId()
+        createdDate: moment.utc().format('MM-DD-YYYY'),
+        itemId: getRandomItemId(),
     };
 
     const newItem = new Size(data);
@@ -16,30 +16,33 @@ export const addSize = (req, res, next) => {
             .status(200)
             .json({
                 message: 'success',
-                item
-            })
+                item,
+            }),
         )
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `New Size adding error: ${error}`
+                        message: `New Size adding error: ${error}`,
                     });
                 next(error);
-            }
+            },
         );
 };
 
 export const getAllSizes = (req, res, next) => {
     Size
         .find()
-        .then(items => res.status(200).send(items))
+        .then(items => res.status(200).json({
+            count: items.length,
+            items,
+        }))
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `Getting Sizes list error: ${error}`
+                        message: `Getting Sizes list error: ${error}`,
                     });
                 next(error);
-            }
+            },
         );
 };
 
@@ -52,7 +55,7 @@ export const getSizeById = (req, res, next) => {
             if (!item) {
                 res.status(400)
                     .json({
-                        message: `Size with id ${id} is not found`
+                        message: `Size with id ${id} is not found`,
                     });
             } else {
                 res.status(200).json(item);
@@ -61,11 +64,11 @@ export const getSizeById = (req, res, next) => {
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `Error happened on server: "${error}" `
+                        message: `Error happened on server: "${error}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -76,14 +79,14 @@ export const updateSizeById = (req, res, next) => {
         //filter
         id,
         //what we update
-        {$set: {...req.body, updatedDate: moment.utc().format("MM-DD-YYYY")}},
+        {$set: {...req.body, updatedDate: moment.utc().format('MM-DD-YYYY')}},
         //options. returns new updated data
-        {new: true, runValidators: true}
+        {new: true, runValidators: true},
     )
         .then(item => {
             if (!item) {
                 res.status(200).json({
-                    message: `Size with id ${id} is not found`
+                    message: `Size with id ${id} is not found`,
                 });
             } else {
                 res.status(200).json(item);
@@ -91,10 +94,10 @@ export const updateSizeById = (req, res, next) => {
         })
         .catch(err => {
                 res.status(400).json({
-                    message: `Error happened on server: "${err}" `
+                    message: `Error happened on server: "${err}" `,
                 });
                 next(err);
-            }
+            },
         );
 };
 
@@ -104,23 +107,23 @@ export const deleteSizeById = (req, res, next) => {
         .then((item) => {
             if (!item) {
                 res.status(200).json({
-                    message: `Size with id ${id} is not found`
+                    message: `Size with id ${id} is not found`,
                 });
             } else {
                 res.status(200)
                     .json({
-                        message: `Size with id ${req.params.id} is deleted`
+                        message: `Size with id ${req.params.id} is deleted`,
                     });
             }
         })
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `delete Size error: "${error.message}" `
+                        message: `delete Size error: "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -128,16 +131,16 @@ export const deleteAllSizes = (req, res, next) => {
     Size.deleteMany({})
         .then(() => res.status(200)
             .json({
-                message: 'all Sizes are deleted'
-            })
+                message: 'all Sizes are deleted',
+            }),
         )
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `delete Size list error "${error.message}" `
+                        message: `delete Size list error "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };

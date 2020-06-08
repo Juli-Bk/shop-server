@@ -6,76 +6,80 @@ import autoPopulate from 'mongoose-autopopulate';
 const ProductSchema = new mongoose.Schema({
         enabled: {
             type: Boolean,
-            default: true
+            default: true,
         },
         featured: {
             type: Boolean,
-            default: false
+            default: false,
         },
         special: {
             type: Boolean,
-            default: false
+            default: false,
         },
         bestseller: {
             type: Boolean,
-            default: false
+            default: false,
         },
 
-        productId:{
+        productId: {
             type: Number,
             required: [true, 'productId for a product must be specified'],
         },
         name: {
             type: String,
-            required: [true, 'Product name is required']
+            required: [true, 'Product name is required'],
         },
         description: {
             type: String,
-            required: [true, 'Description is required']
+            required: [true, 'Description is required'],
         },
         price: {
             required: [true, 'Price is required'],
-            type: Number
+            type: Number,
         },
         manufacturerCountry: {
-            type: String
+            type: String,
         },
         imageUrls: [{
             required: [true, 'imageUrl is required'],
-            type: String
+            type: String,
         }],
         videoUrl: {
-            type: String
+            type: String,
         },
-        materials:{
-            type: String
+        materials: {
+            type: String,
         },
         salePrice: {
-            type: Number
+            type: Number,
         },
 
         createdDate: {
-            type: Date
+            type: Date,
         },
         updatedDate: {
-            type: Date
+            type: Date,
         },
 
         brandId: {
             type: mongoose.ObjectId,
             ref: 'brands',
             default: null,
-            autopopulate: true
+            autopopulate: true,
         },
         categoryId: {
             type: Schema.Types.ObjectId,
             ref: 'categories',
             required: [true, 'Category for a product must be specified'],
-            autopopulate: true
-        }
+            autopopulate: true,
+        },
     },
-    schemaOptions
+    schemaOptions,
 );
+
+ProductSchema.virtual('isOnSale').get(function () {
+    return this.salePrice >= 0 && this.salePrice < this.price;
+});
 
 ProductSchema.plugin(validator);
 ProductSchema.plugin(autoPopulate);

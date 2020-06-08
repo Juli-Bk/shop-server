@@ -2,14 +2,15 @@ import Product from '../models/schemas/Product';
 import {log} from '../utils/helper';
 import filterParamsHelper from '../utils/filterParamsHelper';
 import moment from 'moment';
+import Category from '../models/schemas/Category';
 
 export const addProduct = (req, res, next) => {
     const filePath = req.files ? req.files.map(file => file.path) : [];
 
     const productData = {
         ...req.body,
-        createdDate: moment.utc().format("MM-DD-YYYY"),
-        imageUrls: filePath
+        createdDate: moment.utc().format('MM-DD-YYYY'),
+        imageUrls: filePath,
     };
 
     const newProduct = new Product(productData);
@@ -19,17 +20,17 @@ export const addProduct = (req, res, next) => {
             .status(200)
             .json({
                 message: 'Success operation. New product is added',
-                product
-            })
+                product,
+            }),
         )
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `New product adding error: ${error}`
+                        message: `New product adding error: ${error}`,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 
 };
@@ -47,19 +48,24 @@ export const getAllProducts = async (req, res, next) => {
         .limit(perPage)
         .sort(sort)
         .then(products => {
+            const rez = products.map(p => {
+                const product = Object.assign({}, p._doc);
+                product.isOnSale = p.isOnSale;
+                return product;
+            });
             res.status(200).json({
-                products,
-                totalCount: count
+                products: rez,
+                totalCount: count,
             });
         })
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `Getting products error: ${error.message}`
+                        message: `Getting products error: ${error.message}`,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -71,20 +77,22 @@ export const getProductById = (req, res, next) => {
             if (!product) {
                 res.status(400)
                     .json({
-                        message: `Product with id ${req.params.id} is not found`
+                        message: `Product with id ${req.params.id} is not found`,
                     });
             } else {
-                res.status(200).json(product);
+                const productCopy = Object.assign({}, product._doc);
+                productCopy.isOnSale = product.isOnSale;
+                res.status(200).json(productCopy);
             }
         })
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `Error happened on server: "${error.message}" `
+                        message: `Error happened on server: "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -95,11 +103,11 @@ export const updateProductById = (req, res, next) => {
     const productData = filePath.length ?
         {
             ...req.body,
-            imageUrls: filePath
+            imageUrls: filePath,
         }
         : {...req.body};
 
-    productData.updatedDate = moment.utc().format("MM-DD-YYYY");
+    productData.updatedDate = moment.utc().format('MM-DD-YYYY');
 
     Product
         .findOne({_id: productId})
@@ -114,24 +122,24 @@ export const updateProductById = (req, res, next) => {
                     //what we update
                     {$set: productData},
                     //options. returns new updated data
-                    {new: true, runValidators: true}
+                    {new: true, runValidators: true},
                 )
                     .then(product => res.status(200).json(product))
                     .catch(err =>
                         res.status(400).json({
-                            message: `Error happened on server: "${err}" `
-                        })
+                            message: `Error happened on server: "${err}" `,
+                        }),
                     );
             }
         })
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `update product - Error happened on server: "${error.message}" `
+                        message: `update product - Error happened on server: "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -141,17 +149,17 @@ export const deleteProductById = (req, res, next) => {
         .then(() => {
             res.status(200)
                 .json({
-                    message: `Product with id "${req.params.id}" is deleted`
+                    message: `Product with id "${req.params.id}" is deleted`,
                 });
         })
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `delete product error: "${error.message}" `
+                        message: `delete product error: "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -160,17 +168,17 @@ export const deleteAllProducts = (req, res, next) => {
     Product.deleteMany({})
         .then(() => res.status(200)
             .json({
-                message: 'all products are deleted'
-            })
+                message: 'all products are deleted',
+            }),
         )
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `delete products error "${error.message}" `
+                        message: `delete products error "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -197,25 +205,67 @@ export const searchProducts = (req, res, next) => {
     //{ $text: { $search: "java shop -coffee" } }
     Product
         .find({
-            $text: {$search: query}
+            $text: {$search: query},
         })
         .then(matchedProducts => {
+
+            const rez = matchedProducts.map(p => {
+                const product = Object.assign({}, p._doc);
+                product.isOnSale = p.isOnSale;
+                return product;
+            });
             res.status(200)
-                .json(matchedProducts);
+                .json(rez);
         })
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `product search error: "${error.message}" `
+                        message: `product search error: "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 
 };
 
 export const getProductsByFilterParams = async (req, res, next) => {
+    const categoryId = req.query.categoryId;
+    if (categoryId) {
+        let filter = [];
+
+        const categories = await Category.find();
+
+        const findChildren = (id) => {
+            return categories.filter((item => {
+                const parentId = item.parentId;
+                return parentId && (parentId.id.toString() === id);
+            }));
+        };
+
+        const searchChildren = (arr) => {
+            arr.forEach(el => {
+                el.children = findChildren(el.id); // array of children
+                if (el.children.length) {
+                    searchChildren(el.children);
+                    filter = [].concat(filter).concat(el.children.map(item => item.id));
+                }
+            });
+        };
+
+        categories.filter(el => el.id === categoryId)
+            .map((category) => {
+                category.children = findChildren(category.id); // array of children
+                if (category.children.length) {
+                    searchChildren(category.children);
+                    filter = [].concat(filter).concat(category.children.map(item => item.id));
+                } else {
+                    filter.push(category.id);
+                }
+            });
+        req.query.categoryId = filter.join(',');
+    }
+
     const mongooseQuery = filterParamsHelper(req.query);
     const perPage = Number(req.query.perPage);
     const startPage = Number(req.query.startPage);
@@ -229,10 +279,16 @@ export const getProductsByFilterParams = async (req, res, next) => {
 
         const productsQuantity = await Product.find(mongooseQuery);
 
-        await res.status(200).json({products, totalCount: productsQuantity.length});
+        const rez = products.map(p => {
+            const product = Object.assign({}, p._doc);
+            product.isOnSale = p.isOnSale;
+            return product;
+        });
+
+        await res.status(200).json({rez, totalCount: productsQuantity.length});
     } catch (err) {
         res.status(400).json({
-            message: `filter products error: "${err.message}" `
+            message: `filter products error: "${err.message}" `,
         });
         next(err);
     }

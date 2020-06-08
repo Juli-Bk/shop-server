@@ -5,6 +5,7 @@ import Brand from '../models/schemas/Brand';
 import Color from '../models/schemas/Color';
 import Size from '../models/schemas/Size';
 import SizeTable from '../models/schemas/SizeTable';
+import Quantity from '../models/schemas/Quantity';
 import moment from 'moment';
 import Category from '../models/schemas/Category';
 import Product from '../models/schemas/Product';
@@ -73,12 +74,13 @@ export const importData = (req, res, next) => {
             return current[1].key - next[1].key;
         });
 
-        const {newColors, allColors} = await importColors(allColorsToImport, errorHandler);
+        const {newColors} = await importColors(allColorsToImport, errorHandler);
         const {newBrands, allBrands} = await importBrands(brands, errorHandler);
         const {newCategories, allCategories} = await importCategories(categoryHierarchy, errorHandler);
-        const {newSizes, allSizes} = await importSizes(sizeTables, errorHandler);
-        const {newProducts, allProducts} = await importProducts(products, allCategories, allBrands, errorHandler);
+        const {newSizes} = await importSizes(sizeTables, errorHandler);
+        const {newProducts} = await importProducts(products, allCategories, allBrands, errorHandler);
         const {newSizeTables} = await importSizeTables(products, errorHandler);
+        const {newQuantity} = await importQuantity(products, errorHandler);
 
         res.status(200)
             .json({
@@ -88,6 +90,7 @@ export const importData = (req, res, next) => {
                 'added new products': newProducts.length,
                 'added new sizes': newSizes.length,
                 'added new sizeTables': newSizeTables.length,
+                'added new quantity data': newQuantity.length,
             });
 
     });
@@ -99,254 +102,6 @@ const getImportedProductData = (filePath, callback) => {
         const jsonPath = path.join(__dirname, '..', '..', filePath);
         const data = fs.readFileSync(jsonPath);
         const products = JSON.parse(data);
-
-        const clothSizes = [];
-        let j = 30, k = 75.5, e = 23, y = 57.5, n = 32, l = 81;
-
-        for (let i = 4; i <= 18; i = i + 2) {
-            let inchStep = 1;
-            let cmStep = 2.5;
-            if (i > 8) {
-                inchStep = 2;
-                cmStep = 5;
-            }
-
-            clothSizes.push({
-                [i]: {
-                    bust: {
-                        inches: j += inchStep,
-                        cm: k += cmStep,
-                    },
-                    waist: {
-                        inches: e += inchStep,
-                        cm: y += cmStep,
-                    },
-                    hips: {
-                        inches: n += inchStep,
-                        cm: l += cmStep,
-                    },
-                },
-            });
-        }
-
-        const hatSizes = [
-            {
-                's': {
-                    'headSize': {
-                        inches: '21 5/8',
-                        cm: 55,
-                    },
-                },
-            },
-            {
-                'm': {
-                    'headSize': {
-                        inches: '22 3/8',
-                        cm: 56.8,
-                    },
-                },
-            },
-            {
-                'l': {
-                    'headSize': {
-                        inches: '23 1/8',
-                        cm: 58.7,
-                    },
-                },
-            },
-            {
-
-                'xl': {
-                    'headSize': {
-                        inches: '23 7/8',
-                        cm: 60.6,
-                    },
-                },
-            },
-            {
-                'xxl': {
-                    'headSize': {
-                        inches: '25',
-                        cm: 63.5,
-                    },
-                },
-            },
-        ];
-
-        const shoesSizes = [
-            {
-                '6': {
-                    'footLength': {
-                        inches: '8.75',
-                        cm: 22.5,
-                    },
-                },
-            },
-            {
-                '6.5': {
-                    'footLength': {
-                        inches: '9',
-                        cm: 23,
-                    },
-                },
-            },
-            {
-                '7': {
-                    'footLength': {
-                        inches: '9.25',
-                        cm: 23.5,
-                    },
-                },
-            },
-            {
-                '7.5': {
-                    'footLength': {
-                        inches: '9.375',
-                        cm: 23.8,
-                    },
-                },
-            },
-            {
-                '8': {
-                    'footLength': {
-                        inches: '9.5',
-                        cm: 24,
-                    },
-                },
-            },
-            {
-                '8.5': {
-                    'footLength': {
-                        inches: '9.75',
-                        cm: 24.6,
-                    },
-                },
-            },
-            {
-                '9': {
-                    'footLength': {
-                        inches: '9.87',
-                        cm: 25,
-                    },
-                },
-            },
-            {
-                '9.5': {
-                    'footLength': {
-                        inches: '10',
-                        cm: 25.4,
-                    },
-                },
-            },
-            {
-                '10': {
-                    'footLength': {
-                        inches: '10.2',
-                        cm: 25.9,
-                    },
-                },
-            },
-            {
-                '10.5': {
-                    'footLength': {
-                        inches: '10.35',
-                        cm: 26.2,
-                    },
-                },
-            },
-            {
-                '11': {
-                    'footLength': {
-                        inches: '10.5',
-                        cm: 26.7,
-                    },
-                },
-            },
-
-        ];
-
-        const oneSize = [
-            {
-                'one size': {
-                    'length': {
-                        inches: '10',
-                        cm: 25,
-                    },
-                },
-            },
-        ];
-
-
-
-        const scarvesSizes = [
-            {
-                's': {
-                    'length': {
-                        inches: 30,
-                        cm: (30 * 2.54).toFixed(),
-                    },
-                },
-            },
-            {
-                'm': {
-                    'length': {
-                        inches: 32,
-                        cm: (32 * 2.54).toFixed(),
-                    },
-                },
-            },
-            {
-                'l': {
-                    'length': {
-                        inches: 35,
-                        cm: (35 * 2.54).toFixed(),
-                    },
-                },
-            },
-            {
-                'xl': {
-                    'length': {
-                        inches: 39,
-                        cm: (39 * 2.54).toFixed(),
-                    },
-                },
-            },
-        ];
-
-        const newData = products.map(pr => {
-
-            const regClothing = new RegExp('clothing', 'i');
-            const regShoes = new RegExp('shoes', 'i');
-            const regHats = new RegExp('hats', 'i');
-            const regScarves = new RegExp('scarves', 'i');
-            const regSBelts = new RegExp('belts', 'i');
-
-            if (regClothing.test(pr.categoryBreadcrumbs)) {
-                pr.sizeTable = clothSizes;
-                pr.sizeType = 'clothing';
-            } else if (regShoes.test(pr.categoryBreadcrumbs)) {
-                pr.sizeTable = shoesSizes;
-                pr.sizeType = 'shoes';
-            } else if (regHats.test(pr.categoryBreadcrumbs)) {
-                pr.sizeTable = hatSizes;
-                pr.sizeType = 'hats';
-            } else if (regScarves.test(pr.categoryBreadcrumbs)) {
-                pr.sizeTable = scarvesSizes;
-                pr.sizeType = 'scarves';
-            } else if (regSBelts.test(pr.categoryBreadcrumbs)) {
-                pr.sizeTable = scarvesSizes;
-                pr.sizeType = 'belts';
-            } else {
-                pr.sizeTable = oneSize;
-                pr.sizeType = 'oneSize';
-            }
-
-            return pr;
-        });
-
-        const dataStr = JSON.stringify(newData);
-        fs.writeFileSync('/Users/ulia/WebstormProjects/vigo-import-data/prefinal/productsDataNew1.json', dataStr);
-        // todo save to new File import data
 
         callback(null, products);
     } catch (err) {
@@ -430,6 +185,12 @@ const saveColors = async (insertedValues) => {
 const saveSizes = async (insertedValues) => {
     const rez = [];
     for (const newSize of insertedValues) {
+        console.log('new size item ', {
+            name: newSize.name,
+            sizeType: newSize.sizeType,
+            createdDate: moment.utc().format('MM-DD-YYYY'),
+        });
+
         const size = await new Size({
             name: newSize.name,
             sizeType: newSize.sizeType,
@@ -481,6 +242,18 @@ const saveProducts = async (insertedValues) => {
     return rez;
 };
 
+const saveQuantity = async (insertedValues) => {
+    const rez = [];
+    for (const newQuantityItem of insertedValues) {
+        const item = await new Quantity({
+            ...newQuantityItem,
+            createdDate: moment.utc().format('MM-DD-YYYY'),
+        }).save();
+        rez.push(item);
+    }
+    return rez;
+};
+
 const importColors = async (allColorsToImport, errorHandler) => {
     const colors = Array.from(allColorsToImport);
     const colorFilter = colors.map(colorItem => {
@@ -521,18 +294,18 @@ const importSizes = async (importedSizeTables, errorHandler) => {
         sizeTable.map(s => {
             const allSizeNames = Object.getOwnPropertyNames(s);
             allSizeNames.map(sizeName => {
-                sizes.push({
-                    name: sizeName,
-                    sizeType: sizeType,
-                });
+                if (sizeName.toLowerCase() !== 'quantity') {
+                    sizes.push({
+                        name: sizeName,
+                        sizeType: sizeType,
+                    });
+                }
             });
         });
     });
 
-    return Size
-        .find()
+    return Size.find({})
         .then(async (savedSizes) => {
-
             let sizesToInsert = [];
 
             if (savedSizes.length) {
@@ -542,11 +315,15 @@ const importSizes = async (importedSizeTables, errorHandler) => {
                 sizesToInsert = sizes;
             }
 
-            const newSizes = await saveSizes(sizesToInsert);
-            const allSizes = [].concat(newSizes).concat(savedSizes);
-            return {
-                newSizes, allSizes,
-            };
+            try {
+                const newSizes = await saveSizes(sizesToInsert);
+                const allSizes = [].concat(newSizes).concat(savedSizes);
+                return {
+                    newSizes, allSizes,
+                };
+            } catch (error) {
+                errorHandler(error);
+            }
         })
         .catch(error => {
             errorHandler(error);
@@ -675,16 +452,19 @@ const importSizeTables = async (products, errorHandler) => {
                     const allSizeNames = Object.getOwnPropertyNames(s);
                     allSizeNames.map(sizeName => {
                         // sizeName =>>>>> "4"
-                        const size = savedSizes.find(as => as.sizeTypeSizeName === `${sizeType}/${sizeName}`);
-                        sizeId = size ? size._id.toString() : null;
-                        const measurementsData = s[sizeName]; // objects with props
-                        const measurementsNames = Object.getOwnPropertyNames(measurementsData); // Array with bust, waist, hips, length
+                        if (sizeName.toLowerCase() !== 'quantity') {
+                            const size = savedSizes.find(as => as.sizeTypeSizeName === `${sizeType}/${sizeName}`);
+                            sizeId = size ? size._id.toString() : null;
+                            const measurementsData = s[sizeName]; // objects with props
+                            const measurementsNames = Object.getOwnPropertyNames(measurementsData); // Array with bust, waist, hips, length
 
-                        measurementsNames.map(mn => {
-                            item[mn] = measurementsData[mn];
-                        });
+                            measurementsNames.map(mn => {
+                                item[mn] = measurementsData[mn];
+                            });
+                        }
                     });
                 });
+
                 item.sizeId = sizeId;
                 sizeTablesData.push(item);
             });
@@ -700,6 +480,62 @@ const importSizeTables = async (products, errorHandler) => {
                 errorHandler(e);
             }
 
+        })
+        .catch(error => {
+            errorHandler(error);
+        });
+};
+
+const importQuantity = async (products, errorHandler) => {
+
+    return Product.find({})
+        .then(async (savedProducts) => {
+
+            const newQuantityData = [];
+
+            const savedSizes = await Size.find({});
+            const colors = await Color.find({});
+
+            products.map(product => {
+                const sizeType = product.sizeType;
+                const sizeTable = product.sizeTable;
+                const productDB = savedProducts.find(pr => pr.productId === product.productId);
+                const productId = productDB ? productDB._id.toString() : null;
+                let sizeId = null, quantity = null;
+
+                sizeTable.map(s => {
+                    const allSizeNames = Object.getOwnPropertyNames(s);
+                    quantity = s.quantity;
+                    allSizeNames.map(sizeName => {
+                        if (sizeName.toLowerCase() === 'quantity') return;
+                        const size = savedSizes.find(as => as.sizeTypeSizeName === `${sizeType}/${sizeName}`);
+                        sizeId = size ? size._id.toString() : null;
+                    });
+                });
+
+                const productColor = product.color;
+                const productBaseColorStr = `${productColor.name}/${productColor.baseColorName}`;
+
+                const color = colors.find(c => {
+                    const colorBaseStr = `${c.name}/${c.baseColorName}`;
+                    return colorBaseStr === productBaseColorStr;
+                });
+
+                const item = {
+                    productId: productId,
+                    colorId: color ? color._id : null,
+                    sizeId,
+                    quantity,
+                };
+
+                newQuantityData.push(item);
+            });
+
+
+            const rez = await saveQuantity(newQuantityData);
+            return {
+                newQuantity: rez,
+            };
         })
         .catch(error => {
             errorHandler(error);

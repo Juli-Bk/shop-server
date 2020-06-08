@@ -178,6 +178,7 @@ export const loginUser = (req, res, next) => {
                         res.status(200)
                             .json({
                                 user: {
+                                    id: user.id,
                                     login: user.login,
                                     email: user.email,
                                     avatarUrl: user.avatarUrl,

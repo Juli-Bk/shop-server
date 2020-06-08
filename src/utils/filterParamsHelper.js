@@ -8,36 +8,37 @@ const excludedParams = ['perPage', 'startPage',
 const {Types: {ObjectId}} = mongoose;
 const validateObjectId = (id) => ObjectId.isValid(id) && (new ObjectId(id)).toString() === id;
 
+
 const filterParser = (filtersQueryString) => {
     const mongooseQuery = {};
 
     if (filtersQueryString.minPrice && filtersQueryString.maxPrice) {
         mongooseQuery.price = {
             $gt: Number(filtersQueryString.minPrice),
-            $lt: Number(filtersQueryString.maxPrice)
+            $lt: Number(filtersQueryString.maxPrice),
         };
     } else if (filtersQueryString.minPrice) {
         mongooseQuery.price = {
-            $gt: Number(filtersQueryString.minPrice)
+            $gt: Number(filtersQueryString.minPrice),
         };
     } else if (filtersQueryString.maxPrice) {
         mongooseQuery.price = {
-            $lt: Number(filtersQueryString.maxPrice)
+            $lt: Number(filtersQueryString.maxPrice),
         };
     }
-
 
     if (filtersQueryString.minCreatedDate || filtersQueryString.maxCreatedDate) {
         const minDate = moment.utc(filtersQueryString.minCreatedDate);
         const maxDate = moment.utc(filtersQueryString.maxCreatedDate);
         mongooseQuery.createdDate = {
             $gte: minDate,
-            $lte: maxDate
+            $lte: maxDate,
         };
     }
 
     return Object.keys(filtersQueryString).reduce(
         (mongooseQuery, filterParam) => {
+
             const parameterValue = filtersQueryString[filterParam];
             if (parameterValue.includes && parameterValue.includes(',')) {
                 mongooseQuery[filterParam] = {
@@ -49,26 +50,26 @@ const filterParser = (filtersQueryString) => {
                                 return decodeURI(decoded);
                             }
                             return new RegExp(decoded, 'i');
-                        })
+                        }),
                 };
 
             } else if (!excludedParams.includes(filterParam)) {
                 const filterValue = filtersQueryString[filterParam];
                 const decoded = decodeURI(filterValue.trim());
                 const isValidId = validateObjectId(decoded);
-                const isBooleanFilter = isValidId ? false : typeof JSON.parse(decoded.toLowerCase()) === "boolean"
+                const isBooleanFilter = isValidId ? false : typeof JSON.parse(decoded.toLowerCase()) === 'boolean';
 
                 if (isValidId || isBooleanFilter) {
                     mongooseQuery[filterParam] = decoded;
                 } else {
                     mongooseQuery[filterParam] = {
-                        $regex: decoded
+                        $regex: decoded,
                     };
                 }
             }
             return mongooseQuery;
         },
-        mongooseQuery
+        mongooseQuery,
     );
 };
 
