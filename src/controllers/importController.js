@@ -3,6 +3,8 @@ import path from 'path';
 import {log} from '../utils/helper';
 import Brand from '../models/schemas/Brand';
 import Color from '../models/schemas/Color';
+import Size from '../models/schemas/Size';
+import SizeTable from '../models/schemas/SizeTable';
 import moment from 'moment';
 import Category from '../models/schemas/Category';
 import Product from '../models/schemas/Product';
@@ -48,11 +50,13 @@ export const importData = (req, res, next) => {
         };
 
         const brands = new Set();
+        const sizeTables = new Map();
         const categoryHierarchy = new Map();
         const allColorsToImport = new Map();
 
         products.map(product => {
             if (product.brand) brands.add(product.brand.trim().toLowerCase());
+            if (product.sizeTable) sizeTables.set(product.sizeType, product.sizeTable);
 
             const color = product.color;
             if (color) allColorsToImport.set(color.name.trim().toLowerCase(), color.baseColorName.trim().toLowerCase());
@@ -72,9 +76,9 @@ export const importData = (req, res, next) => {
         const {newColors, allColors} = await importColors(allColorsToImport, errorHandler);
         const {newBrands, allBrands} = await importBrands(brands, errorHandler);
         const {newCategories, allCategories} = await importCategories(categoryHierarchy, errorHandler);
-        const {newProducts} = await importProducts(products, allCategories, allBrands, errorHandler);
-
-
+        const {newSizes, allSizes} = await importSizes(sizeTables, errorHandler);
+        const {newProducts, allProducts} = await importProducts(products, allCategories, allBrands, errorHandler);
+        const {newSizeTables} = await importSizeTables(products, errorHandler);
 
         res.status(200)
             .json({
@@ -82,6 +86,8 @@ export const importData = (req, res, next) => {
                 'added new colors': newColors.length,
                 'added new categories': newCategories.length,
                 'added new products': newProducts.length,
+                'added new sizes': newSizes.length,
+                'added new sizeTables': newSizeTables.length,
             });
 
     });
@@ -93,6 +99,255 @@ const getImportedProductData = (filePath, callback) => {
         const jsonPath = path.join(__dirname, '..', '..', filePath);
         const data = fs.readFileSync(jsonPath);
         const products = JSON.parse(data);
+
+        const clothSizes = [];
+        let j = 30, k = 75.5, e = 23, y = 57.5, n = 32, l = 81;
+
+        for (let i = 4; i <= 18; i = i + 2) {
+            let inchStep = 1;
+            let cmStep = 2.5;
+            if (i > 8) {
+                inchStep = 2;
+                cmStep = 5;
+            }
+
+            clothSizes.push({
+                [i]: {
+                    bust: {
+                        inches: j += inchStep,
+                        cm: k += cmStep,
+                    },
+                    waist: {
+                        inches: e += inchStep,
+                        cm: y += cmStep,
+                    },
+                    hips: {
+                        inches: n += inchStep,
+                        cm: l += cmStep,
+                    },
+                },
+            });
+        }
+
+        const hatSizes = [
+            {
+                's': {
+                    'headSize': {
+                        inches: '21 5/8',
+                        cm: 55,
+                    },
+                },
+            },
+            {
+                'm': {
+                    'headSize': {
+                        inches: '22 3/8',
+                        cm: 56.8,
+                    },
+                },
+            },
+            {
+                'l': {
+                    'headSize': {
+                        inches: '23 1/8',
+                        cm: 58.7,
+                    },
+                },
+            },
+            {
+
+                'xl': {
+                    'headSize': {
+                        inches: '23 7/8',
+                        cm: 60.6,
+                    },
+                },
+            },
+            {
+                'xxl': {
+                    'headSize': {
+                        inches: '25',
+                        cm: 63.5,
+                    },
+                },
+            },
+        ];
+
+        const shoesSizes = [
+            {
+                '6': {
+                    'footLength': {
+                        inches: '8.75',
+                        cm: 22.5,
+                    },
+                },
+            },
+            {
+                '6.5': {
+                    'footLength': {
+                        inches: '9',
+                        cm: 23,
+                    },
+                },
+            },
+            {
+                '7': {
+                    'footLength': {
+                        inches: '9.25',
+                        cm: 23.5,
+                    },
+                },
+            },
+            {
+                '7.5': {
+                    'footLength': {
+                        inches: '9.375',
+                        cm: 23.8,
+                    },
+                },
+            },
+            {
+                '8': {
+                    'footLength': {
+                        inches: '9.5',
+                        cm: 24,
+                    },
+                },
+            },
+            {
+                '8.5': {
+                    'footLength': {
+                        inches: '9.75',
+                        cm: 24.6,
+                    },
+                },
+            },
+            {
+                '9': {
+                    'footLength': {
+                        inches: '9.87',
+                        cm: 25,
+                    },
+                },
+            },
+            {
+                '9.5': {
+                    'footLength': {
+                        inches: '10',
+                        cm: 25.4,
+                    },
+                },
+            },
+            {
+                '10': {
+                    'footLength': {
+                        inches: '10.2',
+                        cm: 25.9,
+                    },
+                },
+            },
+            {
+                '10.5': {
+                    'footLength': {
+                        inches: '10.35',
+                        cm: 26.2,
+                    },
+                },
+            },
+            {
+                '11': {
+                    'footLength': {
+                        inches: '10.5',
+                        cm: 26.7,
+                    },
+                },
+            },
+
+        ];
+
+        const oneSize = [
+            {
+                'one size': {
+                    'length': {
+                        inches: '10',
+                        cm: 25,
+                    },
+                },
+            },
+        ];
+
+
+
+        const scarvesSizes = [
+            {
+                's': {
+                    'length': {
+                        inches: 30,
+                        cm: (30 * 2.54).toFixed(),
+                    },
+                },
+            },
+            {
+                'm': {
+                    'length': {
+                        inches: 32,
+                        cm: (32 * 2.54).toFixed(),
+                    },
+                },
+            },
+            {
+                'l': {
+                    'length': {
+                        inches: 35,
+                        cm: (35 * 2.54).toFixed(),
+                    },
+                },
+            },
+            {
+                'xl': {
+                    'length': {
+                        inches: 39,
+                        cm: (39 * 2.54).toFixed(),
+                    },
+                },
+            },
+        ];
+
+        const newData = products.map(pr => {
+
+            const regClothing = new RegExp('clothing', 'i');
+            const regShoes = new RegExp('shoes', 'i');
+            const regHats = new RegExp('hats', 'i');
+            const regScarves = new RegExp('scarves', 'i');
+            const regSBelts = new RegExp('belts', 'i');
+
+            if (regClothing.test(pr.categoryBreadcrumbs)) {
+                pr.sizeTable = clothSizes;
+                pr.sizeType = 'clothing';
+            } else if (regShoes.test(pr.categoryBreadcrumbs)) {
+                pr.sizeTable = shoesSizes;
+                pr.sizeType = 'shoes';
+            } else if (regHats.test(pr.categoryBreadcrumbs)) {
+                pr.sizeTable = hatSizes;
+                pr.sizeType = 'hats';
+            } else if (regScarves.test(pr.categoryBreadcrumbs)) {
+                pr.sizeTable = scarvesSizes;
+                pr.sizeType = 'scarves';
+            } else if (regSBelts.test(pr.categoryBreadcrumbs)) {
+                pr.sizeTable = scarvesSizes;
+                pr.sizeType = 'belts';
+            } else {
+                pr.sizeTable = oneSize;
+                pr.sizeType = 'oneSize';
+            }
+
+            return pr;
+        });
+
+        const dataStr = JSON.stringify(newData);
+        fs.writeFileSync('/Users/ulia/WebstormProjects/vigo-import-data/prefinal/productsDataNew1.json', dataStr);
+        // todo save to new File import data
+
         callback(null, products);
     } catch (err) {
         callback(err, []);
@@ -172,6 +427,36 @@ const saveColors = async (insertedValues) => {
     return rez;
 };
 
+const saveSizes = async (insertedValues) => {
+    const rez = [];
+    for (const newSize of insertedValues) {
+        const size = await new Size({
+            name: newSize.name,
+            sizeType: newSize.sizeType,
+            createdDate: moment.utc().format('MM-DD-YYYY'),
+        }).save();
+        rez.push(size);
+    }
+    return rez;
+};
+
+const saveSizeTables = async (insertedValues) => {
+    const rez = [];
+    for (const newSizeTable of insertedValues) {
+
+        const data = {
+            productId: newSizeTable.productId,
+            sizeId: newSizeTable.sizeId,
+            ...newSizeTable,
+            createdDate: moment.utc().format('MM-DD-YYYY'),
+        };
+
+        const size = await new SizeTable(data).save();
+        rez.push(size);
+    }
+    return rez;
+};
+
 const saveBrands = async (insertedValues) => {
     const rez = [];
     for (const newBrand of insertedValues) {
@@ -180,6 +465,18 @@ const saveBrands = async (insertedValues) => {
             createdDate: moment.utc().format('MM-DD-YYYY'),
         }).save();
         rez.push(brand);
+    }
+    return rez;
+};
+
+const saveProducts = async (insertedValues) => {
+    const rez = [];
+    for (const newProduct of insertedValues) {
+        const product = await new Product({
+            ...newProduct,
+            createdDate: moment.utc().format('MM-DD-YYYY'),
+        }).save();
+        rez.push(product);
     }
     return rez;
 };
@@ -206,6 +503,49 @@ const importColors = async (allColorsToImport, errorHandler) => {
             const allColors = [].concat(savedColors).concat(newColors);
             return {
                 newColors, allColors,
+            };
+        })
+        .catch(error => {
+            errorHandler(error);
+        });
+};
+
+const importSizes = async (importedSizeTables, errorHandler) => {
+    const stbls = Array.from(importedSizeTables);
+
+    const sizes = [];
+
+    stbls.map(st => {
+        const sizeType = st[0];
+        const sizeTable = st[1];
+        sizeTable.map(s => {
+            const allSizeNames = Object.getOwnPropertyNames(s);
+            allSizeNames.map(sizeName => {
+                sizes.push({
+                    name: sizeName,
+                    sizeType: sizeType,
+                });
+            });
+        });
+    });
+
+    return Size
+        .find()
+        .then(async (savedSizes) => {
+
+            let sizesToInsert = [];
+
+            if (savedSizes.length) {
+                const sizeTypeSizeNames = savedSizes.map(s => s.sizeTypeSizeName);
+                sizesToInsert = sizes.filter(s => !sizeTypeSizeNames.includes(`${s.sizeType}/${s.name}`.toLowerCase()));
+            } else {
+                sizesToInsert = sizes;
+            }
+
+            const newSizes = await saveSizes(sizesToInsert);
+            const allSizes = [].concat(newSizes).concat(savedSizes);
+            return {
+                newSizes, allSizes,
             };
         })
         .catch(error => {
@@ -278,71 +618,92 @@ const importCategories = async (allCategoriesToImport, errorHandler) => {
         });
 };
 
-// const saveProducts = async (insertedValues, allCategories, allBrands, callback) => {
-//     const rez = [];
-//
-//     const products = await Product.find({});
-//     const savedProducts = products.map(pr => pr.productId);
-//
-//     const newProducts = insertedValues
-//         .filter((product) => !savedProducts.includes(product.productId));
-//
-//     try {
-//         for (const newProduct of newProducts) {
-//             const productBrand = newProduct.brand.trim().toLowerCase();
-//             const categoryBreadcrumbs = newProduct.categoryBreadcrumbs.trim().toLowerCase();
-//
-//             const brand = allBrands.find(br => br.name === productBrand);
-//             newProduct.brandId = brand ? brand._id.toString() : null;
-//
-//             const category = allCategories.find(cat => cat.categoryBreadcrumbs === `${categoryBreadcrumbs}/`);
-//             newProduct.categoryId = category ? category._id.toString() : null;
-//
-//             newProduct.createdDate = moment.utc().format('MM-DD-YYYY');
-//
-//             const product = await new Product(newProduct).save();
-//
-//             rez.push(product);
-//         }
-//         callback(null, rez);
-//     } catch (error) {
-//         callback(error, rez);
-//     }
-// };
-
 const importProducts = async (productsToImport, allCategories, allBrands, errorHandler) => {
 
-    const newProducts = [];
+    return Product.find({})
+        .then(async (savedProducts) => {
+            const newProducts = [];
+            const savedProductsId = savedProducts.map(pr => pr.productId);
 
-    const savedProducts = await Product.find({});
-    const savedProductsId = savedProducts.map(pr => pr.productId);
+            const newToInsert = productsToImport
+                .filter((product) => !savedProductsId.includes(product.productId));
 
-    const newToInsert = productsToImport
-        .filter((product) => !savedProductsId.includes(product.productId));
+            for (const newProduct of newToInsert) {
 
-    try {
-        for (const newProduct of newToInsert) {
+                const productBrand = newProduct.brand.trim().toLowerCase();
+                const brand = allBrands.find(br => br.name === productBrand);
+                newProduct.brandId = brand ? brand._id.toString() : null;
 
-            const productBrand = newProduct.brand.trim().toLowerCase();
-            const brand = allBrands.find(br => br.name === productBrand);
-            newProduct.brandId = brand ? brand._id.toString() : null;
+                const categoryBreadcrumbs = newProduct.categoryBreadcrumbs.trim().toLowerCase();
+                const category = allCategories.find(cat => cat.categoryBreadcrumbs === `${categoryBreadcrumbs}/`);
+                newProduct.categoryId = category ? category._id.toString() : null;
 
-            const categoryBreadcrumbs = newProduct.categoryBreadcrumbs.trim().toLowerCase();
-            const category = allCategories.find(cat => cat.categoryBreadcrumbs === `${categoryBreadcrumbs}/`);
-            newProduct.categoryId = category ? category._id.toString() : null;
+                newProduct.createdDate = moment.utc().format('MM-DD-YYYY');
 
-            newProduct.createdDate = moment.utc().format('MM-DD-YYYY');
+                newProducts.push(newProduct);
+            }
 
-            const product = await new Product(newProduct).save();
-            newProducts.push(product);
-        }
-    } catch (error) {
-        errorHandler(error);
-    }
+            const rez = await saveProducts(newProducts);
+            return {
+                newProducts: rez,
+                allProducts: savedProducts,
+            };
+        })
+        .catch(error => {
+            errorHandler(error);
+        });
+};
 
-    return {
-        newProducts
-    };
+const importSizeTables = async (products, errorHandler) => {
+
+    return Product.find({})
+        .then(async (savedProducts) => {
+            const savedSizes = await Size.find({});
+
+            const sizeTablesData = [];
+            products.map(product => {
+                const sizeType = product.sizeType;
+                const sizeTable = product.sizeTable; // is Array of objects
+                const productDB = savedProducts.find(pr => pr.productId === product.productId);
+                const productId = productDB ? productDB._id.toString() : null;
+                let sizeId = null;
+
+                const item = {
+                    productId: productId,
+                };
+                sizeTable.map(s => {
+                    const allSizeNames = Object.getOwnPropertyNames(s);
+                    allSizeNames.map(sizeName => {
+                        // sizeName =>>>>> "4"
+                        const size = savedSizes.find(as => as.sizeTypeSizeName === `${sizeType}/${sizeName}`);
+                        sizeId = size ? size._id.toString() : null;
+                        const measurementsData = s[sizeName]; // objects with props
+                        const measurementsNames = Object.getOwnPropertyNames(measurementsData); // Array with bust, waist, hips, length
+
+                        measurementsNames.map(mn => {
+                            item[mn] = measurementsData[mn];
+                        });
+                    });
+                });
+                item.sizeId = sizeId;
+                sizeTablesData.push(item);
+            });
+
+            console.log('sizeTablesData', sizeTablesData);
+            try {
+                const newSizeTables = await saveSizeTables(sizeTablesData);
+
+                return {
+                    newSizeTables,
+                };
+            } catch (e) {
+                errorHandler(e);
+            }
+
+        })
+        .catch(error => {
+            errorHandler(error);
+        });
 };
 
 

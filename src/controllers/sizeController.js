@@ -78,7 +78,7 @@ export const updateSizeById = (req, res, next) => {
         //what we update
         {$set: {...req.body, updatedDate: moment.utc().format("MM-DD-YYYY")}},
         //options. returns new updated data
-        {new: true}
+        {new: true, runValidators: true}
     )
         .then(item => {
             if (!item) {

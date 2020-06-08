@@ -9,58 +9,84 @@ const SizeTableSchema = new Schema({
             type: Schema.Types.ObjectId,
             ref: 'products',
             required: [true, 'To save quantity productId must be specified'],
-            autopopulate: true
+            autopopulate: true,
         },
         sizeId: {
             type: Schema.Types.ObjectId,
             ref: 'sizes',
-            autopopulate: true
+            required: [true, 'To save quantity sizeId must be specified'],
+            autopopulate: true,
         },
-        shoeLength: {
-            type: Number,
-            min: 0
-        },
-        length: {
-            type: Number,
-            min: 0
-        },
+
         bust: {
-            type: Number,
-            min: 0
-        },
-        shoulder: {
-            type: Number,
-            min: 0
-        },
-        sleeve: {
-            type: Number,
-            min: 0
+            inches: {
+                type: Number,
+                min: 0,
+            },
+            cm: {
+                type: Number,
+                min: 0,
+            },
         },
         waist: {
-            type: Number,
-            min: 0
+            inches: {
+                type: Number,
+                min: 0,
+            },
+            cm: {
+                type: Number,
+                min: 0,
+            },
         },
-        hip: {
-            type: Number,
-            min: 0
+        hips: {
+            inches: {
+                type: Number,
+                min: 0,
+            },
+            cm: {
+                type: Number,
+                min: 0,
+            },
         },
-        rise: {
-            type: Number,
-            min: 0
+        footLength: {
+            inches: {
+                type: Number,
+                min: 0,
+            },
+            cm: {
+                type: Number,
+                min: 0,
+            },
         },
-        sm: {
-            type: Boolean,
-            default: true
+        length: {
+            inches: {
+                type: Number,
+                min: 0,
+            },
+            cm: {
+                type: Number,
+                min: 0,
+            },
+        },
+        headSize: {
+            inches: {
+                type: Number,
+                min: 0,
+            },
+            cm: {
+                type: Number,
+                min: 0,
+            },
         },
 
         createdDate: {
-            type: Date
+            type: Date,
         },
         updatedDate: {
-            type: Date
-        }
+            type: Date,
+        },
     },
-    schemaOptions
+    schemaOptions,
 );
 
 SizeTableSchema.plugin(validator);

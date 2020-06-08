@@ -13,9 +13,10 @@ const baseColors = [
     {name: 'yellow', hex: '#ffff00'}, {name: 'white', hex: '#FFFFFF'},
     {name: 'mocha', hex: '#d0c7b6'}, {name: 'mint', hex: '#c1f1d9'},
     {name: 'beige', hex: '#d7b68f'}, {name: 'brown', hex: '#653606'},
-    {name: 'multi', hex: '#ffffff'}, {name: 'animal', hex: '#ffffff'}
+    {name: 'multi', hex: '#ffffff'}, {name: 'animal', hex: '#ffffff'},
 ];
 const colorsNameList = baseColors.map(color => color.name.toLowerCase());
+const errorMsg = ` can be specified from this list: ${colorsNameList.join(', ')}`;
 
 const ColorSchema = new Schema({
         name: {
@@ -27,9 +28,9 @@ const ColorSchema = new Schema({
             type: String,
             enum: {
                 values: colorsNameList,
-                message: ` can be specified from this list: ${colorsNameList.join(', ')}`,
+                message: errorMsg,
             },
-            required: [true, `baseColorName can be specified from: ${colorsNameList.join(', ')}`],
+            required: [true, errorMsg],
         },
         createdDate: {
             type: Date,

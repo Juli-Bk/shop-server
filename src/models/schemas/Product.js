@@ -61,12 +61,6 @@ const ProductSchema = new mongoose.Schema({
             type: Date
         },
 
-        sizeTableId: {
-            type: mongoose.ObjectId,
-            ref: 'sizeTables',
-            default: null,
-            autopopulate: true
-        },
         brandId: {
             type: mongoose.ObjectId,
             ref: 'brands',
