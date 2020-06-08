@@ -1,4 +1,4 @@
-import upload from '../config/upload';
+import uploadAWS from '../config/uploadAWS';
 import passport from 'passport';
 import express from 'express';
 
@@ -32,7 +32,7 @@ router.post('/login', loginUser);
 //update
 router.post('/',
     passport.authenticate('jwt', {session: false}),
-    upload.single('user-avatar'),
+    uploadAWS.single('user-avatar'),
     updateUserInfo);
 
 router.post('/password',

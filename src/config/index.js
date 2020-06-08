@@ -20,5 +20,8 @@ export default {
         ? 45000
         : process.env.JWT_EXPIRES
     ,
-    tokenPrefix: 'Bearer'
+    tokenPrefix: 'Bearer',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    bucket: process.env.AWS_BUCKET_NAME
 };
