@@ -1,5 +1,4 @@
 import express from 'express';
-import upload from '../config/upload';
 
 import {
     addCategory,
@@ -10,13 +9,14 @@ import {
     updateCategoryById
 } from '../controllers/categoryController';
 import passport from 'passport';
+import uploadAWS from '../config/uploadAWS';
 
 const router = express.Router();
 
 //create
 router.put('/',
     passport.authenticate('jwt-admin', {session: false}),
-    upload.single('category-image'),
+    uploadAWS.single('category-image'),
     addCategory);
 
 //read
@@ -26,7 +26,7 @@ router.get('/:id', getCategoryById);
 //update
 router.post('/:id',
     passport.authenticate('jwt-admin', {session: false}),
-    upload.single('category-image'),
+    uploadAWS.single('category-image'),
     updateCategoryById);
 
 //delete

@@ -1,5 +1,4 @@
 import express from 'express';
-import upload from '../config/upload';
 
 import {
     addBrand,
@@ -10,13 +9,14 @@ import {
     updateBrandById
 } from '../controllers/brandController';
 import passport from 'passport';
+import uploadAWS from '../config/uploadAWS';
 
 const router = express.Router();
 
 //create
 router.put('/',
     passport.authenticate('jwt-admin', {session: false}),
-    upload.single('brand-image'), addBrand);
+    uploadAWS.single('brand-image'), addBrand);
 
 //read
 router.get('/', getAllBrands);
@@ -25,7 +25,7 @@ router.get('/:id', getBrandById);
 //update
 router.post('/:id',
     passport.authenticate('jwt-admin', {session: false}),
-    upload.single('brand-image'),
+    uploadAWS.single('brand-image'),
     updateBrandById);
 
 //delete

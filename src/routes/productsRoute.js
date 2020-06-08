@@ -1,5 +1,4 @@
 import express from 'express';
-import upload from '../config/upload';
 
 import {
     addProduct,
@@ -13,13 +12,14 @@ import {
 } from '../controllers/productController';
 
 import passport from 'passport';
+import uploadAWS from '../config/uploadAWS';
 
 const router = express.Router();
 
 //create
 router.put('/',
     passport.authenticate('jwt-admin', {session: false}),
-    upload.array('product-images'),
+    uploadAWS.array('product-images'),
     addProduct);
 
 //read
@@ -31,7 +31,7 @@ router.get('/:id', getProductById);
 //update
 router.post('/:id',
     passport.authenticate('jwt-admin', {session: false}),
-    upload.array('product-images'),
+    uploadAWS.array('product-images'),
     updateProductById);
 
 //delete
