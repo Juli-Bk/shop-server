@@ -286,3 +286,26 @@ export const getProductsByFilterParams = async (req, res, next) => {
         next(err);
     }
 };
+
+export const getMaxPrice = (req, res, next) => {
+
+    Product
+        .find()
+        .then(products => {
+            const maxPrice = Math.max(...products.map(p => p.price));
+            const maxSalePrice = Math.max(...products.map(p => p.salePrice));
+            res.status(200).json({
+                maxPrice,
+                maxSalePrice
+            });
+        })
+        .catch(error => {
+                res.status(400)
+                    .json({
+                        message: `getMaxPrice error: ${error.message}`,
+                    });
+                log(error);
+                next(error);
+            },
+        );
+};

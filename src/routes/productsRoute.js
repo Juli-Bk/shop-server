@@ -8,7 +8,8 @@ import {
     getProductById,
     getProductsByFilterParams,
     searchProducts,
-    updateProductById
+    updateProductById,
+    getMaxPrice
 } from '../controllers/productController';
 
 import passport from 'passport';
@@ -24,6 +25,7 @@ router.put('/',
 
 //read
 router.get('/', getAllProducts);
+router.get('/max', getMaxPrice);
 router.get('/filter', getProductsByFilterParams);
 router.post('/search', searchProducts);
 router.get('/:id', getProductById);
