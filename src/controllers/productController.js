@@ -215,7 +215,7 @@ export const searchProducts = (req, res, next) => {
                 return product;
             });
             res.status(200)
-                .json(rez);
+                .json({products: rez});
         })
         .catch(error => {
                 res.status(400)
@@ -285,7 +285,7 @@ export const getProductsByFilterParams = async (req, res, next) => {
             return product;
         });
 
-        await res.status(200).json({rez, totalCount: productsQuantity.length});
+        await res.status(200).json({products: rez, totalCount: productsQuantity.length});
     } catch (err) {
         res.status(400).json({
             message: `filter products error: "${err.message}" `,
