@@ -416,6 +416,7 @@ const importProducts = async (productsToImport, allCategories, allBrands, errorH
                 newProduct.categoryId = category ? category._id.toString() : null;
 
                 newProduct.createdDate = moment.utc().format('MM-DD-YYYY');
+                newProduct.isOnSale = newProduct.salePrice >= 0 && newProduct.salePrice < newProduct.price;
 
                 newProducts.push(newProduct);
             }

@@ -53,6 +53,10 @@ const ProductSchema = new mongoose.Schema({
         salePrice: {
             type: Number,
         },
+        isOnSale: {
+            type: Boolean,
+            default: false
+        },
 
         createdDate: {
             type: Date,
@@ -76,10 +80,6 @@ const ProductSchema = new mongoose.Schema({
     },
     schemaOptions,
 );
-
-ProductSchema.virtual('isOnSale').get(function () {
-    return this.salePrice >= 0 && this.salePrice < this.price;
-});
 
 ProductSchema.plugin(validator);
 ProductSchema.plugin(autoPopulate);

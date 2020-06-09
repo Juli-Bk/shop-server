@@ -11,6 +11,7 @@ export const addProduct = (req, res, next) => {
         ...req.body,
         createdDate: moment.utc().format('MM-DD-YYYY'),
         imageUrls: filePath,
+        isOnSale: req.body.salePrice >= 0 && req.body.salePrice < req.body.price,
     };
 
     const newProduct = new Product(productData);
@@ -48,13 +49,8 @@ export const getAllProducts = async (req, res, next) => {
         .limit(perPage)
         .sort(sort)
         .then(products => {
-            const rez = products.map(p => {
-                const product = Object.assign({}, p._doc);
-                product.isOnSale = p.isOnSale;
-                return product;
-            });
             res.status(200).json({
-                products: rez,
+                products,
                 totalCount: count,
             });
         })
@@ -80,9 +76,7 @@ export const getProductById = (req, res, next) => {
                         message: `Product with id ${req.params.id} is not found`,
                     });
             } else {
-                const productCopy = Object.assign({}, product._doc);
-                productCopy.isOnSale = product.isOnSale;
-                res.status(200).json(productCopy);
+                res.status(200).json(product);
             }
         })
         .catch(error => {
@@ -104,8 +98,12 @@ export const updateProductById = (req, res, next) => {
         {
             ...req.body,
             imageUrls: filePath,
+            isOnSale: req.body.salePrice >= 0 && req.body.salePrice < req.body.price,
         }
-        : {...req.body};
+        : {
+            ...req.body,
+            isOnSale: req.body.salePrice >= 0 && req.body.salePrice < req.body.price,
+        };
 
     productData.updatedDate = moment.utc().format('MM-DD-YYYY');
 
@@ -208,14 +206,8 @@ export const searchProducts = (req, res, next) => {
             $text: {$search: query},
         })
         .then(matchedProducts => {
-
-            const rez = matchedProducts.map(p => {
-                const product = Object.assign({}, p._doc);
-                product.isOnSale = p.isOnSale;
-                return product;
-            });
             res.status(200)
-                .json({products: rez});
+                .json({products: matchedProducts});
         })
         .catch(error => {
                 res.status(400)
@@ -279,13 +271,7 @@ export const getProductsByFilterParams = async (req, res, next) => {
 
         const productsQuantity = await Product.find(mongooseQuery);
 
-        const rez = products.map(p => {
-            const product = Object.assign({}, p._doc);
-            product.isOnSale = p.isOnSale;
-            return product;
-        });
-
-        await res.status(200).json({products: rez, totalCount: productsQuantity.length});
+        await res.status(200).json({products: products, totalCount: productsQuantity.length});
     } catch (err) {
         res.status(400).json({
             message: `filter products error: "${err.message}" `,

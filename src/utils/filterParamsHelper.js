@@ -8,7 +8,6 @@ const excludedParams = ['perPage', 'startPage',
 const {Types: {ObjectId}} = mongoose;
 const validateObjectId = (id) => ObjectId.isValid(id) && (new ObjectId(id)).toString() === id;
 
-
 const filterParser = (filtersQueryString) => {
     const mongooseQuery = {};
 
