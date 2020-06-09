@@ -255,7 +255,14 @@ export const getProductsByFilterParams = async (req, res, next) => {
                     filter.push(category.id);
                 }
             });
-        req.query.categoryId = filter.join(',');
+        if (filter.length === 0) {
+            res.status(400).json({
+                message: `filter products error: "${categoryId}"  is not found in DB`,
+            });
+            return;
+        } else {
+            req.query.categoryId = filter.join(',');
+        }
     }
 
     const mongooseQuery = filterParamsHelper(req.query);
