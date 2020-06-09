@@ -166,7 +166,7 @@ export const loginUser = (req, res, next) => {
             if (!user) {
                 res.status(400)
                     .json({
-                        message: 'User is not found'
+                        message: 'User is not found. Please check your login and password'
                     });
             }
 
