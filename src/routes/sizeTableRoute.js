@@ -5,7 +5,7 @@ import {
     deleteAllSizeTables,
     deleteSizeTableById,
     getAllSizeTables,
-    getSizeTableById,
+    getSizeTableByProductId,
     updateSizeTableById
 } from '../controllers/sizeTableController';
 import passport from 'passport';
@@ -19,7 +19,7 @@ router.put('/',
 
 //read
 router.get('/', getAllSizeTables);
-router.get('/:id', getSizeTableById);
+router.get('/:id', getSizeTableByProductId);
 
 //update
 router.post('/:id',

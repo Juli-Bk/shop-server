@@ -2,10 +2,10 @@ import express from 'express';
 
 import {
     addQuantity,
-    deleteAllQuantitys,
+    deleteAllQuantities,
     deleteQuantityById,
     getAllQuantity,
-    getQuantityById,
+    getQuantityByProductId,
     updateQuantityById
 } from '../controllers/quantityController';
 import passport from 'passport';
@@ -19,7 +19,7 @@ router.put('/',
 
 //read
 router.get('/', getAllQuantity);
-router.get('/:id', getQuantityById);
+router.get('/:id', getQuantityByProductId);
 
 //update
 router.post('/:id',
@@ -32,6 +32,6 @@ router.delete('/:id',
     deleteQuantityById);
 router.delete('/',
     passport.authenticate('jwt-admin', {session: false}),
-    deleteAllQuantitys);
+    deleteAllQuantities);
 
 export default router;

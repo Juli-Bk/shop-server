@@ -1,12 +1,11 @@
 import Size from '../models/schemas/Size';
-import {getRandomItemId, log} from '../utils/helper';
+import {log} from '../utils/helper';
 import moment from 'moment';
 
 export const addSize = (req, res, next) => {
     const data = {
         ...req.body,
-        createdDate: moment.utc().format('MM-DD-YYYY'),
-        itemId: getRandomItemId(),
+        createdDate: moment.utc().format('MM-DD-YYYY')
     };
 
     const newItem = new Size(data);

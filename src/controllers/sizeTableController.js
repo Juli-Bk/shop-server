@@ -1,12 +1,11 @@
 import SizeTable from '../models/schemas/SizeTable';
-import {getRandomItemId, log} from '../utils/helper';
+import {log} from '../utils/helper';
 import moment from "moment";
 
 export const addSizeTable = (req, res, next) => {
     const data = {
         ...req.body,
-        createdDate: moment.utc().format("MM-DD-YYYY"),
-        itemId: getRandomItemId()
+        createdDate: moment.utc().format("MM-DD-YYYY")
     };
 
     const newItem = new SizeTable(data);
@@ -43,11 +42,11 @@ export const getAllSizeTables = (req, res, next) => {
         );
 };
 
-export const getSizeTableById = (req, res, next) => {
-    const id = req.params.id;
+export const getSizeTableByProductId = (req, res, next) => {
+    const id = req.params.productId;
 
     SizeTable
-        .findById(id)
+        .find({productId: id})
         .then(item => {
             if (!item) {
                 res.status(400)

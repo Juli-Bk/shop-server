@@ -1,12 +1,11 @@
 import Quantity from '../models/schemas/Quantity';
-import {getRandomItemId, log} from '../utils/helper';
+import {log} from '../utils/helper';
 import moment from 'moment';
 
 export const addQuantity = (req, res, next) => {
     const data = {
         ...req.body,
-        createdDate: moment.utc().format('MM-DD-YYYY'),
-        itemId: getRandomItemId(),
+        createdDate: moment.utc().format('MM-DD-YYYY')
     };
 
     const newItem = new Quantity(data);
@@ -43,16 +42,16 @@ export const getAllQuantity = (req, res, next) => {
         );
 };
 
-export const getQuantityById = (req, res, next) => {
-    const id = req.params.id;
+export const getQuantityByProductId = (req, res, next) => {
+    const id = req.params.productId;
 
     Quantity
-        .findById(id)
+        .find({productId: id})
         .then(item => {
             if (!item) {
                 res.status(400)
                     .json({
-                        message: `Quantity with id ${id} is not found`,
+                        message: `Quantity for product with id: ${id} is not found`,
                     });
             } else {
                 res.status(200).json(item);
@@ -128,7 +127,7 @@ export const deleteQuantityById = (req, res, next) => {
         );
 };
 
-export const deleteAllQuantitys = (req, res, next) => {
+export const deleteAllQuantities = (req, res, next) => {
     Quantity.deleteMany({})
         .then(() => res.status(200)
             .json({
