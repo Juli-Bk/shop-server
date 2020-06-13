@@ -43,7 +43,7 @@ export const getAllQuantity = (req, res, next) => {
 };
 
 export const getQuantityByProductId = (req, res, next) => {
-    const id = req.params.productId;
+    const id = req.params.id;
 
     Quantity
         .find({productId: id})
