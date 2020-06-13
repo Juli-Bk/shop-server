@@ -3,7 +3,7 @@ import moment from 'moment';
 
 const excludedParams = ['perPage', 'startPage',
     'minPrice', 'maxPrice', 'sort',
-    'minCreatedDate', 'maxCreatedDate'];
+    'minCreatedDate', 'maxCreatedDate', 'color', 'size'];
 
 const {Types: {ObjectId}} = mongoose;
 const validateObjectId = (id) => ObjectId.isValid(id) && (new ObjectId(id)).toString() === id;

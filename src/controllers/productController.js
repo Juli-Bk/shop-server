@@ -3,6 +3,7 @@ import {log} from '../utils/helper';
 import filterParamsHelper from '../utils/filterParamsHelper';
 import moment from 'moment';
 import Category from '../models/schemas/Category';
+import Quantity from '../models/schemas/Quantity';
 
 export const addProduct = (req, res, next) => {
     const filePath = req.files ? req.files.map(file => file.path) : [];
@@ -223,6 +224,9 @@ export const searchProducts = (req, res, next) => {
 
 export const getProductsByFilterParams = async (req, res, next) => {
     const categoryId = req.query.categoryId;
+    const colorsFilter = req.query.color; // silver,black,green
+    const sizesFilter = req.query.size; // s,10,6.5,xl
+
     if (categoryId) {
         let filter = [];
 
@@ -265,6 +269,41 @@ export const getProductsByFilterParams = async (req, res, next) => {
         }
     }
 
+    let inStock = [];
+    if (colorsFilter || sizesFilter) {
+        const filterObj = {
+            quantity: {
+                $gt: 0,
+            },
+        };
+        const quantities = await Quantity.find(filterObj);
+
+        if (colorsFilter && sizesFilter) {
+            const colorsList = colorsFilter.split(',');
+            const sizesList = sizesFilter.split(',');
+            inStock = quantities
+                .filter(item => {
+                    return (item.colorId && colorsList.includes(item.colorId.baseColorName))
+                        || (item.sizeId && sizesList.includes(item.sizeId.name))
+                })
+                .map(item => item.productId.toString());
+        } else if (colorsFilter) {
+            const colorsList = colorsFilter.split(',');
+            inStock = quantities
+                .filter(item => item.colorId && colorsList.includes(item.colorId.baseColorName))
+                .map(item => item.productId.toString());
+        } else if (sizesFilter) {
+            const sizesList = sizesFilter.split(',');
+            inStock = quantities
+                .filter(item => item.sizeId && sizesList.includes(item.sizeId.name))
+                .map(item => item.productId.toString());
+        }
+    }
+
+    if (inStock.length > 0) {
+        req.query._id = inStock.join(',');
+    }
+
     const mongooseQuery = filterParamsHelper(req.query);
     const perPage = Number(req.query.perPage);
     const startPage = Number(req.query.startPage);
@@ -296,7 +335,7 @@ export const getMaxPrice = (req, res, next) => {
             const maxSalePrice = Math.max(...products.map(p => p.salePrice));
             res.status(200).json({
                 maxPrice,
-                maxSalePrice
+                maxSalePrice,
             });
         })
         .catch(error => {
