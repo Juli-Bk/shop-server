@@ -226,6 +226,7 @@ export const getProductsByFilterParams = async (req, res, next) => {
     const categoryId = req.query.categoryId;
     const colorsFilter = req.query.color; // silver,black,green
     const sizesFilter = req.query.size; // s,10,6.5,xl
+    const isNewIn = req.query.new; // true
 
     if (categoryId) {
         let filter = [];
@@ -281,30 +282,45 @@ export const getProductsByFilterParams = async (req, res, next) => {
         if (colorsFilter && sizesFilter) {
             const colorsList = colorsFilter.split(',');
             const sizesList = sizesFilter.split(',');
-            inStock = quantities
+            inStock = new Set(quantities
                 .filter(item => {
-                    return (item.colorId && colorsList.includes(item.colorId.baseColorName))
-                        || (item.sizeId && sizesList.includes(item.sizeId.name))
+                    const isOkByColor = item.colorId && colorsList.includes(item.colorId.baseColorName);
+                    const isOkBySize = item.sizeId && sizesList.includes(item.sizeId.name);
+                    return isOkByColor && isOkBySize;
                 })
-                .map(item => item.productId.toString());
+                .map(item => item.productId.toString()));
         } else if (colorsFilter) {
             const colorsList = colorsFilter.split(',');
-            inStock = quantities
-                .filter(item => item.colorId && colorsList.includes(item.colorId.baseColorName))
-                .map(item => item.productId.toString());
+            inStock = new Set(quantities
+                .filter(item => {
+                    const isOkByColor = item.colorId && colorsList.includes(item.colorId.baseColorName);
+                    return isOkByColor;
+                })
+                .map(item => item.productId.toString()));
         } else if (sizesFilter) {
             const sizesList = sizesFilter.split(',');
-            inStock = quantities
-                .filter(item => item.sizeId && sizesList.includes(item.sizeId.name))
-                .map(item => item.productId.toString());
+            inStock = new Set(quantities
+                .filter(item => {
+                    const isOkBySize = item.sizeId && sizesList.includes(item.sizeId.name);
+                    return isOkBySize;
+                })
+                .map(item => item.productId.toString()));
         }
     }
-
-    if (inStock.length > 0) {
-        req.query._id = inStock.join(',');
+    const filterArr = Array.from(inStock);
+    if (filterArr.length > 0) {
+        req.query._id = filterArr.join(',');
     }
 
     const mongooseQuery = filterParamsHelper(req.query);
+    if (isNewIn) {
+        const twoWeeksAgo = moment.utc().subtract(14, 'days').format('YYYY.MM.DD');
+        const currentDate = moment.utc().format('YYYY.MM.DD');
+        mongooseQuery.createdDate = {
+            $gte: twoWeeksAgo,
+            $lte: currentDate
+        };
+    }
     const perPage = Number(req.query.perPage);
     const startPage = Number(req.query.startPage);
     const sort = req.query.sort;

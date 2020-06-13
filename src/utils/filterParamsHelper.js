@@ -1,9 +1,12 @@
 import mongoose from 'mongoose';
 import moment from 'moment';
 
-const excludedParams = ['perPage', 'startPage',
+const excludedParams = [
+    'perPage', 'startPage',
     'minPrice', 'maxPrice', 'sort',
-    'minCreatedDate', 'maxCreatedDate', 'color', 'size'];
+    'minCreatedDate', 'maxCreatedDate',
+    'color', 'size', 'isNewIn', 'new',
+];
 
 const {Types: {ObjectId}} = mongoose;
 const validateObjectId = (id) => ObjectId.isValid(id) && (new ObjectId(id)).toString() === id;
@@ -39,7 +42,7 @@ const filterParser = (filtersQueryString) => {
         (mongooseQuery, filterParam) => {
 
             const parameterValue = filtersQueryString[filterParam];
-            if (parameterValue.includes && parameterValue.includes(',')) {
+            if (!excludedParams.includes(filterParam) && parameterValue.includes && parameterValue.includes(',')) {
                 mongooseQuery[filterParam] = {
                     $in: filtersQueryString[filterParam]
                         .split(',')

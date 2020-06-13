@@ -177,15 +177,7 @@ export const loginUser = (req, res, next) => {
                         user.save();
                         res.status(200)
                             .json({
-                                user: {
-                                    id: user.id,
-                                    login: user.login,
-                                    email: user.email,
-                                    avatarUrl: user.avatarUrl,
-                                    isAdmin: user.isAdmin,
-                                    firstName: user.firstName,
-                                    lastName: user.lastName
-                                },
+                                user,
                                 token: signUp(user)
                             });
                     } else {

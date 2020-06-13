@@ -504,6 +504,14 @@ const importQuantity = async (products, errorHandler) => {
                 const productId = productDB ? productDB._id.toString() : null;
                 let sizeId = null, quantity = null;
 
+                const productColor = product.color;
+                const productBaseColorStr = `${productColor.name}/${productColor.baseColorName}`;
+                const color = colors.find(c => {
+                    const colorBaseStr = `${c.name}/${c.baseColorName}`;
+                    return colorBaseStr === productBaseColorStr;
+                });
+                const colorId = color ? color._id.toString() : null;
+
                 sizeTable.map(s => {
                     const allSizeNames = Object.getOwnPropertyNames(s);
                     quantity = s.quantity;
@@ -511,25 +519,17 @@ const importQuantity = async (products, errorHandler) => {
                         if (sizeName.toLowerCase() === 'quantity') return;
                         const size = savedSizes.find(as => as.sizeTypeSizeName === `${sizeType}/${sizeName}`);
                         sizeId = size ? size._id.toString() : null;
+
+                        const item = {
+                            productId: productId,
+                            colorId: colorId,
+                            sizeId,
+                            quantity,
+                        };
+
+                        newQuantityData.push(item);
                     });
                 });
-
-                const productColor = product.color;
-                const productBaseColorStr = `${productColor.name}/${productColor.baseColorName}`;
-
-                const color = colors.find(c => {
-                    const colorBaseStr = `${c.name}/${c.baseColorName}`;
-                    return colorBaseStr === productBaseColorStr;
-                });
-
-                const item = {
-                    productId: productId,
-                    colorId: color ? color._id : null,
-                    sizeId,
-                    quantity,
-                };
-
-                newQuantityData.push(item);
             });
 
 

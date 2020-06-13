@@ -43,7 +43,7 @@ export const getAllSizeTables = (req, res, next) => {
 };
 
 export const getSizeTableByProductId = (req, res, next) => {
-    const id = req.params.productId;
+    const id = req.params.id;
 
     SizeTable
         .find({productId: id})
