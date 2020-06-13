@@ -7,8 +7,7 @@ const QuantitySchema = new Schema({
         productId: {
             type: Schema.Types.ObjectId,
             ref: 'products',
-            required: [true, 'To save quantity productId must be specified'],
-            autopopulate: true
+            required: [true, 'To save quantity productId must be specified']
         },
         colorId: {
             type: Schema.Types.ObjectId,

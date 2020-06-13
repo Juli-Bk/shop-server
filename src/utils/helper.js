@@ -18,11 +18,10 @@ export const log = (msg) => {
 
 export const isJSON = (str) => {
     try {
-        //todo deprecated usage util.isNullOrUndefined
         const obj = JSON.parse(str);
-        return !util.isNullOrUndefined()
-            && util.isObject(obj);
-
+        if (obj && typeof obj === "object" && obj !== null) {
+            return true;
+        }
     } catch (err) {
         return false;
     }

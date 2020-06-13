@@ -6,6 +6,7 @@ import Size from './schemas/Size';
 import Product from './schemas/Product';
 import User from './schemas/User';
 import WishList from "./schemas/WishList";
+import ShopCart from "./schemas/ShopCart";
 
 export default {
     Category,
@@ -15,5 +16,6 @@ export default {
     SizeTable,
     Quantity,
     User,
-    WishList
+    WishList,
+    ShopCart
 };
