@@ -10,6 +10,7 @@ import wishListRoute from './wishListRoute';
 import colorRoute from './colorRoute';
 import importRoute from './importRoute';
 import shopCartRoute from './shopCartRoute';
+import orderRout from './orderRoute';
 import express from 'express';
 import path from 'path';
 import favicon from "serve-favicon";
@@ -30,6 +31,7 @@ const addRoutes = (app) => {
     app.use('/wishlist', wishListRoute);
     app.use('/colors', colorRoute);
     app.use('/cart', shopCartRoute);
+    app.use('/orders', orderRout);
 
     app.use('/import-data', importRoute);
 

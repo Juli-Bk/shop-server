@@ -1,11 +1,14 @@
 import uniqueRandom from 'unique-random';
 import util from 'util';
 import colors from 'colors';
-import webP from "webp-converter";
+import webP from 'webp-converter';
 
 const rand = uniqueRandom(0, 999999);
 
 export const getRandomItemId = () => rand();
+export const getRandomInt = (min, max) => {
+    return Math.random() * (max - min) + min;
+};
 
 export const log = (msg) => {
     if (util.isObject(msg)) {
@@ -19,7 +22,7 @@ export const log = (msg) => {
 export const isJSON = (str) => {
     try {
         const obj = JSON.parse(str);
-        if (obj && typeof obj === "object" && obj !== null) {
+        if (obj && typeof obj === 'object' && obj !== null) {
             return true;
         }
     } catch (err) {
@@ -29,7 +32,7 @@ export const isJSON = (str) => {
 
 export const convertTo_WEBP_format = (filePath, callback) => {
     const newFileName = filePath.split('.')[0];
-    webP.cwebp(filePath, `${newFileName}.webp`, "-q 90", function (status, error) {
+    webP.cwebp(filePath, `${newFileName}.webp`, '-q 90', function (status, error) {
         callback(error, status);
     });
-}
+};
