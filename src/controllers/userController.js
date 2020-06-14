@@ -36,7 +36,11 @@ export const createUser = (req, res, next) => {
             }
 
             data.createdDate = moment.utc().format("MM-DD-YYYY");
-            const newCustomer = new User(data);
+            const newCustomer = new User({
+                email: email.trim(),
+                login: login.trim(),
+                password: password.trim()
+            });
 
             bcrypt.genSalt(10, (err, salt) => {
                 bcrypt.hash(newCustomer.password, salt, (err, hash) => {
@@ -49,8 +53,8 @@ export const createUser = (req, res, next) => {
 
                     newCustomer.password = hash;
                     newCustomer.createdDate = Date.now();
-                    newCustomer
-                        .save()
+
+                    newCustomer.save()
                         .then(customer => {
                             return res.status(200).json({
                                 id: customer._id,

@@ -3,14 +3,14 @@ import schemaOptions from '../modelHelper';
 import bcryptjs from 'bcryptjs';
 import validationRules from '../../config/validation';
 import validator from 'validator';
-import moment from "moment";
+import moment from 'moment';
 
 const UserSchema = new Schema({
         firstName: {
-            type: String
+            type: String,
         },
         lastName: {
-            type: String
+            type: String,
         },
         phoneNumber: {
             type: String,
@@ -18,8 +18,8 @@ const UserSchema = new Schema({
                 validator: function (phoneNumber) {
                     return validationRules.phoneReExp.test(phoneNumber);
                 },
-                message: props => `${props.value} is not a valid phone number!`
-            }
+                message: props => `${props.value} is not a valid phone number!`,
+            },
         },
         birthDate: {
             type: Date,
@@ -27,10 +27,10 @@ const UserSchema = new Schema({
                 validator: function (birthDate) {
                     const bd = moment(birthDate);
                     return bd.isValid()
-                        && (bd.format("MM-DD-YYYY") < moment.utc().format("MM-DD-YYYY"));
+                        && (bd.format('MM-DD-YYYY') < moment.utc().format('MM-DD-YYYY'));
                 },
-                message: props => `${props.value} is not a valid!`
-            }
+                message: props => `${props.value} is not a valid!`,
+            },
         },
         gender: {
             type: String,
@@ -43,40 +43,62 @@ const UserSchema = new Schema({
                 validator: function (email) {
                     return validator.isEmail(email);
                 },
-                message: props => `${props.value} is not a valid email!`
-            }
+                message: props => `${props.value} is not a valid email!`,
+            },
         },
+        addresses: [
+            {
+                country: {
+                    type: String,
+                },
+                city: {
+                    type: String,
+                },
+                street: {
+                    type: String,
+                },
+                house: {
+                    type: String,
+                },
+                apartment: {
+                    type: String,
+                },
+                postalCode: {
+                    type: String,
+                },
+            },
+        ],
         password: {
             type: String,
-            required: [true, 'Password is required']
+            required: [true, 'Password is required'],
         },
         login: {
             type: String,
             required: [true, 'Login is required'],
-            maxlength: 30
+            maxlength: 30,
         },
         avatarUrl: {
-            type: String
+            type: String,
         },
         isAdmin: {
             type: Boolean,
-            default: false
+            default: false,
         },
         lastLoginDate: {
-            type: Date
+            type: Date,
         },
         enabled: {
             type: Boolean,
-            default: true
+            default: true,
         },
         createdDate: {
-            type: Date
+            type: Date,
         },
         updatedDate: {
-            type: Date
+            type: Date,
         },
     },
-    schemaOptions
+    schemaOptions,
 );
 
 UserSchema.index({'$**': 'text'});
