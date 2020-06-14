@@ -96,10 +96,9 @@ export const cancelOrder = (req, res, next) => {
                 order.updatedDate = moment.utc().format('MM-DD-YYYY');
                 order.status = 'canceled';
                 order.save()
-                    .then(order => {
+                    .then(() => {
                         res.status(200).json({
-                            message: 'Success operation. The order is canceled',
-                            order,
+                            message: 'Success operation. The order is canceled'
                         });
                     })
                     .catch(error => {
