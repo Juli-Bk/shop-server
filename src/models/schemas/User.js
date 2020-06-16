@@ -48,6 +48,9 @@ const UserSchema = new Schema({
         },
         addresses: [
             {
+                address: {
+                    type: String,
+                },
                 country: {
                     type: String,
                 },
