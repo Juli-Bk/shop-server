@@ -2,7 +2,7 @@ import User from '../models/schemas/User';
 import {log} from '../utils/helper';
 import bcrypt from 'bcryptjs';
 import signUp from '../utils/authJWT';
-import moment from "moment";
+import moment from 'moment';
 
 export const createUser = (req, res, next) => {
     const data = req.body;
@@ -17,8 +17,8 @@ export const createUser = (req, res, next) => {
     User.findOne({
         $or: [
             {email: email},
-            {login: login}
-        ]
+            {login: login},
+        ],
     })
         .then(customer => {
             if (customer) {
@@ -35,11 +35,11 @@ export const createUser = (req, res, next) => {
                 }
             }
 
-            data.createdDate = moment.utc().format("MM-DD-YYYY");
+            data.createdDate = moment.utc().format('MM-DD-YYYY');
             const newCustomer = new User({
                 email: email.trim(),
                 login: login.trim(),
-                password: password.trim()
+                password: password.trim(),
             });
 
             bcrypt.genSalt(10, (err, salt) => {
@@ -59,27 +59,27 @@ export const createUser = (req, res, next) => {
                             return res.status(200).json({
                                 id: customer._id,
                                 email: customer.email,
-                                login: customer.login
+                                login: customer.login,
                             });
                         })
                         .catch(error => {
                                 res.status(400).json({
-                                    message: `Error happened on server: "${error.message}" `
+                                    message: `Error happened on server: "${error.message}" `,
                                 });
                                 log(error);
                                 next(error);
-                            }
+                            },
                         );
                 });
             });
         })
         .catch(error => {
                 res.status(400).json({
-                    message: `Error happened on server: "${error.message}" `
+                    message: `Error happened on server: "${error.message}" `,
                 });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -109,17 +109,28 @@ export const getAllUsers = async (req, res, next) => {
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `Getting products error: ${error}`
+                        message: `Getting products error: ${error}`,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
 export const getUser = (req, res, next) => {
-    res.status(200).json(req.user);
-    next();
+    User.findById(req.user.id)
+        .then(user => {
+            return res.status(200).json(user);
+        })
+        .catch(error => {
+                res.status(400)
+                    .json({
+                        message: `get user data error: "${error.message}" `,
+                    });
+                log(error);
+                next(error);
+            },
+        );
 };
 
 export const updateUserInfo = (req, res, next) => {
@@ -129,8 +140,8 @@ export const updateUserInfo = (req, res, next) => {
 
     const data = {
         ...req.body,
-        updatedDate: moment.utc().format("MM-DD-YYYY"),
-        avatarUrl: filePath
+        updatedDate: moment.utc().format('MM-DD-YYYY'),
+        avatarUrl: filePath,
     };
 
     User.findByIdAndUpdate(id, {$set: data}, {new: true, runValidators: true})
@@ -145,11 +156,11 @@ export const updateUserInfo = (req, res, next) => {
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `update user data error: "${error.message}" `
+                        message: `update user data error: "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -164,13 +175,13 @@ export const loginUser = (req, res, next) => {
     }
 
     User.findOne({
-        $or: [{email: login}, {login: login}]
+        $or: [{email: login}, {login: login}],
     })
         .then(user => {
             if (!user) {
                 res.status(400)
                     .json({
-                        message: 'User is not found. Please check your login and password'
+                        message: 'User is not found. Please check your login and password',
                     });
             }
 
@@ -182,12 +193,12 @@ export const loginUser = (req, res, next) => {
                         res.status(200)
                             .json({
                                 user,
-                                token: signUp(user)
+                                token: signUp(user),
                             });
                     } else {
                         res.status(400)
                             .json({
-                                message: 'Password doesnt match'
+                                message: 'Password doesnt match',
                             });
                     }
                 });
@@ -195,11 +206,11 @@ export const loginUser = (req, res, next) => {
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `Login process error: "${error.message}" `
+                        message: `Login process error: "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -218,7 +229,7 @@ export const updatePassword = (req, res, next) => {
             if (!user) {
                 res.status(400)
                     .json({
-                        message: 'User is not found'
+                        message: 'User is not found',
                     });
                 return;
             }
@@ -227,7 +238,7 @@ export const updatePassword = (req, res, next) => {
                 if (!isMatch) {
                     res.status(400)
                         .json({
-                            message: 'old password doesnt match'
+                            message: 'old password doesnt match',
                         });
                 } else {
                     bcrypt.genSalt(10, (err, salt) => {
@@ -236,22 +247,22 @@ export const updatePassword = (req, res, next) => {
                             newPassword = hash;
 
                             user.password = newPassword;
-                            user.updatedDate = moment.utc().format("MM-DD-YYYY");
+                            user.updatedDate = moment.utc().format('MM-DD-YYYY');
                             user.save()
                                 .then(user => {
                                     res.status(200).json({
                                         message: 'Password successfully changed',
-                                        customer: user
+                                        customer: user,
                                     });
                                 })
                                 .catch(error => {
                                         res.status(400)
                                             .json({
-                                                message: `Update password error: "${error.message}"`
+                                                message: `Update password error: "${error.message}"`,
                                             });
                                         log(error);
                                         next(error);
-                                    }
+                                    },
                                 );
                         });
                     });
@@ -262,11 +273,11 @@ export const updatePassword = (req, res, next) => {
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `Update password error: "${error.message}" `
+                        message: `Update password error: "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -275,17 +286,17 @@ export const deleteUserById = (req, res, next) => {
         .then(() => {
             res.status(200)
                 .json({
-                    message: `User with id "${req.params.id}" is deleted`
+                    message: `User with id "${req.params.id}" is deleted`,
                 });
         })
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `delete user data error: "${error.message}" `
+                        message: `delete user data error: "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -294,16 +305,16 @@ export const deleteAllUsers = (req, res, next) => {
     User.deleteMany({isAdmin: false})
         .then(() => res.status(200)
             .json({
-                message: 'all users except admins are deleted'
-            })
+                message: 'all users except admins are deleted',
+            }),
         )
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `delete users error "${error.message}" `
+                        message: `delete users error "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
