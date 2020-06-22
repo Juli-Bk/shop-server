@@ -120,7 +120,7 @@ export const getAllUsers = async (req, res, next) => {
 export const getUser = (req, res, next) => {
     User.findById(req.user.id)
         .then(user => {
-            return res.status(200).json(user);
+            return res.status(200).json({user});
         })
         .catch(error => {
                 res.status(400)
