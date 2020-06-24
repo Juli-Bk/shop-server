@@ -8,6 +8,7 @@ import User from './schemas/User';
 import WishList from "./schemas/WishList";
 import ShopCart from "./schemas/ShopCart";
 import Order from "./schemas/Order";
+import RefreshToken from "./schemas/RefreshToken";
 
 export default {
     Category,
@@ -19,5 +20,6 @@ export default {
     User,
     WishList,
     ShopCart,
-    Order
+    Order,
+    RefreshToken
 };

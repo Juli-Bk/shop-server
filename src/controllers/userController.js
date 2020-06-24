@@ -1,4 +1,5 @@
 import User from '../models/schemas/User';
+import RefreshToken from '../models/schemas/RefreshToken';
 import {log} from '../utils/helper';
 import bcrypt from 'bcryptjs';
 import signUp from '../utils/authJWT';
@@ -166,7 +167,10 @@ export const updateUserInfo = (req, res, next) => {
 
 export const loginUser = (req, res, next) => {
     const data = req.body;
-    const {login, password} = data;
+    const {login, password, fingerprint} = data;
+
+    const {cookie} = req.headers;
+    const oldRefToken = cookie && cookie.split('=').length ? cookie.split('=')[1] : null;
 
     if (!login || !password) {
         res.status(400)
@@ -190,11 +194,115 @@ export const loginUser = (req, res, next) => {
                     if (isMatch) {
                         user.lastLoginDate = moment.utc();
                         user.save();
-                        res.status(200)
-                            .json({
-                                user,
-                                token: signUp(user),
-                            });
+
+                        const {token, expiresInMinutes, newRefreshToken, expiresRTInMS} = signUp(user, fingerprint);
+
+                        const filters = oldRefToken ?
+                            {
+                                $and: [{userId: user._id}, {token: oldRefToken}],
+                            }
+                            : {userId: user._id};
+
+                        RefreshToken.findOne(filters)
+                            .then(savedRT => {
+                                if (savedRT) {
+                                    if (new Date(savedRT.exp) > Date.now()) {
+                                        // is norm. just return new plain token and old refresh token
+                                        return res
+                                            .status(200)
+                                            .cookie('refreshToken', savedRT.token, {
+                                                maxAge: savedRT.exp,
+                                                httpOnly: true,
+                                            })
+                                            .json({
+                                                user,
+                                                token: {
+                                                    token,
+                                                    expiresInMinutes,
+                                                },
+                                            });
+                                    } else {
+                                        // refresh token is expired ->> delete old one from DB, save new one
+                                        savedRT.remove()
+                                            .then(() => {
+                                                const rt = new RefreshToken({
+                                                    token: newRefreshToken,
+                                                    exp: moment().add(expiresRTInMS, 'ms'),
+                                                    userId: user._id,
+                                                    createdDate: moment.utc().format('MM-DD-YYYY'),
+                                                });
+                                                rt.save()
+                                                    .then(() => {
+                                                        return res
+                                                            .status(200)
+                                                            .cookie('refreshToken', newRefreshToken, {
+                                                                maxAge: expiresRTInMS,
+                                                                httpOnly: true,
+                                                            })
+                                                            .json({
+                                                                user,
+                                                                token: {
+                                                                    token,
+                                                                    expiresInMinutes,
+                                                                },
+                                                            });
+                                                    })
+                                                    .catch(error => {
+                                                            res.status(400)
+                                                                .json({
+                                                                    message: `Login process error: "${error.message}" `,
+                                                                });
+                                                            log(error);
+                                                            next(error);
+                                                        },
+                                                    );
+                                            });
+                                    }
+                                } else {
+                                    // first commit no refresh token yet ->> create new RT in DB
+                                    const rt = new RefreshToken({
+                                        token: newRefreshToken,
+                                        exp: moment().add(expiresRTInMS, 'ms'),
+                                        userId: user._id,
+                                        createdDate: moment.utc().format('MM-DD-YYYY'),
+                                    });
+                                    rt.save()
+                                        .then(() => {
+                                            return res
+                                                .status(200)
+                                                .cookie('refreshToken', newRefreshToken, {
+                                                    maxAge: expiresRTInMS,
+                                                    httpOnly: true,
+                                                })
+                                                .json({
+                                                    user,
+                                                    token: {
+                                                        token,
+                                                        expiresInMinutes,
+                                                    },
+                                                });
+                                        })
+                                        .catch(error => {
+                                                res.status(400)
+                                                    .json({
+                                                        message: `Login process error: "${error.message}" `,
+                                                    });
+                                                log(error);
+                                                next(error);
+                                            },
+                                        );
+                                }
+
+                            })
+                            .catch(error => {
+                                    res.status(400)
+                                        .json({
+                                            message: `Login process error: "${error.message}" `,
+                                        });
+                                    log(error);
+                                    next(error);
+                                },
+                            );
                     } else {
                         res.status(400)
                             .json({
@@ -212,6 +320,35 @@ export const loginUser = (req, res, next) => {
                 next(error);
             },
         );
+};
+
+export const refreshToken = (req, res, next) => {
+    const refToken = req.user._doc.token;
+    const expDate = req.user._doc.exp;
+    try {
+        const {fingerprint, email, login, password, firstName, lastName, id} = req.user;
+
+        const {token, expiresInMinutes} = signUp({
+            fingerprint,
+            email,
+            login,
+            password,
+            firstName,
+            lastName,
+            _id: id,
+        }, fingerprint);
+
+        return res
+            .status(200)
+            .cookie('refreshToken', refToken, {maxAge: expDate, httpOnly: true})
+            .json({
+                token,
+                expiresInMinutes
+            });
+    } catch (error) {
+        log(error);
+        next(error);
+    }
 };
 
 export const updatePassword = (req, res, next) => {

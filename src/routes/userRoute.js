@@ -10,7 +10,8 @@ import {
     deleteAllUsers,
     updateUserInfo,
     loginUser,
-    updatePassword
+    updatePassword,
+    refreshToken
 } from '../controllers/userController';
 
 const router = express.Router();
@@ -28,6 +29,9 @@ router.get('/customer',
     getUser);
 
 router.post('/login', loginUser);
+router.post('/login/refresh',
+    passport.authenticate('refresh', {session: false}),
+    refreshToken);
 
 //update
 router.post('/',
