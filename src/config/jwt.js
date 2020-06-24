@@ -4,22 +4,23 @@ import config from './index.js';
 import RefreshToken from '../models/schemas/RefreshToken';
 
 const JwtStrategy = passportJWT.Strategy;
+const ExtractJwt = passportJWT.ExtractJwt;
 
 const User = mongoose.model('users');
 
 const setJWTrules = async (passport) => {
 
-    const getTokenFromAuthHeader = (request) => {
-        let token = null;
-        if (request && request.headers) {
-            const authHeader = request.headers.authorization;
-            if (authHeader) {
-                const tokenParts = authHeader.split(config.tokenPrefix);
-                token = tokenParts && tokenParts.length ? tokenParts[1] : null;
-            }
-        }
-        return token;
-    };
+    // const getTokenFromAuthHeader = (request) => {
+    //     let token = null;
+    //     if (request && request.headers) {
+    //         const authHeader = request.headers.authorization;
+    //         if (authHeader) {
+    //             const tokenParts = authHeader.split(config.tokenPrefix);
+    //             token = tokenParts && tokenParts.length ? tokenParts[1] : null;
+    //         }
+    //     }
+    //     return token;
+    // };
 
     const getTokenFromCookie = (req) => {
         let token = null;
@@ -34,7 +35,8 @@ const setJWTrules = async (passport) => {
     };
 
     const opts = {};
-    opts.jwtFromRequest = getTokenFromAuthHeader;
+    // opts.jwtFromRequest = getTokenFromAuthHeader;
+    opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
     opts.secretOrKey = config.secret;
 
     passport.use(
