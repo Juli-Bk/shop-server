@@ -6,7 +6,13 @@ import jwt from './config/jwt';
 
 const addMiddlewares = (app) => {
     if (config.allowCors) {
-        app.use(cors());
+        app.use(cors({
+            origin: function(origin, callback){
+                return callback(null, true);
+            },
+            optionsSuccessStatus: 200,
+            credentials: true
+        }));
     }
     app.use(bodyParser.json());
     app.use(passport.initialize());
