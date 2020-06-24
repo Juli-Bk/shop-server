@@ -3,7 +3,7 @@ import schemaOptions from '../modelHelper';
 import validator from 'mongoose-id-validator';
 import autoPopulate from 'mongoose-autopopulate';
 
-//table with measurements of concrete model
+//table with measurements of exact model
 const SizeTableSchema = new Schema({
         productId: {
             type: Schema.Types.ObjectId,
