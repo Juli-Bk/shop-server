@@ -31,9 +31,9 @@ const signUp = ({email, login, password, firstName, lastName, _id}, fingerprint)
     }, config.secret);
 
     return {
-        token: `${config.tokenPrefix} ${sign}`,
+        token: `${config.tokenPrefix}${sign}`,
         expiresInMinutes: config.expiresInMinutes,
-        newRefreshToken: `${config.tokenPrefix} ${signRefresh}`,
+        newRefreshToken: `${config.tokenPrefix}${signRefresh}`,
         expiresRTInMS: exp,
     };
 };
