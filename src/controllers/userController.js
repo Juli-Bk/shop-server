@@ -213,6 +213,8 @@ export const loginUser = (req, res, next) => {
                                             .cookie('refreshToken', savedRT.token, {
                                                 maxAge: savedRT.exp,
                                                 httpOnly: true,
+                                                sameSite:true,
+                                                secure: true
                                             })
                                             .json({
                                                 user,
@@ -238,6 +240,8 @@ export const loginUser = (req, res, next) => {
                                                             .cookie('refreshToken', newRefreshToken, {
                                                                 maxAge: expiresRTInMS,
                                                                 httpOnly: true,
+                                                                sameSite:true,
+                                                                secure: true
                                                             })
                                                             .json({
                                                                 user,
