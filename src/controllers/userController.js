@@ -214,10 +214,12 @@ export const loginUser = (req, res, next) => {
                                                 maxAge: savedRT.exp,
                                                 httpOnly: true,
                                                 sameSite: 'Lax',
+                                                secure: true
                                             })
                                             .cookie('token', token, {
                                                 maxAge: savedRT.exp,
                                                 sameSite: 'Lax',
+                                                secure: true
                                             })
                                             .json({
                                                 user,
@@ -244,10 +246,12 @@ export const loginUser = (req, res, next) => {
                                                                 maxAge: expiresRTInMS,
                                                                 httpOnly: true,
                                                                 sameSite: 'Lax',
+                                                                secure: true
                                                             })
                                                             .cookie('token', token, {
                                                                 expires: expiresInMinutes,
                                                                 sameSite: 'Lax',
+                                                                secure: true
                                                             })
                                                             .json({
                                                                 user,
@@ -293,10 +297,12 @@ export const loginUser = (req, res, next) => {
                                                     maxAge: expiresRTInMS,
                                                     httpOnly: true,
                                                     sameSite: 'Lax',
+                                                    secure: true
                                                 })
                                                 .cookie('token', token, {
                                                     expires: expiresInMinutes,
                                                     sameSite: 'Lax',
+                                                    secure: true
                                                 })
                                                 .json({
                                                     user,
@@ -374,10 +380,12 @@ export const refreshToken = (req, res, next) => {
                 maxAge: expDate,
                 httpOnly: true,
                 sameSite: 'Lax',
+                secure: true
             })
             .cookie('token', token, {
                 expires: expiresInMinutes,
                 sameSite: 'Lax',
+                secure: true
             })
             .json({
                 token,
