@@ -136,7 +136,14 @@ export const getUser = (req, res, next) => {
 
 export const updateUserInfo = (req, res, next) => {
 
-    const id = req.body.id;
+    const id = req.body.id || req.user.id;
+
+    if (!id) {
+        return res.status(400)
+            .json({
+                message: `update user data error. User id is required`,
+            });
+    }
     const filePath = req.file ? req.file.path : null;
 
     const data = {
@@ -214,12 +221,12 @@ export const loginUser = (req, res, next) => {
                                                 maxAge: savedRT.exp,
                                                 httpOnly: true,
                                                 sameSite: 'None',
-                                                secure: true
+                                                secure: true,
                                             })
                                             .cookie('token', token, {
                                                 maxAge: savedRT.exp,
                                                 sameSite: 'None',
-                                                secure: true
+                                                secure: true,
                                             })
                                             .json({
                                                 user,
@@ -246,12 +253,12 @@ export const loginUser = (req, res, next) => {
                                                                 maxAge: expiresRTInMS,
                                                                 httpOnly: true,
                                                                 sameSite: 'None',
-                                                                secure: true
+                                                                secure: true,
                                                             })
                                                             .cookie('token', token, {
                                                                 expires: expiresInMinutes,
                                                                 sameSite: 'None',
-                                                                secure: true
+                                                                secure: true,
                                                             })
                                                             .json({
                                                                 user,
@@ -297,12 +304,12 @@ export const loginUser = (req, res, next) => {
                                                     maxAge: expiresRTInMS,
                                                     httpOnly: true,
                                                     sameSite: 'None',
-                                                    secure: true
+                                                    secure: true,
                                                 })
                                                 .cookie('token', token, {
                                                     expires: expiresInMinutes,
                                                     sameSite: 'None',
-                                                    secure: true
+                                                    secure: true,
                                                 })
                                                 .json({
                                                     user,
@@ -380,12 +387,12 @@ export const refreshToken = (req, res, next) => {
                 maxAge: expDate,
                 httpOnly: true,
                 sameSite: 'None',
-                secure: true
+                secure: true,
             })
             .cookie('token', token, {
                 expires: expiresInMinutes,
                 sameSite: 'None',
-                secure: true
+                secure: true,
             })
             .json({
                 token,
