@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import {log} from './src/utils/helper';
 import config from './src/config';
 import os from 'os';
+
+// do not delete this one import
 // eslint-disable-next-line no-unused-vars
 import models from './src/models/index';
 
@@ -51,7 +53,7 @@ if (config.environment === 'development') {
     });
 }
 
-process.once('uncaughtExeption', (error) => {
+process.once('uncaughtException', (error) => {
     console.log(error);
     //force exit process anyway
     // eslint-disable-next-line no-process-exit

@@ -256,7 +256,16 @@ export const loginUser = (req, res, next) => {
                                                             next(error);
                                                         },
                                                     );
-                                            });
+                                            })
+                                            .catch(error => {
+                                                    res.status(400)
+                                                        .json({
+                                                            message: `Login process error: "${error.message}" `,
+                                                        });
+                                                    log(error);
+                                                    next(error);
+                                                },
+                                            );
                                     }
                                 } else {
                                     // first commit no refresh token yet ->> create new RT in DB
@@ -292,7 +301,6 @@ export const loginUser = (req, res, next) => {
                                             },
                                         );
                                 }
-
                             })
                             .catch(error => {
                                     res.status(400)
@@ -323,8 +331,15 @@ export const loginUser = (req, res, next) => {
 };
 
 export const refreshToken = (req, res, next) => {
-    const refToken = req.user._doc.token;
-    const expDate = req.user._doc.exp;
+    const refToken = req.user && req.user._doc.token;
+    const expDate = req.user && req.user._doc.exp;
+
+    if (!refToken) {
+        res.status(400)
+            .json({message: 'Refresh token is invalid. Please login again'});
+        return;
+    }
+
     try {
         const {fingerprint, email, login, password, firstName, lastName, id} = req.user;
 
@@ -343,7 +358,7 @@ export const refreshToken = (req, res, next) => {
             .cookie('refreshToken', refToken, {maxAge: expDate, httpOnly: true})
             .json({
                 token,
-                expiresInMinutes
+                expiresInMinutes,
             });
     } catch (error) {
         log(error);

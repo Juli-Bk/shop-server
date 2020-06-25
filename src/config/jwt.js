@@ -4,39 +4,49 @@ import config from './index.js';
 import RefreshToken from '../models/schemas/RefreshToken';
 
 const JwtStrategy = passportJWT.Strategy;
-const ExtractJwt = passportJWT.ExtractJwt;
 
 const User = mongoose.model('users');
 
 const setJWTrules = async (passport) => {
 
-    // const getTokenFromAuthHeader = (request) => {
-    //     let token = null;
-    //     if (request && request.headers) {
-    //         const authHeader = request.headers.authorization;
-    //         if (authHeader) {
-    //             const tokenParts = authHeader.split(config.tokenPrefix);
-    //             token = tokenParts && tokenParts.length ? tokenParts[1] : null;
-    //         }
-    //     }
-    //     return token;
-    // };
+    const parseCookies = (sourse) => {
+        const list = {};
+        const rc = sourse;
+
+        rc && rc.split(';').forEach(function (cookie) {
+            const parts = cookie.split('=');
+            list[parts.shift().trim()] = decodeURI(parts.join('='));
+        });
+
+        return list;
+    };
 
     const getTokenFromCookie = (req) => {
         let token = null;
-        if (req && req.headers) {
-            const cookie = req.headers.cookie;
-            if (cookie) {
-                const tokenParts = cookie.split(config.tokenPrefix);
-                token = tokenParts && tokenParts.length ? tokenParts[1] : null;
-            }
+        const cookie = req.headers && req.headers.cookie;
+        const cookieList = parseCookies(cookie);
+        if (cookieList) {
+            const rerToken = cookieList['token'];
+            token = rerToken ? rerToken.split(config.tokenPrefix)[1].trim() : null;
         }
+
+        return token;
+    };
+
+    const getRefTokenFromCookie = (req) => {
+        let token = null;
+        const cookie = req.headers && req.headers.cookie;
+        const cookieList = parseCookies(cookie);
+        if (cookieList) {
+            const rerToken = cookieList['refreshToken'];
+            token = rerToken ? rerToken.split(config.tokenPrefix)[1].trim() : null;
+        }
+
         return token;
     };
 
     const opts = {};
-    // opts.jwtFromRequest = getTokenFromAuthHeader;
-    opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+    opts.jwtFromRequest = getTokenFromCookie;
     opts.secretOrKey = config.secret;
 
     passport.use(
@@ -70,7 +80,7 @@ const setJWTrules = async (passport) => {
     );
 
     const refOpts = {};
-    refOpts.jwtFromRequest = getTokenFromCookie;
+    refOpts.jwtFromRequest = getRefTokenFromCookie;
     refOpts.secretOrKey = config.secret;
 
     passport.use(
