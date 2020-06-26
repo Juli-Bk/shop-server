@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import config from '../config';
+import moment from 'moment';
 
 const signUp = ({email, login, password, firstName, lastName, _id}, fingerprint) => {
 
@@ -14,7 +15,7 @@ const signUp = ({email, login, password, firstName, lastName, _id}, fingerprint)
             firstName,
             lastName,
             id: _id,
-            exp: dateExpiresTime
+            exp: Number(moment().add(dateExpiresTime, 'ms')),
         },
         config.secret,
     );
@@ -27,7 +28,7 @@ const signUp = ({email, login, password, firstName, lastName, _id}, fingerprint)
         firstName,
         lastName,
         id: _id,
-        exp: dateExpiresTimeLong,
+        exp: Number(moment().add(dateExpiresTimeLong, 'ms')),
     }, config.secret);
 
     return {
