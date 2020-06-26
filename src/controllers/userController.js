@@ -202,29 +202,30 @@ export const loginUser = (req, res, next) => {
                         user.lastLoginDate = moment.utc();
                         user.save();
 
-                        const {token, expiresInMinutes, newRefreshToken, expiresRTInMS} = signUp(user, fingerprint);
+                        const {token, tokenExpiresInMS, newRefreshToken, refTokenExpiresInMS} = signUp(user, fingerprint);
 
                         const filters = oldRefToken ?
-                            {
-                                $and: [{userId: user._id}, {token: oldRefToken}],
-                            }
+                            {$and: [{userId: user._id}, {token: oldRefToken}]}
                             : {userId: user._id};
+
+                        const expDate = new Date(moment().add(refTokenExpiresInMS, 'ms'));
+                        const expDateShort = new Date(moment().add(tokenExpiresInMS, 'ms'));
 
                         RefreshToken.findOne(filters)
                             .then(savedRT => {
                                 if (savedRT) {
                                     if (new Date(savedRT.exp) > Date.now()) {
-                                        // is norm. just return new plain token and old refresh token
+                                        // refToken is not expired. just return new plain token and old refresh token
                                         return res
                                             .status(200)
                                             .cookie('refreshToken', savedRT.token, {
-                                                maxAge: savedRT.exp,
+                                                expires: new Date(savedRT.exp),
                                                 httpOnly: true,
                                                 sameSite: 'None',
                                                 secure: true,
                                             })
                                             .cookie('token', token, {
-                                                maxAge: savedRT.exp,
+                                                expires: expDateShort,
                                                 sameSite: 'None',
                                                 secure: true,
                                             })
@@ -232,7 +233,7 @@ export const loginUser = (req, res, next) => {
                                                 user,
                                                 token: {
                                                     token,
-                                                    expiresInMinutes,
+                                                    expires: expDateShort,
                                                 },
                                             });
                                     } else {
@@ -241,7 +242,8 @@ export const loginUser = (req, res, next) => {
                                             .then(() => {
                                                 const rt = new RefreshToken({
                                                     token: newRefreshToken,
-                                                    exp: moment().add(expiresRTInMS, 'ms'),
+                                                    // save exp dateTime in ms in DB
+                                                    exp: Number(moment().add(refTokenExpiresInMS, 'ms')),
                                                     userId: user._id,
                                                     createdDate: moment.utc().format('MM-DD-YYYY'),
                                                 });
@@ -250,13 +252,13 @@ export const loginUser = (req, res, next) => {
                                                         return res
                                                             .status(200)
                                                             .cookie('refreshToken', newRefreshToken, {
-                                                                maxAge: expiresRTInMS,
+                                                                expires: expDate,
                                                                 httpOnly: true,
                                                                 sameSite: 'None',
                                                                 secure: true,
                                                             })
                                                             .cookie('token', token, {
-                                                                expires: expiresInMinutes,
+                                                                expires: expDateShort,
                                                                 sameSite: 'None',
                                                                 secure: true,
                                                             })
@@ -264,19 +266,18 @@ export const loginUser = (req, res, next) => {
                                                                 user,
                                                                 token: {
                                                                     token,
-                                                                    expiresInMinutes,
+                                                                    expires: expDateShort,
                                                                 },
                                                             });
                                                     })
                                                     .catch(error => {
-                                                            res.status(400)
-                                                                .json({
-                                                                    message: `Login process error: "${error.message}" `,
-                                                                });
-                                                            log(error);
-                                                            next(error);
-                                                        },
-                                                    );
+                                                        res.status(400)
+                                                            .json({
+                                                                message: `Login process error: "${error.message}" `,
+                                                            });
+                                                        log(error);
+                                                        next(error);
+                                                    });
                                             })
                                             .catch(error => {
                                                     res.status(400)
@@ -292,7 +293,8 @@ export const loginUser = (req, res, next) => {
                                     // first commit no refresh token yet ->> create new RT in DB
                                     const rt = new RefreshToken({
                                         token: newRefreshToken,
-                                        exp: moment().add(expiresRTInMS, 'ms'),
+                                        // save exp dateTime in ms in DB
+                                        exp: Number(moment().add(refTokenExpiresInMS, 'ms')),
                                         userId: user._id,
                                         createdDate: moment.utc().format('MM-DD-YYYY'),
                                     });
@@ -301,13 +303,13 @@ export const loginUser = (req, res, next) => {
                                             return res
                                                 .status(200)
                                                 .cookie('refreshToken', newRefreshToken, {
-                                                    maxAge: expiresRTInMS,
+                                                    expires: expDate,
                                                     httpOnly: true,
                                                     sameSite: 'None',
                                                     secure: true,
                                                 })
                                                 .cookie('token', token, {
-                                                    expires: expiresInMinutes,
+                                                    expires: expDateShort,
                                                     sameSite: 'None',
                                                     secure: true,
                                                 })
@@ -315,7 +317,7 @@ export const loginUser = (req, res, next) => {
                                                     user,
                                                     token: {
                                                         token,
-                                                        expiresInMinutes,
+                                                        expires: expDateShort,
                                                     },
                                                 });
                                         })
@@ -360,7 +362,7 @@ export const loginUser = (req, res, next) => {
 
 export const refreshToken = (req, res, next) => {
     const refToken = req.user && req.user._doc.token;
-    const expDate = req.user && req.user._doc.exp;
+    // const expDate = req.user && req.user._doc.exp;
 
     if (!refToken) {
         res.status(400)
@@ -371,7 +373,7 @@ export const refreshToken = (req, res, next) => {
     try {
         const {fingerprint, email, login, password, firstName, lastName, id} = req.user;
 
-        const {token, expiresInMinutes} = signUp({
+        const {token, tokenExpiresInMS} = signUp({
             fingerprint,
             email,
             login,
@@ -383,20 +385,21 @@ export const refreshToken = (req, res, next) => {
 
         return res
             .status(200)
-            .cookie('refreshToken', refToken, {
-                maxAge: expDate,
-                httpOnly: true,
-                sameSite: 'None',
-                secure: true,
-            })
+            // todo check if needed rewrite the same cookie
+            // .cookie('refreshToken', refToken, {
+            //     expires: moment().add(expDate, 'ms'),
+            //     httpOnly: true,
+            //     sameSite: 'None',
+            //     secure: true,
+            // })
             .cookie('token', token, {
-                expires: expiresInMinutes,
+                expires: moment().add(tokenExpiresInMS, 'ms'),
                 sameSite: 'None',
                 secure: true,
             })
             .json({
                 token,
-                expiresInMinutes,
+                expiresInMinutes: tokenExpiresInMS,
             });
     } catch (error) {
         log(error);
