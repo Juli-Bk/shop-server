@@ -11,7 +11,8 @@ import {
     updateUserInfo,
     loginUser,
     updatePassword,
-    refreshToken
+    refreshToken,
+    logout
 } from '../controllers/userController';
 
 const router = express.Router();
@@ -29,6 +30,7 @@ router.get('/customer',
     getUser);
 
 router.post('/login', loginUser);
+router.post('/logout', logout);
 router.post('/login/refresh',
     passport.authenticate('refresh', {session: false}),
     refreshToken);

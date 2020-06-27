@@ -4,6 +4,8 @@ import {log} from '../utils/helper';
 import bcrypt from 'bcryptjs';
 import signUp from '../utils/authJWT';
 import moment from 'moment';
+import {parseCookies} from '../config/jwt';
+import config from '../config';
 
 export const createUser = (req, res, next) => {
     const data = req.body;
@@ -385,13 +387,6 @@ export const refreshToken = (req, res, next) => {
 
         return res
             .status(200)
-            // todo check if needed rewrite the same cookie
-            // .cookie('refreshToken', refToken, {
-            //     expires: moment().add(expDate, 'ms'),
-            //     httpOnly: true,
-            //     sameSite: 'None',
-            //     secure: true,
-            // })
             .cookie('token', token, {
                 expires: moment().add(tokenExpiresInMS, 'ms'),
                 sameSite: 'None',
@@ -405,6 +400,45 @@ export const refreshToken = (req, res, next) => {
         log(error);
         next(error);
     }
+};
+
+export const logout = (req, res) => {
+    const cookie = req.headers && req.headers.cookie;
+    const cookieList = parseCookies(cookie);
+
+    if (cookieList) {
+        const rerTokenCookie = cookieList['refreshToken'];
+        const rerToken = rerTokenCookie ? rerTokenCookie.split(config.tokenPrefix)[1].trim() : null;
+
+        const tokenCookie = cookieList['token'];
+        const token = tokenCookie ? tokenCookie.split(config.tokenPrefix)[1].trim() : null;
+
+        const expSoon = new Date(moment().add(10, 'ms'));
+        return res
+            .status(200)
+            .cookie('refreshToken', rerToken, {
+                expires: expSoon,
+                httpOnly: true,
+                sameSite: 'None',
+                secure: true,
+            })
+            .cookie('token', token, {
+                expires: expSoon,
+                sameSite: 'None',
+                secure: true,
+            })
+            .json({
+                message: 'success'
+            });
+    } else {
+        return res
+            .status(200)
+            .json({
+                message: 'success'
+            });
+    }
+
+
 };
 
 export const updatePassword = (req, res, next) => {

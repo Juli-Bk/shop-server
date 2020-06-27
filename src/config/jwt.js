@@ -7,19 +7,19 @@ const JwtStrategy = passportJWT.Strategy;
 
 const User = mongoose.model('users');
 
+export const parseCookies = (sourse) => {
+    const list = {};
+    const rc = sourse;
+
+    rc && rc.split(';').forEach(function (cookie) {
+        const parts = cookie.split('=');
+        list[parts.shift().trim()] = decodeURI(parts.join('='));
+    });
+
+    return list;
+};
+
 const setJWTrules = async (passport) => {
-
-    const parseCookies = (sourse) => {
-        const list = {};
-        const rc = sourse;
-
-        rc && rc.split(';').forEach(function (cookie) {
-            const parts = cookie.split('=');
-            list[parts.shift().trim()] = decodeURI(parts.join('='));
-        });
-
-        return list;
-    };
 
     const getTokenFromCookie = (req) => {
         let token = null;
