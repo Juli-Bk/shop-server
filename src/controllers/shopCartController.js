@@ -103,9 +103,24 @@ export const updateShopCartById = (req, res, next) => {
 
     shopCart.updatedDate = moment.utc().format('MM-DD-YYYY');
     if (!Array.isArray(shopCart.products)) {
-        res.status(400)
+        return res.status(400)
             .json({
                 message: `Products must be an Array of products`,
+            });
+    }
+
+    let hasProperStructure = true;
+
+    shopCart.products.map(el => {
+        if (!el.productId || !el.colorId || !el.sizeId || !el.cartQuantity) {
+            hasProperStructure = false;
+        }
+    });
+
+    if (!hasProperStructure) {
+        return res.status(400)
+            .json({
+                message: `Products in shop cart should be like: {productId: "xxxx", colorId: "xxxx", sizeId: "xxxx", cartQuantity: "xxxx"}`,
             });
     }
 
