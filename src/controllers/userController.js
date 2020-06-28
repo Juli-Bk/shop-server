@@ -367,9 +367,8 @@ export const refreshToken = (req, res, next) => {
     // const expDate = req.user && req.user._doc.exp;
 
     if (!refToken) {
-        res.status(400)
+         return res.status(400)
             .json({message: 'Refresh token is invalid. Please login again'});
-        return;
     }
 
     try {

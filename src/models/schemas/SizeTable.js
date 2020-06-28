@@ -9,7 +9,6 @@ const SizeTableSchema = new Schema({
             type: Schema.Types.ObjectId,
             ref: 'products',
             required: [true, 'To save quantity productId must be specified'],
-            autopopulate: true,
         },
         sizeId: {
             type: Schema.Types.ObjectId,

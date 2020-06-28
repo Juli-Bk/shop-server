@@ -22,5 +22,9 @@ export default {
     tokenPrefix: 'Bearer',
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    bucket: process.env.AWS_BUCKET_NAME
+    bucket: process.env.AWS_BUCKET_NAME,
+    mail_api_key: process.env.MAILGUN_API_KEY,
+    mail_domain: process.env.MAILGUN_DOMAIN,
+    mail_from: process.env.MAILGUN_FROM,
+    mail_user_name: process.env.MAILGUN_USER_NAME
 };
