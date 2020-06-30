@@ -2,7 +2,8 @@ import User from '../models/schemas/User';
 import RefreshToken from '../models/schemas/RefreshToken';
 import {log} from '../utils/helper';
 import bcrypt from 'bcryptjs';
-import signUp from '../utils/authJWTRecover';
+import signUpRecover from '../utils/authJWTRecover';
+import signUp from '../utils/authJWT';
 import moment from 'moment';
 import {parseCookies} from '../config/jwt';
 import config from '../config';
@@ -219,7 +220,7 @@ export const sendConfirmEmailLetter = (req, res, next) => {
 export const sendRecovery = (req, res, next) => {
     const email = req.query.email;
     const fingerprint = req.query.fingerprint;
-    const token = signUp(email, fingerprint);
+    const token = signUpRecover(email, fingerprint);
 
     sendRecoveryPasswordLetter(email, token, (error) => {
         if (error) {
