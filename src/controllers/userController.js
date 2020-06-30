@@ -2,10 +2,12 @@ import User from '../models/schemas/User';
 import RefreshToken from '../models/schemas/RefreshToken';
 import {log} from '../utils/helper';
 import bcrypt from 'bcryptjs';
-import signUp from '../utils/authJWT';
+import signUp from '../utils/authJWTRecover';
 import moment from 'moment';
 import {parseCookies} from '../config/jwt';
 import config from '../config';
+import {sendEmailAddressConfirmation, sendRecoveryPasswordLetter} from '../config/mailgun';
+import validator from 'validator';
 
 export const createUser = (req, res, next) => {
     const data = req.body;
@@ -59,10 +61,28 @@ export const createUser = (req, res, next) => {
 
                     newCustomer.save()
                         .then(customer => {
-                            return res.status(200).json({
-                                id: customer._id,
-                                email: customer.email,
-                                login: customer.login,
+                            sendEmailAddressConfirmation(customer.email, (error, body) => {
+                                if (error) {
+                                    return res.status(200).json({
+                                        id: customer._id,
+                                        email: customer.email,
+                                        login: customer.login,
+                                        emailConfirmation: {
+                                            error,
+                                            isError: true,
+                                        },
+
+                                    });
+                                }
+                                return res.status(200).json({
+                                    id: customer._id,
+                                    email: customer.email,
+                                    login: customer.login,
+                                    emailConfirmation: {
+                                        isError: false,
+                                        body,
+                                    },
+                                });
                             });
                         })
                         .catch(error => {
@@ -129,6 +149,147 @@ export const getUser = (req, res, next) => {
                 res.status(400)
                     .json({
                         message: `get user data error: "${error.message}" `,
+                    });
+                log(error);
+                next(error);
+            },
+        );
+};
+
+export const confirmEmail = (req, res, next) => {
+    const email = req.query.email;
+    if (!email || (email && !validator.isEmail(email))) {
+        return res.status(400)
+            .json({
+                message: `incorrect email to confirm" `,
+            });
+    }
+    User.findOne({email: email})
+        .then(user => {
+            if (!user) {
+                return res.status(400)
+                    .json({
+                        message: `user with email: ${email} is not found`,
+                    });
+            }
+            user.confirmedEmail = true;
+            user.save()
+                .then(() => {
+                    return res.status(200).json({user});
+                })
+                .catch(error => {
+                        res.status(400)
+                            .json({
+                                message: `confirmation email. save user data error: "${error.message}" `,
+                            });
+                        log(error);
+                        next(error);
+                    },
+                );
+
+        })
+        .catch(error => {
+                res.status(400)
+                    .json({
+                        message: `confirmation email. get user data error: "${error.message}" `,
+                    });
+                log(error);
+                next(error);
+            },
+        );
+};
+
+export const sendConfirmEmailLetter = (req, res, next) => {
+    const email = req.query.email;
+
+    sendEmailAddressConfirmation(email, (error) => {
+        if (error) {
+            next(error);
+            res.status(400)
+                .json({message: error.message});
+        } else {
+            res.status(200)
+                .json({message: 'Please, check your email'});
+            next();
+        }
+    });
+
+};
+
+export const sendRecovery = (req, res, next) => {
+    const email = req.query.email;
+    const fingerprint = req.query.fingerprint;
+    const token = signUp(email, fingerprint);
+
+    sendRecoveryPasswordLetter(email, token, (error) => {
+        if (error) {
+            next(error);
+            res.status(400)
+                .json({message: error.message});
+        } else {
+            res.status(200)
+                .json({message: 'Please, check your email'});
+            next();
+        }
+    });
+
+};
+
+export const recoverPassword = (req, res, next) => {
+    const {newPassword, email} = req.body;
+
+    if (!email) {
+        return res.status(400)
+            .json({message: 'To recover your password specify email address'});
+    }
+    if (!validator.isEmail(email)) {
+        return res.status(400)
+            .json({message: 'incorrect email for mailing'});
+    }
+
+    if (!newPassword) {
+        return res.status(400)
+            .json({message: 'empty password. rejection'});
+    }
+
+    User.findOne({email: email})
+        .then((user) => {
+            if (user) {
+                bcrypt.genSalt(10, (err, salt) => {
+                    bcrypt.hash(newPassword, salt, (err, hash) => {
+
+                        user.password = hash;
+                        user.updatedDate = moment.utc().format('MM-DD-YYYY');
+                        user.save()
+                            .then(() => {
+                                return res.status(200).json({
+                                    message: `success recovery`,
+                                });
+                            })
+                            .catch(error => {
+                                    res.status(400)
+                                        .json({
+                                            message: `recovery password error: "${error.message}" `,
+                                        });
+                                    log(error);
+                                    next(error);
+                                },
+                            );
+                    });
+                });
+
+            } else {
+                res.status(400)
+                    .json({
+                        message: `Rejection! User  with email is not found ${email}`,
+                    });
+            }
+
+        })
+        .catch(error => {
+                res.status(400)
+                    .json({
+                        message: `recovery password error: "${error.message}" `,
                     });
                 log(error);
                 next(error);
@@ -367,7 +528,7 @@ export const refreshToken = (req, res, next) => {
     // const expDate = req.user && req.user._doc.exp;
 
     if (!refToken) {
-         return res.status(400)
+        return res.status(400)
             .json({message: 'Refresh token is invalid. Please login again'});
     }
 
@@ -427,13 +588,13 @@ export const logout = (req, res) => {
                 secure: true,
             })
             .json({
-                message: 'success'
+                message: 'success',
             });
     } else {
         return res
             .status(200)
             .json({
-                message: 'success'
+                message: 'success',
             });
     }
 

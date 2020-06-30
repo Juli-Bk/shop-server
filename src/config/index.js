@@ -14,6 +14,7 @@ export default {
     allowCors: process.env.ALLOW_CORS,
     environment: process.env.NODE_ENV,
     secret: process.env.SECRET_OR_KEY,
+    recovery: process.env.RECOVERY_SECRET,
     imageStorageBaseAddress: process.env.IMAGE_BASE_URL,
     //Signing a token with 1 hour of expiration by default on production
     expiresInMinutes: process.env.NODE_ENV === 'development'
@@ -26,5 +27,8 @@ export default {
     mail_api_key: process.env.MAILGUN_API_KEY,
     mail_domain: process.env.MAILGUN_DOMAIN,
     mail_from: process.env.MAILGUN_FROM,
-    mail_user_name: process.env.MAILGUN_USER_NAME
+    mail_user_name: process.env.MAILGUN_USER_NAME,
+    baseAddress:  process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000'
+        : process.env.CLIENT_BASE_ADDRESS
 };

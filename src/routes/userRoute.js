@@ -12,7 +12,11 @@ import {
     loginUser,
     updatePassword,
     refreshToken,
-    logout
+    logout,
+    confirmEmail,
+    recoverPassword,
+    sendRecovery,
+    sendConfirmEmailLetter
 } from '../controllers/userController';
 
 const router = express.Router();
@@ -30,6 +34,15 @@ router.get('/customer',
     getUser);
 
 router.post('/login', loginUser);
+
+router.post('/confirmation', sendConfirmEmailLetter);
+router.post('/email-confirmation', confirmEmail);
+
+router.post('/recovery', sendRecovery);
+router.post('/password-recovery',
+    passport.authenticate('recover', {session: false}),
+    recoverPassword);
+
 router.post('/logout', logout);
 router.post('/login/refresh',
     passport.authenticate('refresh', {session: false}),

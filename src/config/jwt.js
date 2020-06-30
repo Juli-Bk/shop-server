@@ -45,6 +45,10 @@ const setJWTrules = async (passport) => {
         return token;
     };
 
+    const getTokenFromQuery = (req) => {
+        return req.query ? req.query.token : null;
+    };
+
     const opts = {};
     opts.jwtFromRequest = getTokenFromCookie;
     opts.secretOrKey = config.secret;
@@ -94,6 +98,24 @@ const setJWTrules = async (passport) => {
                                 refToken,
                                 jwt_payload,
                             ));
+                    }
+                    return done(null, false);
+                })
+                .catch(err => console.log(err));
+        }),
+    );
+
+    const recoverOpts = {};
+    recoverOpts.jwtFromRequest = getTokenFromQuery;
+    recoverOpts.secretOrKey = config.recovery;
+
+    passport.use(
+        'recover',
+        new JwtStrategy(recoverOpts, (jwt_payload, done) => {
+            User.findOne({email: jwt_payload.email})
+                .then(user => {
+                    if (user) {
+                        return done(null, user);
                     }
                     return done(null, false);
                 })

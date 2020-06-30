@@ -46,6 +46,10 @@ const UserSchema = new Schema({
                 message: props => `${props.value} is not a valid email!`,
             },
         },
+        confirmedEmail: {
+            type: Boolean,
+            default: false
+        },
         addresses: [
             {
                 address: {
