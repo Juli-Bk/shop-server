@@ -68,34 +68,16 @@ export const createUser = (req, res, next) => {
                                 const expDate = new Date(moment().add(refTokenExpiresInMS, 'ms'));
                                 const expDateShort = new Date(moment().add(tokenExpiresInMS, 'ms'));
 
+                                let emailConfirmation = null;
                                 if (error) {
-                                    return res.status(200)
-                                        .cookie('refreshToken', newRefreshToken, {
-                                            expires: expDate,
-                                            httpOnly: true,
-                                            sameSite: 'None',
-                                            secure: true,
-                                        })
-                                        .cookie('token', token, {
-                                            expires: expDateShort,
-                                            sameSite: 'None',
-                                            secure: true,
-                                        })
-                                        .json({
-                                            user: {
-                                                id: customer._id,
-                                                email: customer.email,
-                                                login: customer.login,
-                                            },
-                                            emailConfirmation: {
-                                                error: error.message,
-                                                isError: true,
-                                            },
-                                            token: {
-                                                token,
-                                                expires: expDateShort,
-                                            },
-                                        });
+                                    emailConfirmation = {
+                                        error: error.message,
+                                        isError: true,
+                                    };
+                                } else {
+                                    emailConfirmation = {
+                                        isError: false,
+                                    };
                                 }
 
                                 return res.status(200)
@@ -116,9 +98,7 @@ export const createUser = (req, res, next) => {
                                             email: customer.email,
                                             login: customer.login,
                                         },
-                                        emailConfirmation: {
-                                            isError: false,
-                                        },
+                                        emailConfirmation,
                                         token: {
                                             token,
                                             expires: expDateShort,
