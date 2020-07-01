@@ -88,7 +88,7 @@ export const createUser = (req, res, next) => {
                                                 login: customer.login,
                                             },
                                             emailConfirmation: {
-                                                error,
+                                                error: error.message,
                                                 isError: true,
                                             },
                                             token: {
