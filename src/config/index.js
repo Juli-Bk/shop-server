@@ -14,7 +14,6 @@ export default {
     allowCors: process.env.ALLOW_CORS,
     environment: process.env.NODE_ENV,
     secret: process.env.SECRET_OR_KEY,
-    recovery: process.env.RECOVERY_SECRET,
     imageStorageBaseAddress: process.env.IMAGE_BASE_URL,
     //Signing a token with 1 hour of expiration by default on production
     expiresInMinutes: process.env.NODE_ENV === 'development'

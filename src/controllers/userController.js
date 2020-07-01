@@ -62,7 +62,7 @@ export const createUser = (req, res, next) => {
 
                     newCustomer.save()
                         .then(customer => {
-                            sendEmailAddressConfirmation(customer.email, (error, body) => {
+                            sendEmailAddressConfirmation(customer.email, (error) => {
                                 if (error) {
                                     return res.status(200).json({
                                         id: customer._id,
@@ -75,15 +75,37 @@ export const createUser = (req, res, next) => {
 
                                     });
                                 }
-                                return res.status(200).json({
-                                    id: customer._id,
-                                    email: customer.email,
-                                    login: customer.login,
-                                    emailConfirmation: {
-                                        isError: false,
-                                        body,
-                                    },
-                                });
+                                const {token, tokenExpiresInMS, newRefreshToken, refTokenExpiresInMS} = signUp(customer);
+
+                                const expDate = new Date(moment().add(refTokenExpiresInMS, 'ms'));
+                                const expDateShort = new Date(moment().add(tokenExpiresInMS, 'ms'));
+
+                                return res.status(200)
+                                    .cookie('refreshToken', newRefreshToken, {
+                                        expires: expDate,
+                                        httpOnly: true,
+                                        sameSite: 'None',
+                                        secure: true,
+                                    })
+                                    .cookie('token', token, {
+                                        expires: expDateShort,
+                                        sameSite: 'None',
+                                        secure: true,
+                                    })
+                                    .json({
+                                        user: {
+                                            id: customer._id,
+                                            email: customer.email,
+                                            login: customer.login,
+                                        },
+                                        emailConfirmation: {
+                                            isError: false
+                                        },
+                                        token: {
+                                            token,
+                                            expires: expDateShort,
+                                        },
+                                    });
                             });
                         })
                         .catch(error => {
@@ -220,7 +242,7 @@ export const sendConfirmEmailLetter = (req, res, next) => {
 export const sendRecovery = (req, res, next) => {
     const email = req.query.email;
     const fingerprint = req.query.fingerprint;
-    const token = signUpRecover(email, fingerprint);
+    const token = signUpRecover({email}, fingerprint);
 
     sendRecoveryPasswordLetter(email, token, (error) => {
         if (error) {

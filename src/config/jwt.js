@@ -107,7 +107,7 @@ const setJWTrules = async (passport) => {
 
     const recoverOpts = {};
     recoverOpts.jwtFromRequest = getTokenFromQuery;
-    recoverOpts.secretOrKey = config.recovery;
+    recoverOpts.secretOrKey = config.secret;
 
     passport.use(
         'recover',
