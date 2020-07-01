@@ -63,22 +63,40 @@ export const createUser = (req, res, next) => {
                     newCustomer.save()
                         .then(customer => {
                             sendEmailAddressConfirmation(customer.email, (error) => {
-                                if (error) {
-                                    return res.status(200).json({
-                                        id: customer._id,
-                                        email: customer.email,
-                                        login: customer.login,
-                                        emailConfirmation: {
-                                            error,
-                                            isError: true,
-                                        },
-
-                                    });
-                                }
                                 const {token, tokenExpiresInMS, newRefreshToken, refTokenExpiresInMS} = signUp(customer);
 
                                 const expDate = new Date(moment().add(refTokenExpiresInMS, 'ms'));
                                 const expDateShort = new Date(moment().add(tokenExpiresInMS, 'ms'));
+
+                                if (error) {
+                                    return res.status(200)
+                                        .cookie('refreshToken', newRefreshToken, {
+                                            expires: expDate,
+                                            httpOnly: true,
+                                            sameSite: 'None',
+                                            secure: true,
+                                        })
+                                        .cookie('token', token, {
+                                            expires: expDateShort,
+                                            sameSite: 'None',
+                                            secure: true,
+                                        })
+                                        .json({
+                                            user: {
+                                                id: customer._id,
+                                                email: customer.email,
+                                                login: customer.login,
+                                            },
+                                            emailConfirmation: {
+                                                error,
+                                                isError: true,
+                                            },
+                                            token: {
+                                                token,
+                                                expires: expDateShort,
+                                            },
+                                        });
+                                }
 
                                 return res.status(200)
                                     .cookie('refreshToken', newRefreshToken, {
@@ -99,7 +117,7 @@ export const createUser = (req, res, next) => {
                                             login: customer.login,
                                         },
                                         emailConfirmation: {
-                                            isError: false
+                                            isError: false,
                                         },
                                         token: {
                                             token,
