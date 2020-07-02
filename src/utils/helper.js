@@ -6,8 +6,9 @@ import webP from 'webp-converter';
 const rand = uniqueRandom(0, 999999);
 
 export const getRandomItemId = () => rand();
+
 export const getRandomInt = (min, max) => {
-    return Math.random() * (max - min) + min;
+    return Math.round(Math.random() * (max - min) + min);
 };
 
 export const log = (msg) => {

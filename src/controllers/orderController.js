@@ -1,6 +1,7 @@
 import Order from '../models/schemas/Order';
 import {log} from '../utils/helper';
 import moment from 'moment';
+import {sendOrderLetter} from '../config/mailgun';
 
 export const placeOrder = (req, res, next) => {
     const data = {...req.body};
@@ -10,22 +11,60 @@ export const placeOrder = (req, res, next) => {
                 message: `error: can't create an order with empty products list`,
             });
     }
+
     if (!data.userId) {
         data.orderAsGuest = true;
+
+        if (!data.email) {
+            res.status(400)
+                .json({
+                    message: `error: email is required`,
+                });
+        }
     }
     data.createdDate = moment.utc().format('MM-DD-YYYY');
 
     const order = new Order(data);
 
-    order
-        .save()
-        .then(() => res
-            .status(200)
-            .json({
-                message: 'Success operation. The order is placed',
-                order,
-            }),
-        )
+    order.save()
+        .then((newOrder) => {
+            const {firstName = '', lastName = '', email} = newOrder.userId || {};
+            const orderDate = moment(newOrder.createdDate).format('DD.MM.YYYY').toString();
+            const products = newOrder.products.map(pr => {
+                const {name, price, salePrice} = pr.productId;
+                const orderPrice = salePrice < price ? salePrice : price;
+                return {name, price: orderPrice, quantity: pr.quantity};
+            });
+            const orderData = {
+                clientName: newOrder.userName || `${firstName} ${lastName}`,
+                orderNumber: newOrder.orderNo,
+                orderDate: orderDate,
+                status: newOrder.status,
+                products,
+                total: newOrder.totalSum,
+            };
+
+            sendOrderLetter(newOrder.email || email, orderData, (error, body) => {
+                let letterStatus = {
+                    message: body,
+                    error: false,
+                };
+                if (error) {
+                    letterStatus = {
+                        message: error.message,
+                        error: true,
+                    };
+                }
+                return res
+                    .status(200)
+                    .json({
+                        message: 'Success operation. The order is placed',
+                        newOrder,
+                        letterStatus,
+                    });
+            });
+
+        })
         .catch(error => {
                 res.status(400)
                     .json({
@@ -98,7 +137,7 @@ export const cancelOrder = (req, res, next) => {
                 order.save()
                     .then(() => {
                         res.status(200).json({
-                            message: 'Success operation. The order is canceled'
+                            message: 'Success operation. The order is canceled',
                         });
                     })
                     .catch(error => {

@@ -27,20 +27,23 @@ const OrderSchema = new Schema(
                     type: Schema.Types.ObjectId,
                     ref: 'products',
                     required: [true, 'Product id must be specified'],
+                    autopopulate: true,
                 },
                 sizeId: {
                     type: Schema.Types.ObjectId,
                     ref: 'sizes',
+                    autopopulate: true,
                 },
                 colorId: {
                     type: Schema.Types.ObjectId,
                     ref: 'colors',
+                    autopopulate: true,
                 },
                 quantity: {
                     type: Number,
                     required: [true, 'Order quantity must be specified'],
                     min: 0,
-                },
+                }
             },
         ],
 
