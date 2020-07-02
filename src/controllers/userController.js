@@ -15,9 +15,8 @@ export const createUser = (req, res, next) => {
     const {email, login, password} = data;
 
     if (!(email || login) || !password) {
-        res.status(400)
+        return res.status(400)
             .json({message: 'Email or login, password are required'});
-        return;
     }
 
     User.findOne({
@@ -52,9 +51,8 @@ export const createUser = (req, res, next) => {
                 bcrypt.hash(newCustomer.password, salt, (err, hash) => {
 
                     if (err) {
-                        res.status(400)
+                        return res.status(400)
                             .json({message: `Error happened on server: ${err.message}`});
-                        return;
                     }
 
                     newCustomer.password = hash;
@@ -62,49 +60,34 @@ export const createUser = (req, res, next) => {
 
                     newCustomer.save()
                         .then(customer => {
-                            sendEmailAddressConfirmation(customer.email, (error) => {
-                                const {token, tokenExpiresInMS, newRefreshToken, refTokenExpiresInMS} = signUp(customer);
+                            const {token, tokenExpiresInMS, newRefreshToken, refTokenExpiresInMS} = signUp(customer);
 
-                                const expDate = new Date(moment().add(refTokenExpiresInMS, 'ms'));
-                                const expDateShort = new Date(moment().add(tokenExpiresInMS, 'ms'));
+                            const expDate = new Date(moment().add(refTokenExpiresInMS, 'ms'));
+                            const expDateShort = new Date(moment().add(tokenExpiresInMS, 'ms'));
 
-                                let emailConfirmation = null;
-                                if (error) {
-                                    emailConfirmation = {
-                                        error: error.message,
-                                        isError: true,
-                                    };
-                                } else {
-                                    emailConfirmation = {
-                                        isError: false,
-                                    };
-                                }
-
-                                return res.status(200)
-                                    .cookie('refreshToken', newRefreshToken, {
-                                        expires: expDate,
-                                        httpOnly: true,
-                                        sameSite: 'None',
-                                        secure: true,
-                                    })
-                                    .cookie('token', token, {
+                            return res.status(200)
+                                .cookie('refreshToken', newRefreshToken, {
+                                    expires: expDate,
+                                    httpOnly: true,
+                                    sameSite: 'None',
+                                    secure: true,
+                                })
+                                .cookie('token', token, {
+                                    expires: expDateShort,
+                                    sameSite: 'None',
+                                    secure: true,
+                                })
+                                .json({
+                                    user: {
+                                        _id: customer._id,
+                                        email: customer.email,
+                                        login: customer.login,
+                                    },
+                                    token: {
+                                        token,
                                         expires: expDateShort,
-                                        sameSite: 'None',
-                                        secure: true,
-                                    })
-                                    .json({
-                                        user: {
-                                            id: customer._id,
-                                            email: customer.email,
-                                            login: customer.login,
-                                        },
-                                        emailConfirmation,
-                                        token: {
-                                            token,
-                                            expires: expDateShort,
-                                        },
-                                    });
-                            });
+                                    },
+                                });
                         })
                         .catch(error => {
                                 res.status(400).json({
@@ -220,37 +203,31 @@ export const confirmEmail = (req, res, next) => {
         );
 };
 
-export const sendConfirmEmailLetter = (req, res, next) => {
+export const sendConfirmEmailLetter = (req, res) => {
     const email = req.query.email;
 
     sendEmailAddressConfirmation(email, (error) => {
         if (error) {
-            next(error);
-            res.status(400)
+            return res.status(400)
                 .json({message: error.message});
         } else {
-            res.status(200)
+            return res.status(200)
                 .json({message: 'Please, check your email'});
-            next();
         }
     });
 
 };
 
-export const sendRecovery = (req, res, next) => {
+export const sendRecovery = (req, res) => {
     const email = req.query.email;
     const fingerprint = req.query.fingerprint;
     const token = signUpRecover({email}, fingerprint);
 
     sendRecoveryPasswordLetter(email, token, (error) => {
         if (error) {
-            next(error);
-            res.status(400)
-                .json({message: error.message});
+            return res.status(400).json({message: error.message});
         } else {
-            res.status(200)
-                .json({message: 'Please, check your email'});
-            next();
+            return res.status(200).json({message: 'Please, check your email'});
         }
     });
 
@@ -553,34 +530,45 @@ export const refreshToken = (req, res, next) => {
             .json({message: 'Refresh token is invalid. Please login again'});
     }
 
-    try {
-        const {fingerprint, email, login, password, firstName, lastName, id} = req.user;
 
-        const {token, tokenExpiresInMS} = signUp({
-            fingerprint,
-            email,
-            login,
-            password,
-            firstName,
-            lastName,
-            _id: id,
-        }, fingerprint);
+    User.findOne({email: req.user.email})
+        .then(user => {
+            const {fingerprint, email, login, password, firstName, lastName, id} = req.user;
 
-        return res
-            .status(200)
-            .cookie('token', token, {
-                expires: moment().add(tokenExpiresInMS, 'ms'),
-                sameSite: 'None',
-                secure: true,
-            })
-            .json({
-                token,
-                expiresInMinutes: tokenExpiresInMS,
-            });
-    } catch (error) {
-        log(error);
-        next(error);
-    }
+            const {token, tokenExpiresInMS} = signUp({
+                fingerprint,
+                email,
+                login,
+                password,
+                firstName,
+                lastName,
+                _id: id,
+            }, fingerprint);
+
+            return res
+                .status(200)
+                .cookie('token', token, {
+                    expires: moment().add(tokenExpiresInMS, 'ms'),
+                    sameSite: 'None',
+                    secure: true,
+                })
+                .json({
+                    user,
+                    token: {
+                        token,
+                        expires: tokenExpiresInMS,
+                    },
+                });
+        })
+        .catch(error => {
+                res.status(400).json({
+                    message: `Error happened on server: "${error.message}" `,
+                });
+                log(error);
+                next(error);
+            },
+        );
+
 };
 
 export const logout = (req, res) => {

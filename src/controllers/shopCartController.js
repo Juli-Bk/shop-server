@@ -77,7 +77,7 @@ export const getUserShopCart = (req, res, next) => {
         .findOne({userId: userId})
         .then(shopCart => {
             if (!shopCart) {
-                res.status(400)
+                res.status(200)
                     .json({
                         message: `Shop cart for user with id ${userId} is not found`,
                     });

@@ -82,10 +82,11 @@ export const sendRecoveryPasswordLetter = (email, token, callback) => {
 const emailSendingHandler = (error, body, callback) => {
     if (error) {
         console.log('💥💥💥 email sending error:  ', error);
-        callback && callback(error);
+        callback && callback(error, body);
+    } else {
+        if (config.environment === 'development') {
+            console.log('🚀🚀🚀 email is sent:  ', body);
+        }
+        callback(null, 'email is sent');
     }
-    if (config.environment === 'development') {
-        console.log('🚀🚀🚀 email is sent:  ', body);
-    }
-    callback(null, 'email is sent');
 };
