@@ -314,7 +314,7 @@ export const getProductsByFilterParams = async (req, res, next) => {
 
     const mongooseQuery = filterParamsHelper(req.query);
     if (isNewIn) {
-        const twoWeeksAgo = moment.utc().subtract(14, 'days').format('YYYY.MM.DD');
+        const twoWeeksAgo = moment.utc().subtract(100, 'days').format('YYYY.MM.DD');
         const currentDate = moment.utc().format('YYYY.MM.DD');
         mongooseQuery.createdDate = {
             $gte: twoWeeksAgo,

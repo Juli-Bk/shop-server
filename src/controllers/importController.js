@@ -11,6 +11,7 @@ import Category from '../models/schemas/Category';
 import Product from '../models/schemas/Product';
 import mongoose from 'mongoose';
 import config from '../../src/config/index';
+import {getRandomInt} from '../utils/helper';
 
 export const importData = (req, res, next) => {
     const filePath = req.file ? req.file.path : null;
@@ -417,6 +418,7 @@ const importProducts = async (productsToImport, allCategories, allBrands, errorH
 
                 newProduct.createdDate = moment.utc().format('MM-DD-YYYY');
                 newProduct.isOnSale = newProduct.salePrice >= 0 && newProduct.salePrice < newProduct.price;
+                newProduct.rating = getRandomInt(0, 5);
 
                 newProducts.push(newProduct);
             }

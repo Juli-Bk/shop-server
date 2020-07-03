@@ -20,6 +20,10 @@ const ProductSchema = new mongoose.Schema({
             type: Boolean,
             default: false,
         },
+        rating: {
+            type: Number,
+            default: 0,
+        },
 
         productId: {
             type: Number,
@@ -55,7 +59,7 @@ const ProductSchema = new mongoose.Schema({
         },
         isOnSale: {
             type: Boolean,
-            default: false
+            default: false,
         },
 
         createdDate: {
