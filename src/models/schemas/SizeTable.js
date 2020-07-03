@@ -69,7 +69,7 @@ const SizeTableSchema = new Schema({
         },
         headSize: {
             inches: {
-                type: Number,
+                type: String,
                 min: 0,
             },
             cm: {

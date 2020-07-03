@@ -1,11 +1,11 @@
 import SizeTable from '../models/schemas/SizeTable';
 import {log} from '../utils/helper';
-import moment from "moment";
+import moment from 'moment';
 
 export const addSizeTable = (req, res, next) => {
     const data = {
         ...req.body,
-        createdDate: moment.utc().format("MM-DD-YYYY")
+        createdDate: moment.utc().format('MM-DD-YYYY'),
     };
 
     const newItem = new SizeTable(data);
@@ -15,16 +15,16 @@ export const addSizeTable = (req, res, next) => {
             .status(200)
             .json({
                 message: 'success',
-                item
-            })
+                item,
+            }),
         )
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `New SizeTable adding error: ${error}`
+                        message: `New SizeTable adding error: ${error}`,
                     });
                 next(error);
-            }
+            },
         );
 };
 
@@ -35,36 +35,67 @@ export const getAllSizeTables = (req, res, next) => {
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `Getting SizeTables list error: ${error}`
+                        message: `Getting SizeTables list error: ${error}`,
                     });
                 next(error);
-            }
+            },
         );
 };
 
 export const getSizeTableByProductId = (req, res, next) => {
     const id = req.params.id;
 
+    const notMeasurments = ['productId', 'sizeId', 'createdDate', 'updatedDate', '_id'];
+
     SizeTable
         .find({productId: id})
-        .then(item => {
-            if (!item) {
-                res.status(400)
+        .then(items => {
+            if (!items) {
+                return res.status(400)
                     .json({
-                        message: `SizeTable with id ${id} is not found`
+                        message: `SizeTable with id ${id} is not found`,
                     });
             } else {
-                res.status(200).json(item);
+
+                try {
+                    const sizes = items.map(item => {
+
+                        const filtered = [];
+
+                        for (const [key, value] of Object.entries(item._doc)) {
+                            if (!notMeasurments.includes(key) && !/^_/i.test(key) && !/\$/.test(key)) {
+                                if (Object.keys(value).length > 0) {
+                                    filtered.push({[key]: value});
+                                }
+                            }
+                        }
+
+                        const {sizeId} = item;
+                        return {
+                            sizeId,
+                            measurements: filtered,
+                        };
+                    });
+
+                    return res.status(200).json({
+                        items,
+                        sizes,
+                    });
+                } catch (error) {
+                    return res.status(400).json({
+                        message: `getting sizeTable error: ${error.message}`,
+                    });
+                }
             }
         })
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `Error happened on server: "${error}" `
+                        message: `Error happened on server: "${error}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -75,14 +106,14 @@ export const updateSizeTableById = (req, res, next) => {
         //filter
         id,
         //what we update
-        {$set: {...req.body, updatedDate: moment.utc().format("MM-DD-YYYY"),}},
+        {$set: {...req.body, updatedDate: moment.utc().format('MM-DD-YYYY')}},
         //options. returns new updated data
-        {new: true, runValidators: true}
+        {new: true, runValidators: true},
     )
         .then(item => {
             if (!item) {
                 res.status(200).json({
-                    message: `SizeTable with id ${id} is not found`
+                    message: `SizeTable with id ${id} is not found`,
                 });
             } else {
                 res.status(200).json(item);
@@ -90,10 +121,10 @@ export const updateSizeTableById = (req, res, next) => {
         })
         .catch(err => {
                 res.status(400).json({
-                    message: `Error happened on server: "${err}" `
+                    message: `Error happened on server: "${err}" `,
                 });
                 next(err);
-            }
+            },
         );
 };
 
@@ -103,23 +134,23 @@ export const deleteSizeTableById = (req, res, next) => {
         .then((item) => {
             if (!item) {
                 res.status(200).json({
-                    message: `SizeTable with id ${id} is not found`
+                    message: `SizeTable with id ${id} is not found`,
                 });
             } else {
                 res.status(200)
                     .json({
-                        message: `SizeTable with id ${req.params.id} is deleted`
+                        message: `SizeTable with id ${req.params.id} is deleted`,
                     });
             }
         })
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `delete SizeTable error: "${error.message}" `
+                        message: `delete SizeTable error: "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };
 
@@ -127,16 +158,16 @@ export const deleteAllSizeTables = (req, res, next) => {
     SizeTable.deleteMany({})
         .then(() => res.status(200)
             .json({
-                message: 'all SizeTables are deleted'
-            })
+                message: 'all SizeTables are deleted',
+            }),
         )
         .catch(error => {
                 res.status(400)
                     .json({
-                        message: `delete SizeTable list error "${error.message}" `
+                        message: `delete SizeTable list error "${error.message}" `,
                     });
                 log(error);
                 next(error);
-            }
+            },
         );
 };

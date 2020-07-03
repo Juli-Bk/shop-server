@@ -446,31 +446,30 @@ const importSizeTables = async (products, errorHandler) => {
                 const productId = productDB ? productDB._id.toString() : null;
                 let sizeId = null;
 
-                const item = {
-                    productId: productId,
-                };
                 sizeTable.map(s => {
                     const allSizeNames = Object.getOwnPropertyNames(s);
                     allSizeNames.map(sizeName => {
                         // sizeName =>>>>> "4"
+                        const searchSize = `${sizeType}/${sizeName}`;
+
                         if (sizeName.toLowerCase() !== 'quantity') {
-                            const size = savedSizes.find(as => as.sizeTypeSizeName === `${sizeType}/${sizeName}`);
+                            const size = savedSizes.find(as => {
+                                const isEqual = as.sizeTypeSizeName === searchSize;
+                                return isEqual;
+                            });
                             sizeId = size ? size._id.toString() : null;
                             const measurementsData = s[sizeName]; // objects with props
-                            const measurementsNames = Object.getOwnPropertyNames(measurementsData); // Array with bust, waist, hips, length
 
-                            measurementsNames.map(mn => {
-                                item[mn] = measurementsData[mn];
-                            });
+                            const item = Object.assign({
+                                productId,
+                                sizeId,
+                            }, measurementsData);
+                            sizeTablesData.push(item);
                         }
                     });
                 });
-
-                item.sizeId = sizeId;
-                sizeTablesData.push(item);
             });
 
-            console.log('sizeTablesData', sizeTablesData);
             try {
                 const newSizeTables = await saveSizeTables(sizeTablesData);
 

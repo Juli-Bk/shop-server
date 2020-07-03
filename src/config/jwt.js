@@ -21,6 +21,13 @@ export const parseCookies = (sourse) => {
 
 const setJWTrules = async (passport) => {
 
+    const getTokenFromAuth = (req) => {
+        const {authorization} = req.headers || {};
+        let token = null;
+        token = authorization ? authorization.split(config.tokenPrefix)[1].trim() : null;
+        return token;
+    };
+
     const getTokenFromCookie = (req) => {
         let token = null;
         const cookie = req.headers && req.headers.cookie;
@@ -67,9 +74,14 @@ const setJWTrules = async (passport) => {
         }),
     );
 
+
+    const optsAdm = {};
+    optsAdm.jwtFromRequest = getTokenFromAuth;
+    optsAdm.secretOrKey = config.secret;
+
     passport.use(
         'jwt-admin',
-        new JwtStrategy(opts, (jwt_payload, done) => {
+        new JwtStrategy(optsAdm, (jwt_payload, done) => {
             User.findById(jwt_payload.id)
                 .then(user => {
                     if (user && user.isAdmin) {
