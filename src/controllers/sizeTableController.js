@@ -77,10 +77,7 @@ export const getSizeTableByProductId = (req, res, next) => {
                         };
                     });
 
-                    return res.status(200).json({
-                        items,
-                        sizes,
-                    });
+                    return res.status(200).json(sizes);
                 } catch (error) {
                     return res.status(400).json({
                         message: `getting sizeTable error: ${error.message}`,
