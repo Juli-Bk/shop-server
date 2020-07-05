@@ -235,4 +235,58 @@ export const deleteAllOrders = (req, res, next) => {
         );
 };
 
+export const updateOrderPaymentStatus = (req, res, next) => {
+    console.log('from ligpay req: ', req);
+    console.log('from ligpay data: ', req.data);
+    console.log('from ligpay signature: ', req.signature);
+    console.log('from ligpay base64_encode: ', req.base64_encode);
+    console.log('from ligpay sha1: ', req.sha1);
+
+    console.log('from ligpay body: req: ', req.body);
+    console.log('from ligpay data: ', req.body.data);
+    console.log('from ligpay signature: ', req.body.signature);
+    console.log('from ligpay base64_encode: ', req.body.base64_encode);
+    console.log('from ligpay sha1: ', req.body.sha1);
+
+    const orderId = req.params.id;
+
+    Order.findById(orderId)
+        .then((order) => {
+            if (!order) {
+                res.status(400)
+                    .json({
+                        message: `order with ${orderId} is not found`,
+                    });
+
+            } else {
+                const data = {
+                    ...req.body,
+                    // todo check this
+                    liqPayInfo: {},
+                    isPaid: true
+                };
+                Order
+                    .findOneAndUpdate(
+                        {_id: orderId},
+                        {$set: data},
+                        {new: true, runValidators: true},
+                    )
+                    .then(order => res.status(200).json(order))
+                    .catch(err =>
+                        res.status(400).json({
+                            message: `Error happened on server: "${err}" `,
+                        }),
+                    );
+            }
+        })
+        .catch(error => {
+            res.status(400)
+                .json({
+                    message: `cancel order error: "${error.message}" `,
+                });
+            log(error);
+            next(error);
+        });
+};
+
 

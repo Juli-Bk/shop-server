@@ -43,7 +43,7 @@ const OrderSchema = new Schema(
                     type: Number,
                     required: [true, 'Order quantity must be specified'],
                     min: 0,
-                }
+                },
             },
         ],
 
@@ -67,6 +67,13 @@ const OrderSchema = new Schema(
             type: Schema.Types.Mixed,
             required: [true, 'Payment method is required'],
         },
+        isPaid: {
+            type: Boolean,
+            default: false,
+        },
+        liqPayInfo: {
+            type: Schema.Types.Mixed,
+        },
         totalSum: {
             type: Number,
             required: true,
@@ -88,10 +95,10 @@ const OrderSchema = new Schema(
             required: true,
         },
         orderComment: {
-            type: String
+            type: String,
         },
         deliveryComfortTimeInterval: {
-            type: String
+            type: String,
         },
         phoneNumber: {
             type: String,

@@ -7,7 +7,8 @@ import {
     getAllOrders,
     getUserOrders,
     cancelOrder,
-    updateOrderById
+    updateOrderById,
+    updateOrderPaymentStatus
 } from '../controllers/orderController';
 import passport from 'passport';
 
@@ -27,6 +28,8 @@ router.get('/:id',
 //update
 router.post('/cancel/:id', cancelOrder);
 router.post('/:id', updateOrderById);
+
+router.post('/order-payment', updateOrderPaymentStatus);
 
 //delete
 router.delete('/',
