@@ -27,9 +27,8 @@ router.get('/:id',
 
 //update
 router.post('/cancel/:id', cancelOrder);
-router.post('/:id', updateOrderById);
-
 router.post('/liqpay/order-payment', updateOrderPaymentStatus);
+router.post('/:id', updateOrderById);
 
 //delete
 router.delete('/',
