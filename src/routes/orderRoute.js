@@ -29,7 +29,7 @@ router.get('/:id',
 router.post('/cancel/:id', cancelOrder);
 router.post('/:id', updateOrderById);
 
-router.post('/order-payment', updateOrderPaymentStatus);
+router.post('/liqpay/order-payment', updateOrderPaymentStatus);
 
 //delete
 router.delete('/',
