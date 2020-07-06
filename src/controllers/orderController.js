@@ -240,7 +240,6 @@ export const updateOrderPaymentStatus = (req, res, next) => {
 
     console.log('from ligpay req.query: ', req.query);
     console.log('from ligpay req.data: ', req.data);
-    console.log('from ligpay req.data(): ', req.data());
     console.log('from ligpay req.status: ', req.status);
 
     console.log('from ligpay req.params: ', req.params);
