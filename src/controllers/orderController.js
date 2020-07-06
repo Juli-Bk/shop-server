@@ -238,12 +238,13 @@ export const deleteAllOrders = (req, res, next) => {
 export const updateOrderPaymentStatus = async (req, res, next) => {
 
     console.log('from ligpay req.body: ', req.body);
+    console.log('from ligpay req.data: ', req.data);
     console.log('from ligpay req.body.data: ', req.body.data);
 
     const data = req.body.data;
     if (!data) {
         console.log('req.body.data is empty: ', req.body.data);
-        return res.status(400).json({
+        return res.status(200).json({
             message: 'empty data from liqpay'
         });
     } else {
