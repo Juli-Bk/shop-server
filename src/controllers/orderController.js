@@ -248,7 +248,9 @@ export const updateOrderPaymentStatus = async (req, res, next) => {
         console.log('from ligpay req.body: ', req.body);
         console.log('from ligpay req.body.data: ', req.body.data);
 
-        const data = await JSON.parse(Buffer.from(req.body.data, 'base64').toString());
+        const d = Buffer.from(req.body.data.toString(), 'base64');
+
+        const data = await JSON.parse(d.toString());
         console.log('data', data);
 
         const orderId = req.params.id;
