@@ -237,18 +237,21 @@ export const deleteAllOrders = (req, res, next) => {
 
 export const updateOrderPaymentStatus = async (req, res, next) => {
 
-        console.log('from ligpay req.data: ', req.data);
-        console.log('from ligpay req.status: ', req.status);
+    console.log('from ligpay req.body: ', req.body);
+    console.log('from ligpay req.body.data: ', req.body.data);
 
-        console.log('from ligpay req.body: ', req.body);
-        console.log('from ligpay req.body.data: ', req.body.data);
+    const data = req.body.data;
+    if (!data) {
+        console.log('req.body.data is empty: ', req.body.data);
+        return res.status(400).json({
+            message: 'empty data from liqpay'
+        });
+    } else {
+        const d = Buffer.from(data, 'base64');
+        const dataDecoded = await JSON.parse(d.toString());
+        console.log('dataDecoded', dataDecoded);
 
-        const d = Buffer.from(req.body.data.toString(), 'base64');
-
-        const data = await JSON.parse(d.toString());
-        console.log('data', data);
-
-        const orderId = req.params.id;
+        const orderId = dataDecoded.orderId;
 
         Order.findById(orderId)
             .then((order) => {
@@ -288,6 +291,6 @@ export const updateOrderPaymentStatus = async (req, res, next) => {
                 next(error);
             });
     }
-;
+};
 
 
