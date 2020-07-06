@@ -3,8 +3,8 @@ import bodyParser from 'body-parser';
 import passport from 'passport';
 import config from '../src/config/index';
 import jwt from './config/jwt';
-import multer from 'multer';
-const upload = multer();
+// import multer from 'multer';
+// const upload = multer();
 
 const addMiddlewares = (app) => {
     if (config.allowCors) {
@@ -18,11 +18,11 @@ const addMiddlewares = (app) => {
     }
     app.use(bodyParser.json());
 
-    // parse application/x-www-form-urlencoded
-    app.use(bodyParser.urlencoded({ extended: false }))
-
-    // for parsing multipart/form-data
-    app.use(upload.array());
+    // // parse application/x-www-form-urlencoded
+    // app.use(bodyParser.urlencoded({ extended: false }))
+    //
+    // // for parsing multipart/form-data
+    // app.use(upload.array());
 
     app.use(passport.initialize());
     jwt(passport);

@@ -1,4 +1,5 @@
 import express from 'express';
+import bodyParser from 'body-parser';
 
 import {
     placeOrder,
@@ -27,7 +28,11 @@ router.get('/:id',
 
 //update
 router.post('/cancel/:id', cancelOrder);
-router.post('/liqpay/order-payment', updateOrderPaymentStatus);
+
+// create application/x-www-form-urlencoded parser
+const urlencodedParser = bodyParser.urlencoded({ extended: false })
+
+router.post('/liqpay/order-payment', urlencodedParser, updateOrderPaymentStatus);
 router.post('/:id', updateOrderById);
 
 //delete
