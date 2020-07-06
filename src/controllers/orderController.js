@@ -275,7 +275,7 @@ export const updateOrderPaymentStatus = async (req, res, next) => {
             const d = Buffer.from(data, 'base64');
             const dataDecoded = await JSON.parse(d.toString());
 
-            const orderId = dataDecoded.orderId;
+            const orderId = dataDecoded.order_id;
             const status = dataDecoded.status;
 
             console.log('dataDecoded', dataDecoded);
