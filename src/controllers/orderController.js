@@ -239,12 +239,9 @@ export const deleteAllOrders = (req, res, next) => {
 
 export const updateOrderPaymentStatus = async (req, res, next) => {
 
-    console.log('from ligpay req.body.data: ', req.body.data);
-
     const data = req.body.data;
 
     if (!data) {
-        console.log('req.body.data is empty: ', req.body.data);
         return res.status(200).json({
             message: 'empty data from liqpay',
         });
@@ -266,8 +263,6 @@ export const updateOrderPaymentStatus = async (req, res, next) => {
         const signature = sha1.digest('base64');
 
         if (signatureFromReq !== signature) {
-            console.log('signature from request does not match: ', signatureFromReq);
-            console.log('signature server: ', signature);
             return res.status(400).json({
                 message: 'updateOrderPaymentStatus error: signature does not match',
             });
@@ -278,27 +273,23 @@ export const updateOrderPaymentStatus = async (req, res, next) => {
             const orderId = dataDecoded.order_id;
             const status = dataDecoded.status;
 
-            console.log('dataDecoded', dataDecoded);
-            console.log('status', status);
-            console.log('orderId', orderId);
-
             Order.findById(orderId)
                 .then((order) => {
-                    console.log('in DB order is: ', order);
                     if (!order) {
-                        console.log('return 400');
                         return res.status(400)
                             .json({
                                 message: `order with ${orderId} is not found`,
                             });
-
                     } else {
+                        delete dataDecoded.public_key;
                         const data = {
                             liqPayInfo: dataDecoded,
-                            isPaid: status === 'success',
+                            //wait_accept значит что, деньги с клиента списаны, но магазин еще не прошел проверку.
+                            //Если магазин не пройдет активацию в течение 180 дней,
+                            //платежи будут автоматически отменены
+                            isPaid: (status === 'success') || (status === 'wait_accept'),
                             liqPayPaymentStatus: status,
                         };
-                        console.log('data to update order: ', data);
                         Order
                             .findOneAndUpdate(
                                 {_id: orderId},
@@ -306,12 +297,9 @@ export const updateOrderPaymentStatus = async (req, res, next) => {
                                 {new: true, runValidators: true},
                             )
                             .then(order => {
-                                console.log('order after update: ', order);
                                 return res.status(200).json(order);
                             })
                             .catch(error => {
-                                    console.log('order update error: ', error);
-
                                     res.status(400).json({
                                         message: `Error happened on server: "${error}" `,
                                     });
