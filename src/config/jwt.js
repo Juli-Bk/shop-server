@@ -22,9 +22,10 @@ export const parseCookies = (sourse) => {
 const setJWTrules = async (passport) => {
 
     const getTokenFromAuth = (req) => {
-        const {authorization} = req.headers || {};
+        const {authorization = ''} = req.headers || {};
         let token = null;
-        token = authorization ? authorization.split(config.tokenPrefix)[1].trim() : null;
+        const authPartsArr = authorization.split(config.tokenPrefix);
+        token = authPartsArr.length > 0 ? authPartsArr[1].trim() : null;
         return token;
     };
 

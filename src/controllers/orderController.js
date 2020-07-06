@@ -236,17 +236,16 @@ export const deleteAllOrders = (req, res, next) => {
 };
 
 export const updateOrderPaymentStatus = (req, res, next) => {
-    console.log('from ligpay req: ', req);
+    console.dir(req);
+    console.log('from ligpay req.query: ', req.req.query);
     console.log('from ligpay req.data: ', req.data);
+    console.log('from ligpay req.status: ', req.status);
 
     console.log('from ligpay req.params: ', req.params);
     console.log('from ligpay req.params.data: ', req.params.data);
 
     console.log('from ligpay req.body: ', req.body);
     console.log('from ligpay req.body.data: ', req.body.data);
-
-    console.log('from ligpay res.body: ', req.body);
-    console.log('from ligpay res.body.data: ', req.body.data);
 
     const orderId = req.params.id;
 
