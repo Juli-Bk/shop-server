@@ -59,15 +59,22 @@ const filterParser = (filtersQueryString) => {
                 const filterValue = filtersQueryString[filterParam];
                 const decoded = decodeURI(filterValue.trim());
                 const isValidId = validateObjectId(decoded);
-                const isBooleanFilter = isValidId ? false : typeof JSON.parse(decoded.toLowerCase()) === 'boolean';
+                try {
+                    const isBooleanFilter = isValidId ? false : typeof JSON.parse(decoded.toLowerCase()) === 'boolean';
 
-                if (isValidId || isBooleanFilter) {
-                    mongooseQuery[filterParam] = decoded;
-                } else {
-                    mongooseQuery[filterParam] = {
-                        $regex: decoded,
-                    };
+                    if (isValidId || isBooleanFilter) {
+                        mongooseQuery[filterParam] = decoded;
+                    } else {
+                        mongooseQuery[filterParam] = {
+                            $regex: decoded,
+                        };
+                    }
+                } catch (e) {
+                    console.log('error', e);
+                    console.log('filterValue', filterValue);
+                    console.log('decoded', decoded);
                 }
+
             }
             return mongooseQuery;
         },
