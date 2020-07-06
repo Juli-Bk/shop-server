@@ -67,6 +67,9 @@ const OrderSchema = new Schema(
             type: Schema.Types.Mixed,
             required: [true, 'Payment method is required'],
         },
+        liqPayPaymentStatus: {
+            type: String
+        },
         isPaid: {
             type: Boolean,
             default: false,

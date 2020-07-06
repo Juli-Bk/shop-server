@@ -2,6 +2,8 @@ import Order from '../models/schemas/Order';
 import {log} from '../utils/helper';
 import moment from 'moment';
 import {sendOrderLetter} from '../config/mailgun';
+import config from '../config/index';
+import crypto from 'crypto';
 
 export const placeOrder = (req, res, next) => {
     const data = {...req.body};
@@ -237,60 +239,85 @@ export const deleteAllOrders = (req, res, next) => {
 
 export const updateOrderPaymentStatus = async (req, res, next) => {
 
-    console.log('from ligpay req.body: ', req.body);
-    console.log('from ligpay req.data: ', req.data);
     console.log('from ligpay req.body.data: ', req.body.data);
 
     const data = req.body.data;
+
     if (!data) {
         console.log('req.body.data is empty: ', req.body.data);
         return res.status(200).json({
-            message: 'empty data from liqpay'
+            message: 'empty data from liqpay',
         });
     } else {
-        const d = Buffer.from(data, 'base64');
-        const dataDecoded = await JSON.parse(d.toString());
-        console.log('dataDecoded', dataDecoded);
 
-        const orderId = dataDecoded.orderId;
+        const privateKey = config.liqpay_private_key;
+        const signatureFromReq = req.body.signature;
 
-        Order.findById(orderId)
-            .then((order) => {
-                if (!order) {
+        if (!signatureFromReq) {
+            return res.status(400).json({
+                message: 'empty signature. forbidden',
+            });
+        }
+        const signString = privateKey + data + privateKey;
+
+        const sha1 = crypto.createHash('sha1');
+        sha1.update(signString);
+
+        const signature = sha1.digest('base64');
+
+        if (signatureFromReq !== signature) {
+            console.log('signature from request does not match: ', signatureFromReq);
+            console.log('signature server: ', signature);
+            return res.status(400).json({
+                message: 'updateOrderPaymentStatus error: signature does not match',
+            });
+        } else {
+            const d = Buffer.from(data, 'base64');
+            const dataDecoded = await JSON.parse(d.toString());
+
+            const orderId = dataDecoded.orderId;
+            const status = dataDecoded.status;
+
+            console.log('dataDecoded', dataDecoded);
+            console.log('status', status);
+
+            Order.findById(orderId)
+                .then((order) => {
+                    if (!order) {
+                        return res.status(400)
+                            .json({
+                                message: `order with ${orderId} is not found`,
+                            });
+
+                    } else {
+                        const data = {
+                            liqPayInfo: dataDecoded,
+                            isPaid: status === 'success',
+                            liqPayPaymentStatus: status,
+                        };
+                        Order
+                            .findOneAndUpdate(
+                                {_id: orderId},
+                                {$set: data},
+                                {new: true, runValidators: true},
+                            )
+                            .then(order => res.status(200).json(order))
+                            .catch(err =>
+                                res.status(400).json({
+                                    message: `Error happened on server: "${err}" `,
+                                }),
+                            );
+                    }
+                })
+                .catch(error => {
                     res.status(400)
                         .json({
-                            message: `order with ${orderId} is not found`,
+                            message: `cancel order error: "${error.message}" `,
                         });
-
-                } else {
-                    const data = {
-                        ...req.body,
-                        // todo check this
-                        liqPayInfo: {},
-                        isPaid: true,
-                    };
-                    Order
-                        .findOneAndUpdate(
-                            {_id: orderId},
-                            {$set: data},
-                            {new: true, runValidators: true},
-                        )
-                        .then(order => res.status(200).json(order))
-                        .catch(err =>
-                            res.status(400).json({
-                                message: `Error happened on server: "${err}" `,
-                            }),
-                        );
-                }
-            })
-            .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `cancel order error: "${error.message}" `,
-                    });
-                log(error);
-                next(error);
-            });
+                    log(error);
+                    next(error);
+                });
+        }
     }
 };
 

@@ -29,10 +29,10 @@ router.get('/:id',
 //update
 router.post('/cancel/:id', cancelOrder);
 
-// create application/x-www-form-urlencoded parser
+// application/x-www-form-urlencoded parser
 const urlencodedParser = bodyParser.urlencoded({ extended: false })
-
 router.post('/liqpay/order-payment', urlencodedParser, updateOrderPaymentStatus);
+
 router.post('/:id', updateOrderById);
 
 //delete

@@ -29,5 +29,6 @@ export default {
     mail_user_name: process.env.MAILGUN_USER_NAME,
     baseAddress:  process.env.NODE_ENV === 'development'
         ? 'http://localhost:3000'
-        : process.env.CLIENT_BASE_ADDRESS
+        : process.env.CLIENT_BASE_ADDRESS,
+    liqpay_private_key: process.env.LIQPAY_PRIVATE_KEY
 };
