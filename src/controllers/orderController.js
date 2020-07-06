@@ -309,11 +309,14 @@ export const updateOrderPaymentStatus = async (req, res, next) => {
                                 console.log('order after update: ', order);
                                 return res.status(200).json(order);
                             })
-                            .catch(err => {
-                                console.log('order update error: ', err);
-                                    return res.status(400).json({
-                                        message: `Error happened on server: "${err}" `,
+                            .catch(error => {
+                                    console.log('order update error: ', error);
+
+                                    res.status(400).json({
+                                        message: `Error happened on server: "${error}" `,
                                     });
+                                    log(error);
+                                    next(error);
                                 },
                             );
                     }
