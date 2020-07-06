@@ -235,8 +235,12 @@ export const deleteAllOrders = (req, res, next) => {
         );
 };
 
+export const decodingData = (data) => Buffer.from(data, 'base64').toString();
+
 export const updateOrderPaymentStatus = async (req, res, next) => {
-        console.dir(req);
+
+
+        const data = await JSON.parse(decodingData(req.body.data));
 
         console.log('from ligpay req.query: ', req.query);
         console.log('from ligpay req.data: ', req.data);
@@ -248,11 +252,11 @@ export const updateOrderPaymentStatus = async (req, res, next) => {
         console.log('from ligpay req.body: ', req.body);
         console.log('from ligpay req.body.data: ', req.body.data);
 
-        const d = Buffer.from(req.body.data.toString(), 'base64');
-
-        const data = await JSON.parse(d.toString());
+        // const d = Buffer.from(req.body.data.toString(), 'base64');
+        //
+        // const data = await JSON.parse(d.toString());
         console.log('data', data);
-
+        //
         const orderId = req.params.id;
 
         Order.findById(orderId)
