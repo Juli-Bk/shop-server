@@ -6,7 +6,7 @@ import {sendOrderLetter} from '../config/mailgun';
 export const placeOrder = (req, res, next) => {
     const data = {...req.body};
     if (!data.products.length) {
-        res.status(400)
+        return res.status(400)
             .json({
                 message: `error: can't create an order with empty products list`,
             });
@@ -16,7 +16,7 @@ export const placeOrder = (req, res, next) => {
         data.orderAsGuest = true;
 
         if (!data.email) {
-            res.status(400)
+            return res.status(400)
                 .json({
                     message: `error: email is required`,
                 });
