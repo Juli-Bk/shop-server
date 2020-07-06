@@ -235,58 +235,62 @@ export const deleteAllOrders = (req, res, next) => {
         );
 };
 
-export const updateOrderPaymentStatus = (req, res, next) => {
-    console.dir(req);
+export const updateOrderPaymentStatus = async (req, res, next) => {
+        console.dir(req);
 
-    console.log('from ligpay req.query: ', req.query);
-    console.log('from ligpay req.data: ', req.data);
-    console.log('from ligpay req.status: ', req.status);
+        console.log('from ligpay req.query: ', req.query);
+        console.log('from ligpay req.data: ', req.data);
+        console.log('from ligpay req.status: ', req.status);
 
-    console.log('from ligpay req.params: ', req.params);
-    console.log('from ligpay req.params.data: ', req.params.data);
+        console.log('from ligpay req.params: ', req.params);
+        console.log('from ligpay req.params.data: ', req.params.data);
 
-    console.log('from ligpay req.body: ', req.body);
-    console.log('from ligpay req.body.data: ', req.body.data);
+        console.log('from ligpay req.body: ', req.body);
+        console.log('from ligpay req.body.data: ', req.body.data);
 
-    const orderId = req.params.id;
+        const data = await JSON.parse(Buffer.from(req.body.data, 'base64').toString());
+        console.log('data', data);
 
-    Order.findById(orderId)
-        .then((order) => {
-            if (!order) {
+        const orderId = req.params.id;
+
+        Order.findById(orderId)
+            .then((order) => {
+                if (!order) {
+                    res.status(400)
+                        .json({
+                            message: `order with ${orderId} is not found`,
+                        });
+
+                } else {
+                    const data = {
+                        ...req.body,
+                        // todo check this
+                        liqPayInfo: {},
+                        isPaid: true,
+                    };
+                    Order
+                        .findOneAndUpdate(
+                            {_id: orderId},
+                            {$set: data},
+                            {new: true, runValidators: true},
+                        )
+                        .then(order => res.status(200).json(order))
+                        .catch(err =>
+                            res.status(400).json({
+                                message: `Error happened on server: "${err}" `,
+                            }),
+                        );
+                }
+            })
+            .catch(error => {
                 res.status(400)
                     .json({
-                        message: `order with ${orderId} is not found`,
+                        message: `cancel order error: "${error.message}" `,
                     });
-
-            } else {
-                const data = {
-                    ...req.body,
-                    // todo check this
-                    liqPayInfo: {},
-                    isPaid: true
-                };
-                Order
-                    .findOneAndUpdate(
-                        {_id: orderId},
-                        {$set: data},
-                        {new: true, runValidators: true},
-                    )
-                    .then(order => res.status(200).json(order))
-                    .catch(err =>
-                        res.status(400).json({
-                            message: `Error happened on server: "${err}" `,
-                        }),
-                    );
-            }
-        })
-        .catch(error => {
-            res.status(400)
-                .json({
-                    message: `cancel order error: "${error.message}" `,
-                });
-            log(error);
-            next(error);
-        });
-};
+                log(error);
+                next(error);
+            });
+    }
+;
 
 
