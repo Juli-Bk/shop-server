@@ -237,7 +237,8 @@ export const deleteAllOrders = (req, res, next) => {
 
 export const updateOrderPaymentStatus = (req, res, next) => {
     console.dir(req);
-    console.log('from ligpay req.query: ', req.req.query);
+
+    console.log('from ligpay req.query: ', req.query);
     console.log('from ligpay req.data: ', req.data);
     console.log('from ligpay req.status: ', req.status);
 
