@@ -280,10 +280,13 @@ export const updateOrderPaymentStatus = async (req, res, next) => {
 
             console.log('dataDecoded', dataDecoded);
             console.log('status', status);
+            console.log('orderId', orderId);
 
             Order.findById(orderId)
                 .then((order) => {
+                    console.log('in DB order is: ', order);
                     if (!order) {
+                        console.log('return 400');
                         return res.status(400)
                             .json({
                                 message: `order with ${orderId} is not found`,
@@ -295,17 +298,23 @@ export const updateOrderPaymentStatus = async (req, res, next) => {
                             isPaid: status === 'success',
                             liqPayPaymentStatus: status,
                         };
+                        console.log('data to update order: ', data);
                         Order
                             .findOneAndUpdate(
                                 {_id: orderId},
                                 {$set: data},
                                 {new: true, runValidators: true},
                             )
-                            .then(order => res.status(200).json(order))
-                            .catch(err =>
-                                res.status(400).json({
-                                    message: `Error happened on server: "${err}" `,
-                                }),
+                            .then(order => {
+                                console.log('order after update: ', order);
+                                return res.status(200).json(order);
+                            })
+                            .catch(err => {
+                                console.log('order update error: ', err);
+                                    return res.status(400).json({
+                                        message: `Error happened on server: "${err}" `,
+                                    });
+                                },
                             );
                     }
                 })
