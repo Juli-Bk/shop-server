@@ -8,12 +8,11 @@ router.post('/', (req, res, next) => {
     sendEmail(subject, text, to, from, (error, message) => {
         if (error) {
             next(error);
-            res.status(400)
+            return res.status(400)
                 .json({message: error.message});
         } else {
-            res.status(200)
+            return res.status(200)
                 .json({message});
-            next();
         }
     });
 });
