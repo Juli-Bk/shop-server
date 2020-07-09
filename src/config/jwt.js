@@ -25,7 +25,7 @@ const setJWTrules = async (passport) => {
         const {authorization = ''} = req.headers || {};
         let token = null;
         const authPartsArr = authorization.split(config.tokenPrefix);
-        token = authPartsArr.length > 0 ? authPartsArr[1].trim() : null;
+        token = authPartsArr.length > 0 ? authPartsArr[1] ? authPartsArr[1].trim() : null : null;
         return token;
     };
 
