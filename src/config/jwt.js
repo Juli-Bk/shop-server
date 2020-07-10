@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import config from './index.js';
 import RefreshToken from '../models/schemas/RefreshToken';
 
+const prefix = config.tokenPrefix;
+
 const JwtStrategy = passportJWT.Strategy;
 
 const User = mongoose.model('users');
@@ -19,46 +21,63 @@ export const parseCookies = (sourse) => {
     return list;
 };
 
+export const getTokenFromAuth = (req) => {
+    const {authorization = ''} = req.headers || {};
+    let token = null;
+    const authPartsArr = authorization.split(prefix);
+    token = authPartsArr.length > 0
+        ? authPartsArr[1]
+            ? authPartsArr[1].trim()
+            : null
+        : null;
+    return token;
+};
+
+export const getTokenFromCookie = (req) => {
+    let token = null;
+    const cookie = req.headers && req.headers.cookie;
+    const cookieList = parseCookies(cookie);
+    if (cookieList) {
+        const rerToken = cookieList['token'];
+        token = rerToken
+            ? rerToken.split(prefix)[1]
+                ? rerToken.split(prefix)[1].trim()
+                : null
+            : null;
+    }
+
+    return token;
+};
+
+export const getRefTokenFromCookie = (req) => {
+    let token = null;
+    const cookie = req.headers && req.headers.cookie;
+    const cookieList = parseCookies(cookie);
+    if (cookieList) {
+        const rerToken = cookieList['refreshToken'];
+        token = rerToken
+            ? rerToken.split(prefix)[1]
+                ? rerToken.split(prefix)[1].trim()
+                : null
+            : null;
+    }
+
+    return token;
+};
+
+export const getTokenFromQuery = (req) => {
+    return req.query ? req.query.token : null;
+};
+
+const getToken = (req) => {
+    const token = getTokenFromCookie(req) || getRefTokenFromCookie(req);
+    return token;
+};
+
 const setJWTrules = async (passport) => {
 
-    const getTokenFromAuth = (req) => {
-        const {authorization = ''} = req.headers || {};
-        let token = null;
-        const authPartsArr = authorization.split(config.tokenPrefix);
-        token = authPartsArr.length > 0 ? authPartsArr[1] ? authPartsArr[1].trim() : null : null;
-        return token;
-    };
-
-    const getTokenFromCookie = (req) => {
-        let token = null;
-        const cookie = req.headers && req.headers.cookie;
-        const cookieList = parseCookies(cookie);
-        if (cookieList) {
-            const rerToken = cookieList['token'];
-            token = rerToken ? rerToken.split(config.tokenPrefix)[1].trim() : null;
-        }
-
-        return token;
-    };
-
-    const getRefTokenFromCookie = (req) => {
-        let token = null;
-        const cookie = req.headers && req.headers.cookie;
-        const cookieList = parseCookies(cookie);
-        if (cookieList) {
-            const rerToken = cookieList['refreshToken'];
-            token = rerToken ? rerToken.split(config.tokenPrefix)[1].trim() : null;
-        }
-
-        return token;
-    };
-
-    const getTokenFromQuery = (req) => {
-        return req.query ? req.query.token : null;
-    };
-
     const opts = {};
-    opts.jwtFromRequest = getTokenFromCookie;
+    opts.jwtFromRequest = getToken;
     opts.secretOrKey = config.secret;
 
     passport.use(
@@ -74,7 +93,6 @@ const setJWTrules = async (passport) => {
                 .catch(err => console.log(err));
         }),
     );
-
 
     const optsAdm = {};
     optsAdm.jwtFromRequest = getTokenFromAuth;

@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import config from '../config';
 import moment from 'moment';
 
-const signUp = ({email, login, password, firstName, lastName, _id}, fingerprint) => {
+const signUp = ({email, login, password, firstName, lastName, _id}, fingerprint="some data") => {
 
     const dateExpiresTime = 1 * config.expiresInMinutes * 60 * 1000; // 1 hour in ms
 

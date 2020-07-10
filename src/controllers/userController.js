@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import signUpRecover from '../utils/authJWTRecover';
 import signUp from '../utils/authJWT';
 import moment from 'moment';
-import {parseCookies} from '../config/jwt';
+import {getTokenFromCookie, parseCookies} from '../config/jwt';
 import config from '../config';
 import {sendEmailAddressConfirmation, sendRecoveryPasswordLetter} from '../config/mailgun';
 import validator from 'validator';
@@ -145,9 +145,35 @@ export const getAllUsers = async (req, res, next) => {
 };
 
 export const getUser = (req, res, next) => {
+    let tokenFromCookie = getTokenFromCookie(req);
+
     User.findById(req.user.id)
         .then(user => {
-            return res.status(200).json({user});
+            if (!tokenFromCookie) {
+                // means token is expired, but refToken is ok
+                const {fingerprint, email, login, password, firstName, lastName, id} = user;
+
+                const {token, tokenExpiresInMS} = signUp({
+                    fingerprint,
+                    email,
+                    login,
+                    password,
+                    firstName,
+                    lastName,
+                    _id: id,
+                }, fingerprint);
+
+                return res.status(200)
+                    .cookie('token', token, {
+                        expires: moment().add(tokenExpiresInMS, 'ms'),
+                        sameSite: 'None',
+                        secure: true,
+                    })
+                    .json({user});
+            } else {
+                return res.status(200)
+                    .json({user});
+            }
         })
         .catch(error => {
                 res.status(400)
@@ -523,13 +549,11 @@ export const loginUser = (req, res, next) => {
 
 export const refreshToken = (req, res, next) => {
     const refToken = req.user && req.user._doc.token;
-    // const expDate = req.user && req.user._doc.exp;
 
     if (!refToken) {
         return res.status(400)
             .json({message: 'Refresh token is invalid. Please login again'});
     }
-
 
     User.findOne({email: req.user.email})
         .then(user => {
