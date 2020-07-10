@@ -5,8 +5,7 @@ import bcrypt from 'bcryptjs';
 import signUpRecover from '../utils/authJWTRecover';
 import signUp from '../utils/authJWT';
 import moment from 'moment';
-import {getTokenFromCookie, parseCookies} from '../config/jwt';
-import config from '../config';
+import {getRefTokenFromCookie, getTokenFromCookie} from '../config/jwt';
 import {sendEmailAddressConfirmation, sendRecoveryPasswordLetter} from '../config/mailgun';
 import validator from 'validator';
 
@@ -596,15 +595,32 @@ export const refreshToken = (req, res, next) => {
 };
 
 export const logout = (req, res) => {
-    const cookie = req.headers && req.headers.cookie;
-    const cookieList = parseCookies(cookie);
+    const rerToken = getRefTokenFromCookie(req);
+    const token = getTokenFromCookie(req);
+    if (rerToken || token) {
 
-    if (cookieList) {
-        const rerTokenCookie = cookieList['refreshToken'];
-        const rerToken = rerTokenCookie ? rerTokenCookie.split(config.tokenPrefix)[1].trim() : null;
+        RefreshToken.findOne({token: rerToken})
+            .then(savedRT => {
+                if (savedRT) {
+                    savedRT.remove()
+                        .then(() => log('ref token is removed from DB'))
+                        .catch(error => {
+                            res.status(400)
+                                .json({
+                                    message: `Logout error: "${error.message}" `,
+                                });
+                            log(error);
+                        });
+                }
+            })
+            .catch(error => {
+                res.status(400)
+                    .json({
+                        message: `Logout error: "${error.message}" `,
+                    });
+                log(error);
+            });
 
-        const tokenCookie = cookieList['token'];
-        const token = tokenCookie ? tokenCookie.split(config.tokenPrefix)[1].trim() : null;
 
         const expSoon = new Date(moment().add(10, 'ms'));
         return res
@@ -623,6 +639,7 @@ export const logout = (req, res) => {
             .json({
                 message: 'success',
             });
+
     } else {
         return res
             .status(200)
@@ -630,8 +647,6 @@ export const logout = (req, res) => {
                 message: 'success',
             });
     }
-
-
 };
 
 export const updatePassword = (req, res, next) => {
