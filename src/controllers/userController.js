@@ -164,7 +164,7 @@ export const getUser = (req, res, next) => {
 
                 return res.status(200)
                     .cookie('token', token, {
-                        expires: moment().add(tokenExpiresInMS, 'ms'),
+                        expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
                         sameSite: 'None',
                         secure: true,
                     })
@@ -571,7 +571,7 @@ export const refreshToken = (req, res, next) => {
             return res
                 .status(200)
                 .cookie('token', token, {
-                    expires: moment().add(tokenExpiresInMS, 'ms'),
+                    expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
                     sameSite: 'None',
                     secure: true,
                 })
