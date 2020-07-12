@@ -172,7 +172,7 @@ export const getUser = (req, res, next) => {
                         user,
                         token: {
                             token,
-                            expires: tokenExpiresInMS,
+                            expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
                         },
                     });
             } else {
@@ -585,7 +585,7 @@ export const refreshToken = (req, res, next) => {
                     user,
                     token: {
                         token,
-                        expires: tokenExpiresInMS,
+                        expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
                     },
                 });
         })
