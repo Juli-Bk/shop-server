@@ -168,7 +168,13 @@ export const getUser = (req, res, next) => {
                         sameSite: 'None',
                         secure: true,
                     })
-                    .json({user});
+                    .json({
+                        user,
+                        token: {
+                            token,
+                            expires: tokenExpiresInMS,
+                        },
+                    });
             } else {
                 return res.status(200)
                     .json({user});
