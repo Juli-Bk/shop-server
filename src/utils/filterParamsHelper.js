@@ -66,9 +66,7 @@ const filterParser = (filtersQueryString) => {
                 try {
                     const isBooleanFilter = isValidId
                         ? false
-                        : isJSON(decoded)
-                            ? typeof JSON.parse(decoded.toLowerCase()) === 'boolean' :
-                            false;
+                        : typeof JSON.parse(decoded.toLowerCase()) === 'boolean';
 
                     if (isValidId || isBooleanFilter) {
                         mongooseQuery[filterParam] = decoded;
