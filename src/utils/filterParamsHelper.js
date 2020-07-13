@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import moment from 'moment';
+import {isJSON} from './helper';
 
 const excludedParams = [
     'perPage', 'startPage',
@@ -9,7 +10,7 @@ const excludedParams = [
 ];
 
 const {Types: {ObjectId}} = mongoose;
-const validateObjectId = (id) => ObjectId.isValid(id) && (new ObjectId(id)).toString() === id;
+export const validateObjectId = (id) => ObjectId.isValid(id) && (new ObjectId(id)).toString() === id;
 
 const filterParser = (filtersQueryString) => {
     const mongooseQuery = {};
@@ -42,7 +43,9 @@ const filterParser = (filtersQueryString) => {
         (mongooseQuery, filterParam) => {
 
             const parameterValue = filtersQueryString[filterParam];
-            if (!excludedParams.includes(filterParam) && parameterValue.includes && parameterValue.includes(',')) {
+            if (!excludedParams.includes(filterParam)
+                && parameterValue.includes
+                && parameterValue.includes(',')) {
                 mongooseQuery[filterParam] = {
                     $in: filtersQueryString[filterParam]
                         .split(',')
@@ -59,8 +62,13 @@ const filterParser = (filtersQueryString) => {
                 const filterValue = filtersQueryString[filterParam];
                 const decoded = decodeURI(filterValue.trim());
                 const isValidId = validateObjectId(decoded);
+
                 try {
-                    const isBooleanFilter = isValidId ? false : typeof JSON.parse(decoded.toLowerCase()) === 'boolean';
+                    const isBooleanFilter = isValidId
+                        ? false
+                        : isJSON(decoded)
+                            ? typeof JSON.parse(decoded.toLowerCase()) === 'boolean' :
+                            false;
 
                     if (isValidId || isBooleanFilter) {
                         mongooseQuery[filterParam] = decoded;
@@ -74,7 +82,6 @@ const filterParser = (filtersQueryString) => {
                     console.log('filterValue', filterValue);
                     console.log('decoded', decoded);
                 }
-
             }
             return mongooseQuery;
         },
