@@ -1,7 +1,6 @@
 import passportJWT from 'passport-jwt';
 import mongoose from 'mongoose';
 import config from './index.js';
-import RefreshToken from '../models/schemas/RefreshToken';
 
 const prefix = config.tokenPrefix;
 
