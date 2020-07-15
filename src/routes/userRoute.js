@@ -45,7 +45,6 @@ router.post('/password-recovery',
 
 router.post('/logout', logout);
 router.post('/login/refresh',
-    passport.authenticate('refresh', {session: false}),
     refreshToken);
 
 //update

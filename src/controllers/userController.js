@@ -5,9 +5,11 @@ import bcrypt from 'bcryptjs';
 import signUpRecover from '../utils/authJWTRecover';
 import signUp from '../utils/authJWT';
 import moment from 'moment';
+import jwt from 'jsonwebtoken';
 import {getRefTokenFromCookie, getTokenFromCookie} from '../config/jwt';
 import {sendEmailAddressConfirmation, sendRecoveryPasswordLetter} from '../config/mailgun';
 import validator from 'validator';
+import config from '../config';
 
 export const createUser = (req, res, next) => {
     const data = req.body;
@@ -553,51 +555,109 @@ export const loginUser = (req, res, next) => {
 };
 
 export const refreshToken = (req, res, next) => {
-    const refToken = req.user && req.user._doc.token;
-
+    const prefix = config.tokenPrefix;
+    const refToken = getRefTokenFromCookie(req);
     if (!refToken) {
-        return res.status(400)
-            .json({message: 'Refresh token is invalid. Please login again'});
+        return res.status(200)
+            .json({
+                success: false,
+                message: 'Refresh token is invalid. Please login again',
+            });
     }
 
-    User.findOne({email: req.user.email})
-        .then(user => {
-            const {fingerprint, email, login, password, firstName, lastName, id} = req.user;
+    jwt.verify(refToken, config.secret, (err, data) => {
+        console.log('refToken data: ', data);
+        if (err) {
+            RefreshToken.findOne({token: refToken})
+                .then((t) => {
+                    if (t) {
+                        t.remove()
+                            .then(() => {
+                                console.log('refToken is successfully  removed from db');
+                            })
+                            .catch(error => {
+                                res.status(400)
+                                    .json({
+                                        message: `Refresh token delete error: "${error.message}" `,
+                                    });
+                                log(error);
+                                next(error);
+                            });
+                    }
+                    return res.status(200)
+                        .json({
+                            success: false,
+                            message: 'Refresh token is invalid. Please login again',
+                        });
 
-            const {token, tokenExpiresInMS} = signUp({
-                fingerprint,
-                email,
-                login,
-                password,
-                firstName,
-                lastName,
-                _id: id,
-            }, fingerprint);
-
-            return res
-                .status(200)
-                .cookie('token', token, {
-                    expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
-                    sameSite: 'None',
-                    secure: true,
                 })
+                .catch(error => {
+                    res.status(400)
+                        .json({
+                            success: false,
+                            message: `Refresh token delete error: "${error.message}" `,
+                        });
+                    log(error);
+                    next(error);
+                });
+        } else if (Date.now() > data.exp) {
+            return res.status(200)
                 .json({
-                    user,
-                    token: {
-                        token,
-                        expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
-                    },
+                    success: false,
+                    message: 'Refresh token is expired. Please login again',
                 });
-        })
-        .catch(error => {
-                res.status(400).json({
-                    message: `Error happened on server: "${error.message}" `,
-                });
-                log(error);
-                next(error);
-            },
-        );
+        } else {
+            RefreshToken.findOne({token: prefix + refToken})
+                .then(refToken => {
+                    if (refToken) {
 
+                        const {fingerprint, email, login, password, firstName, lastName, id} = refToken.userId;
+
+                        const {token, tokenExpiresInMS} = signUp({
+                            fingerprint,
+                            email,
+                            login,
+                            password,
+                            firstName,
+                            lastName,
+                            _id: id,
+                        }, fingerprint);
+
+                        return res
+                            .status(200)
+                            .cookie('token', token, {
+                                expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
+                                sameSite: 'None',
+                                secure: true,
+                            })
+                            .json({
+                                success: true,
+                                user: refToken.user,
+                                token: {
+                                    token,
+                                    expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
+                                },
+                            });
+                    } else {
+                        return res.status(200)
+                            .json({
+                                success: false,
+                                message: 'Refresh token is invalid. Please login again',
+                            });
+
+                    }
+                })
+                .catch(error => {
+                    res.status(400)
+                        .json({
+                            success: false,
+                            message: `Refresh token error: "${error.message}" `,
+                        });
+                    log(error);
+                    next(error);
+                });
+        }
+    });
 };
 
 export const logout = (req, res) => {

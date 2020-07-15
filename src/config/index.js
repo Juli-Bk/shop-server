@@ -17,7 +17,7 @@ export default {
     imageStorageBaseAddress: process.env.IMAGE_BASE_URL,
     //Signing a token with 1 hour of expiration by default on production
     expiresInMinutes: process.env.NODE_ENV === 'development'
-         ? 60
+         ? 1
         : process.env.JWT_EXPIRES,
     tokenPrefix: 'Bearer',
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,

@@ -1,5 +1,6 @@
 import {model, Schema} from 'mongoose';
 import schemaOptions from '../modelHelper';
+import autoPopulate from 'mongoose-autopopulate';
 
 const RefreshTokenSchema = new Schema({
         token: {
@@ -13,7 +14,8 @@ const RefreshTokenSchema = new Schema({
         userId: {
             type: Schema.Types.ObjectId,
             ref: 'users',
-            required: [true, 'userId required']
+            required: [true, 'userId required'],
+            autopopulate: true
         },
         createdDate: {
             type: Date,
@@ -24,5 +26,6 @@ const RefreshTokenSchema = new Schema({
     },
     schemaOptions,
 );
+RefreshTokenSchema.plugin(autoPopulate);
 RefreshTokenSchema.index({'$**': 'text'});
 export default model('tokens', RefreshTokenSchema);

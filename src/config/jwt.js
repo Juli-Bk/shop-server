@@ -114,28 +114,6 @@ const setJWTrules = async (passport) => {
         }),
     );
 
-    const refOpts = {};
-    refOpts.jwtFromRequest = getRefTokenFromCookie;
-    refOpts.secretOrKey = config.secret;
-
-    passport.use(
-        'refresh',
-        new JwtStrategy(refOpts, (jwt_payload, done) => {
-            RefreshToken.findOne({userId: jwt_payload.id})
-                .then(refToken => {
-                    if (refToken) {
-                        return done(null,
-                            Object.assign({},
-                                refToken,
-                                jwt_payload,
-                            ));
-                    }
-                    return done(null, false);
-                })
-                .catch(err => console.log(err));
-        }),
-    );
-
     const recoverOpts = {};
     recoverOpts.jwtFromRequest = getTokenFromQuery;
     recoverOpts.secretOrKey = config.secret;
