@@ -254,19 +254,33 @@ export const sendConfirmEmailLetter = (req, res) => {
 
 };
 
-export const sendRecovery = (req, res) => {
+export const sendRecovery = (req, res, next) => {
     const email = req.query.email;
     const fingerprint = req.query.fingerprint;
     const token = signUpRecover({email}, fingerprint);
 
-    sendRecoveryPasswordLetter(email, token, (error) => {
-        if (error) {
-            return res.status(400).json({message: error.message});
-        } else {
-            return res.status(200).json({message: 'Please, check your email'});
-        }
-    });
-
+    User.findOne({email: email})
+      .then((user) => {
+        if (user) {
+          sendRecoveryPasswordLetter(email, token, (error) => {
+            if (error) {
+              return res.status(400).json({message: error.message});
+          }   else {
+              return res.status(200).json({message: 'Please, check your email'});
+          }
+        });
+      } else {
+          return res.status(200)
+            .json({message: `User with email ${email} not found`});
+      }
+    }).catch(error => {
+          res.status(400)
+            .json({
+              message: `find user by email error: "${error.message}"`,
+           });
+          log(error);
+          next(error);
+  })
 };
 
 export const recoverPassword = (req, res, next) => {
