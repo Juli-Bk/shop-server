@@ -33,7 +33,6 @@ export const addCategory = (req, res, next) => {
 export const getAllCategories = (req, res, next) => {
     Category
         .find({})
-        .lean()
         .then(items => {
                 const maxNestingLevel = Math.max(...items.map(i => i.level));
 
