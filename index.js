@@ -48,13 +48,17 @@ mongoose.connection.on('reconnectFailed', () => {
 });
 
 if (config.environment === 'development') {
-    mongoose.set('debug', (collectionName, method, query, doc, options) => {
-        console.log(`${collectionName}.${method}`, JSON.stringify(query), doc, options);
-    });
+    // mongoose.set('debug', (collectionName, method, query, doc, options) => {
+    //     console.log(`🥁 method: ${collectionName}.${method}`);
+    //     console.log(`🎯 filters: ${JSON.stringify(query)}`);
+    //     options && console.log(`🧩 query options: ${options}`);
+    //     console.log(`--------------------------------------------------------`);
+    //
+    // });
 }
 
 process.once('uncaughtException', (error) => {
-    console.log(error);
+    console.log('💥💥💥  ', error);
     //force exit process anyway
     // eslint-disable-next-line no-process-exit
     process.exit(1);

@@ -49,6 +49,7 @@ ColorSchema.virtual('hexBaseColor').get(function () {
 });
 
 ColorSchema.index({'$**': 'text'});
+ColorSchema.index({'$**': 'text'});
 
 ColorSchema.plugin(validator);
 ColorSchema.plugin(autoPopulate);

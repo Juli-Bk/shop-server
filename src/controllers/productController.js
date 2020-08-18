@@ -5,6 +5,13 @@ import moment from 'moment';
 import Category from '../models/schemas/Category';
 import Quantity from '../models/schemas/Quantity';
 
+
+const productFieldsToSelect = {
+    _id: 1, name: 1, description: 1,
+    price: 1, rating: 1, salePrice: 1,
+    isOnSale: 1, imageUrls: 1,
+};
+
 export const addProduct = (req, res, next) => {
     const filePath = req.files ? req.files.map(file => file.path) : [];
 
@@ -38,18 +45,22 @@ export const addProduct = (req, res, next) => {
 };
 
 export const getAllProducts = async (req, res, next) => {
+    const startTime = new Date();
+
     const perPage = Number(req.query.perPage);
     const startPage = Number(req.query.startPage);
 
     const sort = req.query.sort;
-    const count = (await Product.find()).length;
+    const count = await Product.countDocuments();
 
     Product
-        .find()
+        .find({}, productFieldsToSelect)
         .skip(startPage * perPage - perPage)
         .limit(perPage)
         .sort(sort)
+        .lean()
         .then(products => {
+            console.log('getAllProducts() time: ', (new Date() - startTime) / 1000, 's');
             res.status(200).json({
                 products,
                 totalCount: count,
@@ -70,6 +81,7 @@ export const getProductById = (req, res, next) => {
 
     Product
         .findById(req.params.id)
+        .lean()
         .then(product => {
             if (!product) {
                 res.status(400)
@@ -123,6 +135,7 @@ export const updateProductById = (req, res, next) => {
                     //options. returns new updated data
                     {new: true, runValidators: true},
                 )
+                    .lean()
                     .then(product => res.status(200).json(product))
                     .catch(err =>
                         res.status(400).json({
@@ -206,6 +219,7 @@ export const searchProducts = (req, res, next) => {
         .find({
             $text: {$search: query},
         })
+        .lean()
         .then(matchedProducts => {
             res.status(200)
                 .json({products: matchedProducts});
@@ -223,6 +237,8 @@ export const searchProducts = (req, res, next) => {
 };
 
 export const getProductsByFilterParams = async (req, res, next) => {
+        const startTime = new Date();
+
         const categoryId = req.query.categoryId;
         const colorsFilter = req.query.color; // silver,black,green
         const sizesFilter = req.query.size; // s,10,6.5,xl
@@ -231,33 +247,35 @@ export const getProductsByFilterParams = async (req, res, next) => {
         if (categoryId) {
             let filter = [];
 
-            const categories = await Category.find();
+            const categories = await Category
+                .find({}, {parentId: 1, _id: 1})
+                .lean();
 
             const findChildren = (id) => {
                 return categories.filter((item => {
                     const parentId = item.parentId;
-                    return parentId && (parentId.id.toString() === id);
+                    return parentId && (parentId._id.toString() === id);
                 }));
             };
 
             const searchChildren = (arr) => {
                 arr.forEach(el => {
-                    el.children = findChildren(el.id); // array of children
+                    el.children = findChildren(el._id.toString()); // array of children
                     if (el.children.length) {
                         searchChildren(el.children);
-                        filter = [].concat(filter).concat(el.children.map(item => item.id));
+                        filter = [].concat(filter).concat(el.children.map(item => item._id.toString()));
                     }
                 });
             };
 
-            categories.filter(el => el.id === categoryId)
+            categories.filter(el => el._id.toString() === categoryId)
                 .map((category) => {
-                    category.children = findChildren(category.id); // array of children
+                    category.children = findChildren(category._id.toString()); // array of children
                     if (category.children.length) {
                         searchChildren(category.children);
-                        filter = [].concat(filter).concat(category.children.map(item => item.id));
+                        filter = [].concat(filter).concat(category.children.map(item => item._id.toString()));
                     } else {
-                        filter.push(category.id);
+                        filter.push(category._id.toString());
                     }
                 });
             if (filter.length === 0) {
@@ -371,14 +389,17 @@ export const getProductsByFilterParams = async (req, res, next) => {
         const sort = req.query.sort;
 
         try {
-            const products = await Product.find(mongooseQuery)
+            const products = await Product.find(mongooseQuery, productFieldsToSelect)
                 .skip(startPage * perPage - perPage)
                 .limit(perPage)
-                .sort(sort);
+                .sort(sort)
+                .lean();
 
-            const productsQuantity = await Product.find(mongooseQuery);
+            const totalCount = await Product.countDocuments(mongooseQuery);
 
-            await res.status(200).json({products: products, totalCount: productsQuantity.length});
+            console.log('getProductsByFilterParams() time: ', (new Date() - startTime) / 1000, 's', 'filter obj: ', JSON.stringify(mongooseQuery));
+
+            res.status(200).json({products, totalCount});
         } catch (err) {
             res.status(400).json({
                 message: `filter products error: "${err.message}" `,
@@ -391,7 +412,8 @@ export const getProductsByFilterParams = async (req, res, next) => {
 export const getMaxPrice = (req, res, next) => {
 
     Product
-        .find()
+        .find({}, {price: 1, salePrice: 1})
+        .lean()
         .then(products => {
             const maxPrice = Math.max(...products.map(p => p.price));
             const maxSalePrice = Math.max(...products.map(p => p.salePrice));

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import {log} from '../utils/helper';
+import {getRandomInt, log} from '../utils/helper';
 import Brand from '../models/schemas/Brand';
 import Color from '../models/schemas/Color';
 import Size from '../models/schemas/Size';
@@ -11,9 +11,11 @@ import Category from '../models/schemas/Category';
 import Product from '../models/schemas/Product';
 import mongoose from 'mongoose';
 import config from '../../src/config/index';
-import {getRandomInt} from '../utils/helper';
 
 export const importData = (req, res, next) => {
+    let startTime = new Date();
+    let start = new Date();
+
     const filePath = req.file ? req.file.path : null;
 
     if (!filePath) {
@@ -33,8 +35,7 @@ export const importData = (req, res, next) => {
                 });
             log(err);
             next(err);
-        }
-        if (!products.length) {
+        } else if (!products.length) {
             res.status(400)
                 .json({
                     message: `import data error: empty json file`,
@@ -75,25 +76,52 @@ export const importData = (req, res, next) => {
             return current[1].key - next[1].key;
         });
 
-        const {newColors} = await importColors(allColorsToImport, errorHandler);
-        const {newBrands, allBrands} = await importBrands(brands, errorHandler);
-        const {newCategories, allCategories} = await importCategories(categoryHierarchy, errorHandler);
-        const {newSizes} = await importSizes(sizeTables, errorHandler);
-        const {newProducts} = await importProducts(products, allCategories, allBrands, errorHandler);
-        const {newSizeTables} = await importSizeTables(products, errorHandler);
-        const {newQuantity} = await importQuantity(products, errorHandler);
+        const importColorsPr = importColors(allColorsToImport, errorHandler);
+        const importBrandsPr = importBrands(brands, errorHandler);
+        const importCategoriesPr = importCategories(categoryHierarchy, errorHandler);
+        const importSizesPr = importSizes(sizeTables, errorHandler);
 
-        res.status(200)
-            .json({
-                'added new brands': newBrands.length,
-                'added new colors': newColors.length,
-                'added new categories': newCategories.length,
-                'added new products': newProducts.length,
-                'added new sizes': newSizes.length,
-                'added new sizeTables': newSizeTables.length,
-                'added new quantity data': newQuantity.length,
+        Promise
+            .all([
+                importColorsPr,
+                importBrandsPr,
+                importCategoriesPr,
+                importSizesPr,
+            ])
+            .then(async (results) => {
+                const {newColors = []} = results[0];
+                const {newBrands = [], allBrands} = results[1];
+                const {newCategories = [], allCategories} = results[2];
+                const {newSizes = []} = results[3];
+
+                const {newProducts = []} = await importProducts(products, allCategories, allBrands, errorHandler);
+                console.log('products import time: ', (new Date() - startTime) / 1000, 's');
+                startTime = new Date();
+
+                const {newSizeTables = []} = await importSizeTables(products, errorHandler);
+                console.log('size tables import time: ', (new Date() - startTime) / 1000, 's');
+                startTime = new Date();
+
+                const {newQuantity = []} = await importQuantity(products, errorHandler);
+                console.log('quantity import time: ', (new Date() - startTime) / 1000, 's');
+                startTime = new Date();
+
+                console.log('total import time: ', (new Date() - start) / 1000, 's');
+
+                res.status(200)
+                    .json({
+                        'added new brands': newBrands.length,
+                        'added new colors': newColors.length,
+                        'added new categories': newCategories.length,
+                        'added new products': newProducts.length,
+                        'added new sizes': newSizes.length,
+                        'added new sizeTables': newSizeTables.length,
+                        'added new quantity data': newQuantity.length,
+                    });
+            })
+            .catch(e => {
+                errorHandler(e);
             });
-
     });
 };
 
@@ -170,99 +198,76 @@ const saveCategories = async (insertedValues) => {
     return rez;
 };
 
-const saveColors = async (insertedValues) => {
-    const rez = [];
-    for (const newColor of insertedValues) {
-        const color = await new Color({
+const saveColors = (insertedValues) => {
+    const arr = insertedValues.map(newColor => {
+        return {
             name: newColor[0],
             baseColorName: newColor[1],
             createdDate: moment.utc().format('MM-DD-YYYY'),
-        }).save();
-        rez.push(color);
-    }
-    return rez;
+        };
+    });
+
+    return Color.insertMany(arr);
 };
 
-const saveSizes = async (insertedValues) => {
-    const rez = [];
-    for (const newSize of insertedValues) {
-        console.log('new size item ', {
-            name: newSize.name,
-            sizeType: newSize.sizeType,
+const saveSizes = (insertedValues) => {
+    const arr = insertedValues.map(newSize => {
+        return {
+            ...newSize,
             createdDate: moment.utc().format('MM-DD-YYYY'),
-        });
-
-        const size = await new Size({
-            name: newSize.name,
-            sizeType: newSize.sizeType,
-            createdDate: moment.utc().format('MM-DD-YYYY'),
-        }).save();
-        rez.push(size);
-    }
-    return rez;
+        };
+    });
+    return Size.insertMany(arr);
 };
 
-const saveSizeTables = async (insertedValues) => {
-    const rez = [];
-    for (const newSizeTable of insertedValues) {
-
-        const data = {
-            productId: newSizeTable.productId,
-            sizeId: newSizeTable.sizeId,
+const saveSizeTables = (insertedValues) => {
+    const arr = insertedValues.map(newSizeTable => {
+        return {
             ...newSizeTable,
             createdDate: moment.utc().format('MM-DD-YYYY'),
         };
-
-        const size = await new SizeTable(data).save();
-        rez.push(size);
-    }
-    return rez;
+    });
+    return SizeTable.insertMany(arr);
 };
 
-const saveBrands = async (insertedValues) => {
-    const rez = [];
-    for (const newBrand of insertedValues) {
-        const brand = await new Brand({
+const saveBrands = (insertedValues) => {
+    const arr = insertedValues.map(newBrand => {
+        return {
             name: newBrand,
             createdDate: moment.utc().format('MM-DD-YYYY'),
-        }).save();
-        rez.push(brand);
-    }
-    return rez;
+        };
+    });
+    return Brand.insertMany(arr);
 };
 
-const saveProducts = async (insertedValues) => {
-    const rez = [];
-    for (const newProduct of insertedValues) {
-        const product = await new Product({
+const saveProducts = (insertedValues) => {
+    const arr = insertedValues.map(newProduct => {
+        return {
             ...newProduct,
             createdDate: moment.utc().format('MM-DD-YYYY'),
-        }).save();
-        rez.push(product);
-    }
-    return rez;
+        };
+    });
+    return Product.insertMany(arr);
 };
 
-const saveQuantity = async (insertedValues) => {
-    const rez = [];
-    for (const newQuantityItem of insertedValues) {
-        const item = await new Quantity({
+const saveQuantity = (insertedValues) => {
+    const arr = insertedValues.map(newQuantityItem => {
+        return {
             ...newQuantityItem,
             createdDate: moment.utc().format('MM-DD-YYYY'),
-        }).save();
-        rez.push(item);
-    }
-    return rez;
-};
-
-const importColors = async (allColorsToImport, errorHandler) => {
-    const colors = Array.from(allColorsToImport);
-    const colorFilter = colors.map(colorItem => {
-        return colorItem[0];
+        };
     });
 
+    return Quantity.insertMany(arr);
+};
+
+
+const importColors = (allColorsToImport, errorHandler) => {
+    const colors = Array.from(allColorsToImport);
+
     return Color
-        .find({name: {$in: colorFilter}})
+        .find({}, {_id: 1, name: 1})
+        .lean()
         .then(async (savedColors) => {
             let colorsToInsert = [];
 
@@ -275,6 +280,7 @@ const importColors = async (allColorsToImport, errorHandler) => {
 
             const newColors = await saveColors(colorsToInsert);
             const allColors = [].concat(savedColors).concat(newColors);
+
             return {
                 newColors, allColors,
             };
@@ -284,7 +290,7 @@ const importColors = async (allColorsToImport, errorHandler) => {
         });
 };
 
-const importSizes = async (importedSizeTables, errorHandler) => {
+const importSizes = (importedSizeTables, errorHandler) => {
     const stbls = Array.from(importedSizeTables);
 
     const sizes = [];
@@ -305,7 +311,9 @@ const importSizes = async (importedSizeTables, errorHandler) => {
         });
     });
 
-    return Size.find({})
+    return Size
+        .find({}, {_id: 1, sizeTypeSizeName: 1})
+        .lean()
         .then(async (savedSizes) => {
             let sizesToInsert = [];
 
@@ -319,6 +327,7 @@ const importSizes = async (importedSizeTables, errorHandler) => {
             try {
                 const newSizes = await saveSizes(sizesToInsert);
                 const allSizes = [].concat(newSizes).concat(savedSizes);
+
                 return {
                     newSizes, allSizes,
                 };
@@ -331,11 +340,12 @@ const importSizes = async (importedSizeTables, errorHandler) => {
         });
 };
 
-const importBrands = async (allBrandsToImport, errorHandler) => {
+const importBrands = (allBrandsToImport, errorHandler) => {
     const brArr = Array.from(allBrandsToImport);
 
     return Brand
-        .find({name: {$in: brArr}})
+        .find({}, {name: 1})
+        .lean()
         .then(async (savedBrands) => {
             let brandsToInsert = [];
 
@@ -348,6 +358,7 @@ const importBrands = async (allBrandsToImport, errorHandler) => {
 
             const newBrands = await saveBrands(brandsToInsert);
             const allBrands = [].concat(savedBrands).concat(newBrands);
+
             return {
                 newBrands, allBrands,
             };
@@ -355,15 +366,16 @@ const importBrands = async (allBrandsToImport, errorHandler) => {
         .catch(error => {
             errorHandler(error);
         });
-
 };
 
 const importCategories = async (allCategoriesToImport, errorHandler) => {
     const categories = Array.from(allCategoriesToImport);
 
     return Category
-        .find()
+        .find({}, {_id: 1, categoryBreadcrumbs: 1})
+        .lean()
         .then(async (savedCategories) => {
+
 
             const categoriesHierarchy = categories.map(category => {
                 const sc = savedCategories.find(sc => sc.categoryBreadcrumbs === category[0]);
@@ -396,12 +408,13 @@ const importCategories = async (allCategoriesToImport, errorHandler) => {
         });
 };
 
-const importProducts = async (productsToImport, allCategories, allBrands, errorHandler) => {
+const importProducts = (productsToImport, allCategories, allBrands, errorHandler) => {
 
     return Product.find({})
         .then(async (savedProducts) => {
             const newProducts = [];
             const savedProductsId = savedProducts.map(pr => pr.productId);
+
 
             const newToInsert = productsToImport
                 .filter((product) => !savedProductsId.includes(product.productId));
@@ -543,7 +556,3 @@ const importQuantity = async (products, errorHandler) => {
             errorHandler(error);
         });
 };
-
-
-
-

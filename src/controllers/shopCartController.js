@@ -48,6 +48,7 @@ export const createShopCart = (req, res, next) => {
 export const getAllUShopCarts = async (req, res, next) => {
     ShopCart
         .find()
+        .lean()
         .then(items => {
             res.status(200).json({
                 carts: items,
@@ -75,6 +76,7 @@ export const getUserShopCart = (req, res, next) => {
     }
     ShopCart
         .findOne({userId: userId})
+        .lean()
         .then(shopCart => {
             if (!shopCart) {
                 res.status(200)

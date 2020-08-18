@@ -26,6 +26,7 @@ export const createUser = (req, res, next) => {
             {login: login},
         ],
     })
+        .lean()
         .then(customer => {
             if (customer) {
                 if (customer.email === email) {
@@ -117,13 +118,14 @@ export const getAllUsers = async (req, res, next) => {
 
     const sort = req.query.sort;
 
-    const count = (await User.find()).length;
+    const count = User.countDocuments();
 
     User
         .find()
         .skip(startPage * perPage - perPage)
         .limit(perPage)
         .sort(sort)
+        .lean()
         .then(users => {
             const usersData = users.map((user) => {
                 //hiding user private data
@@ -149,6 +151,7 @@ export const getUser = (req, res, next) => {
     let tokenFromCookie = getTokenFromCookie(req);
 
     User.findById(req.user.id)
+        .lean()
         .then(user => {
             if (!tokenFromCookie) {
                 // means token is expired, but refToken is ok

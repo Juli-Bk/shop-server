@@ -93,6 +93,7 @@ export const addProductToWishList = (req, res, next) => {
 export const getAllWishListData = (req, res, next) => {
     WishList
         .find()
+        .lean()
         .then(items => {
                 return res.status(200)
                     .send({items});
@@ -112,6 +113,7 @@ export const getUserWishes = (req, res, next) => {
     const userId = req.params.id;
 
     WishList.find({userId: userId})
+        .lean()
         .then(userWishList => {
             return res.status(200)
                 .send({userWishList});

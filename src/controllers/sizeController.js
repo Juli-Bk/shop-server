@@ -30,7 +30,8 @@ export const addSize = (req, res, next) => {
 
 export const getAllSizes = (req, res, next) => {
     Size
-        .find()
+        .find({}, {_id: 1, name: 1, sizeType: 1})
+        .lean()
         .then(items => res.status(200).json({
             count: items.length,
             items,
@@ -49,7 +50,8 @@ export const getSizeById = (req, res, next) => {
     const id = req.params.id;
 
     Size
-        .findById(id)
+        .findById(id, {_id: 1, name: 1, sizeType: 1})
+        .lean()
         .then(item => {
             if (!item) {
                 res.status(400)

@@ -35,7 +35,8 @@ export const addColor = (req, res, next) => {
 
 export const getAllColors = (req, res, next) => {
     Color
-        .find()
+        .find({}, {_id: 1, name: 1, baseColorName: 1})
+        .lean()
         .then(items => res.status(200).send({
             total: items.length,
             colors: items.map(item => {
@@ -65,6 +66,7 @@ export const getColorById = (req, res, next) => {
 
     Color
         .findById(id)
+        .lean()
         .then(item => {
             if (!item) {
                 res.status(400)
@@ -111,6 +113,7 @@ export const updateColorById = (req, res, next) => {
             //options. returns new updated data
             {new: true, runValidators: true},
         )
+        .lean()
         .then(item => {
             if (!item) {
                 res.status(200).json({

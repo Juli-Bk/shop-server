@@ -31,6 +31,7 @@ export const addSizeTable = (req, res, next) => {
 export const getAllSizeTables = (req, res, next) => {
     SizeTable
         .find()
+        .lean()
         .then(items => res.status(200).send(items))
         .catch(error => {
                 res.status(400)
@@ -49,6 +50,7 @@ export const getSizeTableByProductId = (req, res, next) => {
 
     SizeTable
         .find({productId: id})
+        .lean()
         .then(items => {
             if (!items) {
                 return res.status(400)

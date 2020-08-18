@@ -63,9 +63,7 @@ const filterParser = (filtersQueryString) => {
                 const isValidId = validateObjectId(decoded);
 
                 try {
-                    const isBooleanFilter = isValidId
-                        ? false
-                        : typeof JSON.parse(decoded.toLowerCase()) === 'boolean';
+                    const isBooleanFilter = decoded === 'true' || decoded === 'false';
 
                     if (isValidId || isBooleanFilter) {
                         mongooseQuery[filterParam] = decoded;
@@ -75,9 +73,9 @@ const filterParser = (filtersQueryString) => {
                         };
                     }
                 } catch (e) {
-                    console.log('error', e);
-                    console.log('filterValue', filterValue);
-                    console.log('decoded', decoded);
+                    console.log('error: ', e);
+                    console.log('filterValue: ', filterValue);
+                    console.log('decoded: ', decoded);
                 }
             }
             return mongooseQuery;

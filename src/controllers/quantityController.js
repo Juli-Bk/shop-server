@@ -28,6 +28,7 @@ export const addQuantity = (req, res, next) => {
 export const getAllQuantity = (req, res, next) => {
     Quantity
         .find()
+        .lean()
         .then(items => res.status(200).json({
             count: items.length,
             items,
@@ -47,6 +48,7 @@ export const getQuantityByProductId = (req, res, next) => {
 
     Quantity
         .find({productId: id})
+        .lean()
         .then(item => {
             if (!item) {
                 res.status(400)

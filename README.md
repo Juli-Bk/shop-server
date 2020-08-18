@@ -1,9 +1,9 @@
 ## Shop server
 
 
-### To start this server on your machine
+### To start this server:
 
-To configure your environment variables add in your folder file `.env`.
+To configure your environment variables add `.env` file to project root folder.
 
 Use `.env.example` file to fill your own `.env` file. 
 
@@ -27,7 +27,7 @@ Then in opened window press on link:
 
 `Open dedicated DevTools for Node`
 
-Ensure your localhost:port in in the list for debugging.
+Ensure your localhost:port is in the list for debugging.
 The default ports for node debugging are `9229` and `9222`. `9229` is in `.env` by default
 You can add yours here. [More info here](https://www.youtube.com/watch?v=F1VZj-zqnG4) and [here](https://nodejs.org/en/docs/guides/debugging-getting-started/)
 

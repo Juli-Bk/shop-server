@@ -32,20 +32,22 @@ export const addCategory = (req, res, next) => {
 
 export const getAllCategories = (req, res, next) => {
     Category
-        .find()
+        .find({}, {_id: 1, name: 1, level: 1, parentId: 1,
+            categoryBreadcrumbs: 1})
+        .lean()
         .then(items => {
                 const maxNestingLevel = Math.max(...items.map(i => i.level));
 
                 const findChildren = (id) => {
                     return items.filter((item => {
                         const parentId = item.parentId;
-                        return parentId && (parentId.id.toString() === id);
+                        return parentId && (parentId._id.toString() === id);
                     }));
                 };
 
                 const filterFields = (category) => {
                     return {
-                        id: category.id.toString(),
+                        id: category._id.toString(),
                         name: category.name,
                         level: category.level,
                         categoryBreadcrumbs: category.categoryBreadcrumbs,
@@ -55,7 +57,7 @@ export const getAllCategories = (req, res, next) => {
 
                 const searchChildren = (arr) => {
                     arr.forEach(el => {
-                        el.children = findChildren(el.id);
+                        el.children = findChildren(el._id.toString());
                         if (el.children.length) {
                             searchChildren(el.children);
                             el.children = el.children.map(item => filterFields(item));
@@ -66,7 +68,7 @@ export const getAllCategories = (req, res, next) => {
                 const roots = items.filter(el => el.level === 1);
 
                 const rez = roots.map((category) => {
-                    category.children = findChildren(category.id);
+                    category.children = findChildren(category._id.toString());
                     if (category.children.length) {
                         searchChildren(category.children);
                         category.children = category.children.map(item => filterFields(item));
@@ -98,6 +100,7 @@ export const getCategoryById = (req, res, next) => {
 
     Category
         .findById(categoryId)
+        .lean()
         .then(category => {
             if (!category) {
                 res.status(400)
@@ -137,6 +140,7 @@ export const updateCategoryById = (req, res, next) => {
         //options. returns new updated data
         {new: true, runValidators: true},
     )
+        .lean()
         .then(category => {
             if (!category) {
                 res.status(200).json({

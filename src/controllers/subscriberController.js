@@ -119,6 +119,7 @@ export const deleteAllSubscribers = (req, res, next) => {
 export const getAllSubscribers = (req, res, next) => {
     Subscriber
         .find({})
+        .lean()
         .then(subscribers => {
             res.status(200).json({
                 subscribers,

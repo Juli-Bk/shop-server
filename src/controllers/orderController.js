@@ -82,6 +82,7 @@ export const placeOrder = (req, res, next) => {
 export const getAllOrders = (req, res, next) => {
     Order
         .find()
+        .lean()
         .then(items => {
                 return res.status(200)
                     .send({items});
@@ -108,6 +109,7 @@ export const getUserOrders = (req, res, next) => {
     }
 
     Order.find({userId: userId})
+        .lean()
         .then(userOrders => {
             return res.status(200)
                 .send({userOrders: userOrders});
