@@ -48,7 +48,6 @@ export const getQuantityByProductId = (req, res, next) => {
 
     Quantity
         .find({productId: id})
-        .lean()
         .then(item => {
             if (!item) {
                 res.status(400)

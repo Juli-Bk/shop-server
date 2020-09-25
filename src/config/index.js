@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-// eslint-disable-next-line node/no-missing-import
 import joi from 'joi';
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
