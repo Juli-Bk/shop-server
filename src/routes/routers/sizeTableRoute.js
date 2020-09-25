@@ -1,40 +1,37 @@
 import express from 'express';
 
 import {
-    addCategory,
-    deleteAllCategories,
-    deleteCategoryById,
-    getAllCategories,
-    getCategoryById,
-    updateCategoryById
-} from '../controllers/categoryController';
+    addSizeTable,
+    deleteAllSizeTables,
+    deleteSizeTableById,
+    getAllSizeTables,
+    getSizeTableByProductId,
+    updateSizeTableById
+} from '../../controllers/sizeTableController';
 import passport from 'passport';
-import uploadAWS from '../config/uploadAWS';
 
 const router = express.Router();
 
 //create
 router.put('/',
     passport.authenticate('jwt-admin', {session: false}),
-    uploadAWS.single('category-image'),
-    addCategory);
+    addSizeTable);
 
 //read
-router.get('/', getAllCategories);
-router.get('/:id', getCategoryById);
+router.get('/', getAllSizeTables);
+router.get('/:id', getSizeTableByProductId);
 
 //update
 router.post('/:id',
     passport.authenticate('jwt-admin', {session: false}),
-    uploadAWS.single('category-image'),
-    updateCategoryById);
+    updateSizeTableById);
 
 //delete
 router.delete('/:id',
     passport.authenticate('jwt-admin', {session: false}),
-    deleteCategoryById);
+    deleteSizeTableById);
 router.delete('/',
     passport.authenticate('jwt-admin', {session: false}),
-    deleteAllCategories);
+    deleteAllSizeTables);
 
 export default router;

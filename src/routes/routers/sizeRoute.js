@@ -1,13 +1,13 @@
 import express from 'express';
 
 import {
-    addSizeTable,
-    deleteAllSizeTables,
-    deleteSizeTableById,
-    getAllSizeTables,
-    getSizeTableByProductId,
-    updateSizeTableById
-} from '../controllers/sizeTableController';
+    addSize,
+    deleteAllSizes,
+    deleteSizeById,
+    getAllSizes,
+    getSizeById,
+    updateSizeById
+} from '../../controllers/sizeController';
 import passport from 'passport';
 
 const router = express.Router();
@@ -15,23 +15,23 @@ const router = express.Router();
 //create
 router.put('/',
     passport.authenticate('jwt-admin', {session: false}),
-    addSizeTable);
+    addSize);
 
 //read
-router.get('/', getAllSizeTables);
-router.get('/:id', getSizeTableByProductId);
+router.get('/', getAllSizes);
+router.get('/:id', getSizeById);
 
 //update
 router.post('/:id',
     passport.authenticate('jwt-admin', {session: false}),
-    updateSizeTableById);
+    updateSizeById);
 
 //delete
 router.delete('/:id',
     passport.authenticate('jwt-admin', {session: false}),
-    deleteSizeTableById);
+    deleteSizeById);
 router.delete('/',
     passport.authenticate('jwt-admin', {session: false}),
-    deleteAllSizeTables);
+    deleteAllSizes);
 
 export default router;

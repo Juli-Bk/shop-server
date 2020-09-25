@@ -1,4 +1,4 @@
-import FormValidator from '../validation/FormValidator';
+import FormValidator from './validation/FormValidator';
 import {isJSON} from './helper';
 
 const excludedParams = ['letterSubject', 'letterHtml'];

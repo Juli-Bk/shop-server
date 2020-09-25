@@ -1,7 +1,7 @@
 import mailgunjs from 'mailgun-js';
 import validator from 'validator';
-import config from './index';
-import dataSet from './strings';
+import config from '../config';
+import dataSet from '../config/strings';
 import path from 'path';
 import fs from 'fs';
 

@@ -1,5 +1,5 @@
 import Brand from '../models/schemas/Brand';
-import {log} from '../utils/helper';
+import {log} from '../helpers/helper';
 import moment from 'moment';
 
 export const addBrand = (req, res, next) => {

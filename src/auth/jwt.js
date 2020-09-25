@@ -1,6 +1,6 @@
 import passportJWT from 'passport-jwt';
 import mongoose from 'mongoose';
-import config from './index.js';
+import config from '../config';
 
 const prefix = config.tokenPrefix;
 

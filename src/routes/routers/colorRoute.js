@@ -7,7 +7,7 @@ import {
     deleteAllColors,
     deleteColorById,
     updateColorById
-} from '../controllers/colorController';
+} from '../../controllers/colorController';
 import passport from 'passport';
 
 const router = express.Router();

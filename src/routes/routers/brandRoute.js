@@ -7,9 +7,9 @@ import {
     getAllBrands,
     getBrandById,
     updateBrandById
-} from '../controllers/brandController';
+} from '../../controllers/brandController';
 import passport from 'passport';
-import uploadAWS from '../config/uploadAWS';
+import uploadAWS from '../../uploading/uploadAWS';
 
 const router = express.Router();
 

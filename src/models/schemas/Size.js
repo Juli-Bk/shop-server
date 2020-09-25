@@ -1,5 +1,5 @@
 import {model, Schema} from 'mongoose';
-import schemaOptions from '../modelHelper';
+import schemaOptions from '../schemaOptions';
 
 const list = ['clothing', 'shoes', 'hats', 'belts', 'scarves', 'one size'];
 const errMessage = ` can be specified from this list: ${list.join(', ')}`;

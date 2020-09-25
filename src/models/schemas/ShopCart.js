@@ -1,8 +1,8 @@
 import mongoose, {Schema} from 'mongoose';
-import schemaOptions from '../modelHelper';
+import schemaOptions from '../schemaOptions';
 import validator from 'mongoose-id-validator';
 import autoPopulate from 'mongoose-autopopulate';
-import {getRandomItemId} from '../../utils/helper';
+import {getRandomItemId} from '../../helpers/helper';
 import moment from 'moment';
 
 const ShopCart = new mongoose.Schema({

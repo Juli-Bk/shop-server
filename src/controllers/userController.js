@@ -1,13 +1,13 @@
 import User from '../models/schemas/User';
 import RefreshToken from '../models/schemas/RefreshToken';
-import {log} from '../utils/helper';
+import {log} from '../helpers/helper';
 import bcrypt from 'bcryptjs';
-import signUpRecover from '../utils/authJWTRecover';
-import signUp from '../utils/authJWT';
+import signUpRecover from '../auth/authJWTRecover';
+import signUp from '../auth/authJWT';
 import moment from 'moment';
 import jwt from 'jsonwebtoken';
-import {getRefTokenFromCookie, getTokenFromCookie} from '../config/jwt';
-import {sendEmailAddressConfirmation, sendRecoveryPasswordLetter} from '../config/mailgun';
+import {getRefTokenFromCookie, getTokenFromCookie} from '../auth/jwt';
+import {sendEmailAddressConfirmation, sendRecoveryPasswordLetter} from '../mailing/mailgun';
 import validator from 'validator';
 import config from '../config';
 

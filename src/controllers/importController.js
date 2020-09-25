@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import {getRandomInt, log} from '../utils/helper';
+import {getRandomInt, log} from '../helpers/helper';
 import Brand from '../models/schemas/Brand';
 import Color from '../models/schemas/Color';
 import Size from '../models/schemas/Size';

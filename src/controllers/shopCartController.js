@@ -1,5 +1,5 @@
 import ShopCart from '../models/schemas/ShopCart';
-import {log} from '../utils/helper';
+import {log} from '../helpers/helper';
 import moment from 'moment';
 
 export const createShopCart = (req, res, next) => {

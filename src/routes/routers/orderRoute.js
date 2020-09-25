@@ -10,7 +10,7 @@ import {
     cancelOrder,
     updateOrderById,
     updateOrderPaymentStatus
-} from '../controllers/orderController';
+} from '../../controllers/orderController';
 import passport from 'passport';
 
 const router = express.Router();

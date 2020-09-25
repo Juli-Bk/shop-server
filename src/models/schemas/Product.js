@@ -1,5 +1,5 @@
 import mongoose, {Schema} from 'mongoose';
-import schemaOptions from '../modelHelper';
+import schemaOptions from '../schemaOptions';
 import validator from 'mongoose-id-validator';
 import autoPopulate from 'mongoose-autopopulate';
 import config from '../../config';
@@ -115,20 +115,20 @@ ProductSchema.index({isOnSale: 1, createdDate: -1});
 
 
 ProductSchema.pre('find', function () {
-    if (config.environment === 'development') {
+    if (config.mongoDebugMode) {
         this._startTime = Date.now();
     }
 });
 
 ProductSchema.post('find', function () {
-    if (config.environment === 'development') {
+    if (config.mongoDebugMode) {
         if (this._startTime != null) {
             const query = this.getQuery();
             const options = this.getOptions();
             console.log('Product select time: ', (new Date() - this._startTime) / 1000, 's');
             console.log('Product select filters: ', JSON.stringify(query));
             console.log('Product select options: ', JSON.stringify(options));
-            console.log('---------------------------------------------');
+            console.log(Array(100).join('_'));
         }
     }
 });

@@ -1,10 +1,10 @@
-import uploadJSON from '../config/uploadJSON';
+import uploadJSON from '../../uploading/uploadJSON';
 import passport from 'passport';
 import express from 'express';
 
 import {
     importData
-} from '../controllers/importController';
+} from '../../controllers/importController';
 
 const router = express.Router();
 

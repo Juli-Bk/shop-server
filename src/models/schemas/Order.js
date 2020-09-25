@@ -1,8 +1,8 @@
 import mongoose, {Schema} from 'mongoose';
-import schemaOptions from '../modelHelper';
+import schemaOptions from '../schemaOptions';
 import validator from 'mongoose-id-validator';
 import autoPopulate from 'mongoose-autopopulate';
-import {getRandomInt} from '../../utils/helper';
+import {getRandomInt} from '../../helpers/helper';
 import validationRules from '../../config/validation';
 
 const statusList = ['processing', 'canceled', 'performed', 'shipping'];

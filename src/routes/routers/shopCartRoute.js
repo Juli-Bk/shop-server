@@ -8,7 +8,7 @@ import {
     deleteShopCartById,
     deleteAllShopCarts,
     updateShopCartById
-} from '../controllers/shopCartController';
+} from '../../controllers/shopCartController';
 
 const router = express.Router();
 

@@ -1,7 +1,7 @@
 import Order from '../models/schemas/Order';
-import {log} from '../utils/helper';
+import {log} from '../helpers/helper';
 import moment from 'moment';
-import {sendOrderLetter} from '../config/mailgun';
+import {sendOrderLetter} from '../mailing/mailgun';
 import config from '../config/index';
 import crypto from 'crypto';
 

@@ -1,5 +1,5 @@
 import Color from '../models/schemas/Color';
-import {log} from '../utils/helper';
+import {log} from '../helpers/helper';
 import moment from 'moment';
 
 export const addColor = (req, res, next) => {

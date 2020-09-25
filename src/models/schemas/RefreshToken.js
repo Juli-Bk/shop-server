@@ -1,5 +1,5 @@
 import {model, Schema} from 'mongoose';
-import schemaOptions from '../modelHelper';
+import schemaOptions from '../schemaOptions';
 import autoPopulate from 'mongoose-autopopulate';
 
 const RefreshTokenSchema = new Schema({

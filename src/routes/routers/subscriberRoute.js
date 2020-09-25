@@ -6,7 +6,7 @@ import {
     unsubscribe,
     deleteAllSubscribers,
     getAllSubscribers
-} from '../controllers/subscriberController';
+} from '../../controllers/subscriberController';
 
 const router = express.Router();
 

@@ -1,5 +1,5 @@
 import Category from '../models/schemas/Category';
-import {log} from '../utils/helper';
+import {log} from '../helpers/helper';
 import moment from 'moment';
 
 export const addCategory = (req, res, next) => {

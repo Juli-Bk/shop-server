@@ -1,6 +1,6 @@
 import Product from '../models/schemas/Product';
-import {log} from '../utils/helper';
-import filterParamsHelper, {validateObjectId} from '../utils/filterParamsHelper';
+import {log} from '../helpers/helper';
+import filterParamsHelper, {validateObjectId} from '../helpers/filterParamsHelper';
 import moment from 'moment';
 import Category from '../models/schemas/Category';
 import Quantity from '../models/schemas/Quantity';

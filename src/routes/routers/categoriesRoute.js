@@ -1,37 +1,40 @@
 import express from 'express';
 
 import {
-    addQuantity,
-    deleteAllQuantities,
-    deleteQuantityById,
-    getAllQuantity,
-    getQuantityByProductId,
-    updateQuantityById
-} from '../controllers/quantityController';
+    addCategory,
+    deleteAllCategories,
+    deleteCategoryById,
+    getAllCategories,
+    getCategoryById,
+    updateCategoryById
+} from '../../controllers/categoryController';
 import passport from 'passport';
+import uploadAWS from '../../uploading/uploadAWS';
 
 const router = express.Router();
 
 //create
 router.put('/',
     passport.authenticate('jwt-admin', {session: false}),
-    addQuantity);
+    uploadAWS.single('category-image'),
+    addCategory);
 
 //read
-router.get('/', getAllQuantity);
-router.get('/:id', getQuantityByProductId);
+router.get('/', getAllCategories);
+router.get('/:id', getCategoryById);
 
 //update
 router.post('/:id',
     passport.authenticate('jwt-admin', {session: false}),
-    updateQuantityById);
+    uploadAWS.single('category-image'),
+    updateCategoryById);
 
 //delete
 router.delete('/:id',
     passport.authenticate('jwt-admin', {session: false}),
-    deleteQuantityById);
+    deleteCategoryById);
 router.delete('/',
     passport.authenticate('jwt-admin', {session: false}),
-    deleteAllQuantities);
+    deleteAllCategories);
 
 export default router;

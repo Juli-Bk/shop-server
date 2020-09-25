@@ -1,5 +1,5 @@
 import Size from '../models/schemas/Size';
-import {log} from '../utils/helper';
+import {log} from '../helpers/helper';
 import moment from 'moment';
 
 export const addSize = (req, res, next) => {

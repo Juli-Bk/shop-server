@@ -10,10 +10,10 @@ import {
     searchProducts,
     updateProductById,
     getMaxPrice
-} from '../controllers/productController';
+} from '../../controllers/productController';
 
 import passport from 'passport';
-import uploadAWS from '../config/uploadAWS';
+import uploadAWS from '../../uploading/uploadAWS';
 
 const router = express.Router();
 

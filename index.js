@@ -1,6 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import {log} from './src/utils/helper';
+import {log} from './src/helpers/helper';
 import config from './src/config';
 import os from 'os';
 
@@ -23,10 +23,10 @@ export const startServer = async () => {
         log(`🛡  Server is listening: ${os.hostname()} 🏆  on port: ${config.port}`);
         log(`🛡  environment: ${config.environment}`);
     });
+
 };
 
-mongoose
-    .connect(config.DB_string, {
+mongoose.connect(config.DB_string, {
         useNewUrlParser: true,
         useCreateIndex: true,
         useUnifiedTopology: true,
@@ -47,14 +47,13 @@ mongoose.connection.on('reconnectFailed', () => {
     });
 });
 
-if (config.environment === 'development') {
-    // mongoose.set('debug', (collectionName, method, query, doc, options) => {
-    //     console.log(`🥁 method: ${collectionName}.${method}`);
-    //     console.log(`🎯 filters: ${JSON.stringify(query)}`);
-    //     options && console.log(`🧩 query options: ${options}`);
-    //     console.log(`--------------------------------------------------------`);
-    //
-    // });
+if (config.mongoDebugMode) {
+    mongoose.set('debug', (collectionName, method, query, doc, options) => {
+        console.log(`🥁 method: ${collectionName}.${method}`);
+        console.log(`🎯 filters: ${JSON.stringify(query)}`);
+        options && console.log(`🧩 query options: ${options}`);
+        console.log(Array(100).join('_'));
+    });
 }
 
 process.once('uncaughtException', (error) => {

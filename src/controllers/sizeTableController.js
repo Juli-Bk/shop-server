@@ -1,5 +1,5 @@
 import SizeTable from '../models/schemas/SizeTable';
-import {log} from '../utils/helper';
+import {log} from '../helpers/helper';
 import moment from 'moment';
 
 export const addSizeTable = (req, res, next) => {

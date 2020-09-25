@@ -1,5 +1,5 @@
 import express from 'express';
-import {sendEmail} from '../config/mailgun';
+import {sendEmail} from '../../mailing/mailgun';
 
 const router = express.Router();
 

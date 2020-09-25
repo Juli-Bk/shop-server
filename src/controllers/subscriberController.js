@@ -1,5 +1,5 @@
 import Subscriber from '../models/schemas/Subscriber';
-import {log} from '../utils/helper';
+import {log} from '../helpers/helper';
 import moment from "moment";
 
 export const subscribe = (req, res, next) => {

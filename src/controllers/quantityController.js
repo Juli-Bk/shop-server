@@ -1,5 +1,5 @@
 import Quantity from '../models/schemas/Quantity';
-import {log} from '../utils/helper';
+import {log} from '../helpers/helper';
 import moment from 'moment';
 
 export const addQuantity = (req, res, next) => {

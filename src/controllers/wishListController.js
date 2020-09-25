@@ -1,5 +1,5 @@
 import WishList from '../models/schemas/WishList';
-import {log} from '../utils/helper';
+import {log} from '../helpers/helper';
 
 export const addProductToWishList = (req, res, next) => {
     const {productId, userId} = req.body;

@@ -6,7 +6,7 @@ import {
     deleteProductFromWishlist,
     getAllWishListData,
     getUserWishes
-} from '../controllers/wishListController';
+} from '../../controllers/wishListController';
 import passport from 'passport';
 
 const router = express.Router();

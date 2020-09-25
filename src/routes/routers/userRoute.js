@@ -1,4 +1,4 @@
-import uploadAWS from '../config/uploadAWS';
+import uploadAWS from '../../uploading/uploadAWS';
 import passport from 'passport';
 import express from 'express';
 
@@ -17,7 +17,7 @@ import {
     recoverPassword,
     sendRecovery,
     sendConfirmEmailLetter
-} from '../controllers/userController';
+} from '../../controllers/userController';
 
 const router = express.Router();
 
