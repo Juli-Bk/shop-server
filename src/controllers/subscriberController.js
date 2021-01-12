@@ -1,138 +1,107 @@
+import validator from 'validator';
 import Subscriber from '../models/schemas/Subscriber';
-import {log} from '../helpers/helper';
-import moment from "moment";
+import { log, getFormattedCurrentDate } from '../helpers/helper';
 
-export const subscribe = (req, res, next) => {
-    const {email} = req.body;
+export const subscribe = async (req, res) => {
+  const { email } = req.body;
 
-    if (!email) {
-        res.status(400)
-            .json({message: 'Email is required to subscribe to newsletters'});
-        return;
-    }
-    const data = {
-        email,
-        enabled: true,
-        createdDate: moment.utc().format("MM-DD-YYYY")
-    };
+  if (!email || (email && !validator.isEmail(email))) {
+    return res.status(400).json({
+      message: 'incorrect email to subscribe',
+    });
+  }
 
-    Subscriber
-        .findOneAndUpdate(
-            {email: email},
-            {$set: {enabled: true}},
-            {new: true, runValidators: true})
-        .then(subscriber => {
-            if (!subscriber) {
-                const newItem = new Subscriber(data);
+  const data = {
+    email,
+    enabled: true,
+    createdDate: getFormattedCurrentDate(),
+  };
 
-                newItem
-                    .save()
-                    .then(subscriber => res
-                        .status(200)
-                        .json({
-                            message: 'success',
-                            subscriber
-                        })
-                    )
-                    .catch(error => {
-                        res.status(400)
-                            .json({
-                                message: `New subscriber adding error: ${error}`
-                            });
-                        next(error);
-                    });
+  try {
+    const subscriber = await Subscriber.findOneAndUpdate(
+      { email },
+      { $set: { enabled: true } },
+      { new: true, runValidators: true },
+    );
+    if (!subscriber) {
+      const updatedSubscriber = await new Subscriber(data).save();
 
-            } else {
-                return res.status(200)
-                    .send({
-                        message: 'You are subscribed successfully',
-                        subscriber: {enabled: subscriber.enabled}
-                    })
-            }
-        })
-        .catch(error => {
-            res.status(400)
-                .json({
-                    message: `unsubscribe - Error happened on server: "${error.message}" `
-                });
-            log(error);
-            next(error);
-        });
-};
-
-export const unsubscribe = (req, res, next) => {
-    const {email} = req.body;
-
-    if (!email) {
-        res.status(400)
-            .json({message: 'Email is required to unsubscribe'});
-        return;
+      return res.status(200).json({
+        message: 'success',
+        subscriber: updatedSubscriber,
+      });
     }
 
-    Subscriber
-        .findOneAndUpdate(
-            {email: email},
-            {$set: {enabled: false}},
-            {new: true, runValidators: true})
-        .then(subscriber => {
-            if (!subscriber) {
-                return res.status(200)
-                    .json({
-                        message: `Email ${email} is not found in subscribers list`
-                    })
-            } else {
-                return res.status(200)
-                    .send({
-                        message: 'You are unsubscribed successfully',
-                        subscriber: {enabled: subscriber.enabled}
-                    })
-            }
-        })
-        .catch(error => {
-            res.status(400)
-                .json({
-                    message: `unsubscribe - Error happened on server: "${error.message}" `
-                });
-            log(error);
-            next(error);
-        });
-}
-
-export const deleteAllSubscribers = (req, res, next) => {
-    Subscriber.deleteMany({})
-        .then(() => res.status(200)
-            .json({
-                message: 'all Subscribers are deleted'
-            })
-        )
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `delete Subscribers error "${error.message}" `
-                    });
-                log(error);
-                next(error);
-            }
-        );
+    return res.status(200).json({
+      message: 'You are  already subscribed successfully',
+      subscriber: { enabled: subscriber.enabled },
+    });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `subscribe: error happened on server - "${error.message}" `,
+    });
+  }
 };
 
-export const getAllSubscribers = (req, res, next) => {
-    Subscriber
-        .find({})
-        .lean()
-        .then(subscribers => {
-            res.status(200).json({
-                subscribers,
-                totalCount: subscribers.length
-            });
-        })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `Getting subscribers error: ${error.message}`
-                    });
-                log(error);
-                next(error);
-            }
-        );
+export const unsubscribe = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email || (email && !validator.isEmail(email))) {
+    return res.status(400).json({
+      message: 'incorrect email to unsubscribe',
+    });
+  }
+
+  try {
+    const subscriber = await Subscriber.findOneAndUpdate(
+      { email },
+      { $set: { enabled: false } },
+      { new: true, runValidators: true },
+    );
+    if (!subscriber) {
+      return res.status(200).json({
+        message: `Email ${email} is not found in subscribers list`,
+      });
+    }
+
+    return res.status(200).send({
+      message: 'You are unsubscribed successfully',
+      subscriber: { enabled: subscriber.enabled },
+    });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `unsubscribe - Error happened on server: "${error.message}" `,
+    });
+  }
+};
+
+export const deleteAllSubscribers = async (req, res) => {
+  try {
+    await Subscriber.deleteMany({});
+    return res.status(200).json({
+      message: 'all Subscribers are deleted',
+    });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `delete Subscribers error "${error.message}" `,
+    });
+  }
+};
+
+export const getAllSubscribers = async (req, res) => {
+  try {
+    const subscribers = await Subscriber.find({}).lean();
+    return res.status(200).json({
+      subscribers,
+      totalCount: subscribers.length,
+    });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `Getting subscribers error: ${error.message}`,
+    });
+  }
 };

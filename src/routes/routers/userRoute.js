@@ -1,37 +1,43 @@
-import uploadAWS from '../../uploading/uploadAWS';
 import passport from 'passport';
 import express from 'express';
+import uploadAWS from '../../uploading/uploadAWS';
 
 import {
-    createUser,
-    getAllUsers,
-    getUser,
-    deleteUserById,
-    deleteAllUsers,
-    updateUserInfo,
-    loginUser,
-    updatePassword,
-    refreshToken,
-    logout,
-    confirmEmail,
-    recoverPassword,
-    sendRecovery,
-    sendConfirmEmailLetter
+  createUser,
+  getAllUsers,
+  getUser,
+  deleteUserById,
+  deleteAllUsers,
+  updateUserInfo,
+  loginUser,
+  updatePassword,
+  refreshToken,
+  logout,
+  confirmEmail,
+  recoverPassword,
+  sendRecovery,
+  sendConfirmEmailLetter,
 } from '../../controllers/userController';
+import config from '../../config/index';
 
+const { options } = config.expressRoutes;
 const router = express.Router();
 
-//create
+// create
 router.put('/register', createUser);
 
-//read
+// read
 router.get('/',
-    passport.authenticate('jwt-admin', {session: false}),
-    getAllUsers);
+  [
+    passport.authenticate('jwt-admin', options),
+    getAllUsers,
+  ]);
 
 router.get('/customer',
-    passport.authenticate('jwt', {session: false}),
-    getUser);
+  [
+    passport.authenticate('jwt', options),
+    getUser,
+  ]);
 
 router.post('/login', loginUser);
 
@@ -40,29 +46,38 @@ router.post('/email-confirmation', confirmEmail);
 
 router.post('/recovery', sendRecovery);
 router.post('/password-recovery',
-    passport.authenticate('recover', {session: false}),
-    recoverPassword);
+  [
+    passport.authenticate('recover', options),
+    recoverPassword,
+  ]);
 
 router.post('/logout', logout);
-router.post('/login/refresh',
-    refreshToken);
+router.post('/login/refresh', refreshToken);
 
-//update
+// update
 router.post('/',
-    passport.authenticate('jwt', {session: false}),
+  [
+    passport.authenticate('jwt', options),
     uploadAWS.single('user-avatar'),
-    updateUserInfo);
+    updateUserInfo,
+  ]);
 
 router.post('/password',
-    passport.authenticate('jwt', {session: false}),
-    updatePassword);
+  [
+    passport.authenticate('jwt', options),
+    updatePassword,
+  ]);
 
-//delete
+// delete
 router.delete('/:id',
-    passport.authenticate('jwt-admin', {session: false}),
-    deleteUserById);
+  [
+    passport.authenticate('jwt-admin', options),
+    deleteUserById,
+  ]);
 router.delete('/',
-    passport.authenticate('jwt-admin', {session: false}),
-    deleteAllUsers);
+  [
+    passport.authenticate('jwt-admin', options),
+    deleteAllUsers,
+  ]);
 
 export default router;

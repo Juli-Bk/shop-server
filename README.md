@@ -1,19 +1,51 @@
-## Shop server
+Travis CI
+
+[![Build Status](https://travis-ci.com/Juli-Bk/shop-server.svg?branch=master)](https://travis-ci.com/Juli-Bk/shop-server)
+
+## Vigo-Shop server
+
+This is an open-source node server app for [vigo-shop](https://vigo-shop.herokuapp.com) online store.
+
+### It`s built using:
+
+* Node
+* Express
+* Mongo DB, mongoose
+* AWS S3 as file storage (aws-sdk, multer-s3)
+* JWT token auth, (jsonwebtoken, passport)
+* Mailgun for emailing
+* Joi, validator for validation
+* Eslint, Travis CI
+* GIT, GitHub, Jira as a workflow
 
 
-### To start this server:
+## Testing
 
-To configure your environment variables add `.env` file to project root folder.
+To test some REST APIs you can use already deployed [vigo-server](https://vigo-server.herokuapp.com).
+Some APIs are allowed for only admin user. That will be unavailable for you because of security reasons.
 
-Use `.env.example` file to fill your own `.env` file. 
+Just export `../public/VigoShop_postman_collection.json` file in your locally installed [Postman](https://www.postman.com/) to get **all list of requests**.
 
-`.env` files are in `.gitignore`, so you can configure your own file as you want. [Learn more](https://medium.com/the-node-js-collection/making-your-node-js-work-everywhere-with-environment-variables-2da8cdf6e786)
+## To start server locally:
 
+You must have your own environment variables. Just add `.env` file to project root folder.
+Use `.env.example` file with guiding comments in it.
 
-Use [Mongo plugin](https://github.com/dboissier/mongo4idea) to check DB changes and test API requests.
+To do that you should have your [AWS](https://aws.amazon.com/),
+[MailGun](https://www.mailgun.com), 
+[Mongo](https://www.mongodb.com),
+[LiqPay](https://www.liqpay.ua/ru) 
+accounts for filling API keys.
 
+After proper configuration run the command below:
 
-## To debug in chrome
+`npm run start`
+
+### Testing data
+
+To have some data for testing as server starts set PERFORM_INITIAL_DATA_IMPORT=true
+
+### To debug this server in chrome
 
 Install globally:
 
@@ -23,18 +55,23 @@ Open chrome and type in:
  
  `about:inspect`
 
-Then in opened window press on link: 
+Then in opened window press on the link: 
 
 `Open dedicated DevTools for Node`
 
 Ensure your localhost:port is in the list for debugging.
-The default ports for node debugging are `9229` and `9222`. `9229` is in `.env` by default
-You can add yours here. [More info here](https://www.youtube.com/watch?v=F1VZj-zqnG4) and [here](https://nodejs.org/en/docs/guides/debugging-getting-started/)
+The default ports for node debugging are `9229` and `9222`.
+You can add yours here. 
+More info you can find [here](https://www.youtube.com/watch?v=F1VZj-zqnG4) and [here](https://nodejs.org/en/docs/guides/debugging-getting-started/).
 
 Now you can start this command in the terminal window:
 
 `npm run start:debug`
 
 
-### [ESLint check](https://www.npmjs.com/package/eslint-plugin-node) 
-will run by default by running `start:dev` or `start:debug` command in terminal window.
+### ESLint
+
+[ESLint check](https://www.npmjs.com/package/eslint-plugin-node) will run by default by running `start:dev` or `start:debug` commands. 
+If there are some troubles with code linting, server will NOT start properly.
+
+

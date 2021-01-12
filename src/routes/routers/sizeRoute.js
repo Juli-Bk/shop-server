@@ -1,37 +1,47 @@
 import express from 'express';
 
-import {
-    addSize,
-    deleteAllSizes,
-    deleteSizeById,
-    getAllSizes,
-    getSizeById,
-    updateSizeById
-} from '../../controllers/sizeController';
 import passport from 'passport';
+import {
+  addSize,
+  deleteAllSizes,
+  deleteSizeById,
+  getAllSizes,
+  getSizeById,
+  updateSizeById,
+} from '../../controllers/sizeController';
+import config from '../../config/index';
 
+const { options } = config.expressRoutes;
 const router = express.Router();
 
-//create
+// create
 router.put('/',
-    passport.authenticate('jwt-admin', {session: false}),
-    addSize);
+  [
+    passport.authenticate('jwt-admin', options),
+    addSize,
+  ]);
 
-//read
+// read
 router.get('/', getAllSizes);
 router.get('/:id', getSizeById);
 
-//update
+// update
 router.post('/:id',
-    passport.authenticate('jwt-admin', {session: false}),
-    updateSizeById);
+  [
+    passport.authenticate('jwt-admin', options),
+    updateSizeById,
+  ]);
 
-//delete
+// delete
 router.delete('/:id',
-    passport.authenticate('jwt-admin', {session: false}),
-    deleteSizeById);
+  [
+    passport.authenticate('jwt-admin', options),
+    deleteSizeById,
+  ]);
 router.delete('/',
-    passport.authenticate('jwt-admin', {session: false}),
-    deleteAllSizes);
+  [
+    passport.authenticate('jwt-admin', options),
+    deleteAllSizes,
+  ]);
 
 export default router;

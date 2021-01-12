@@ -1,48 +1,46 @@
-import mongoose, {Schema} from 'mongoose';
-import schemaOptions from '../schemaOptions';
+import mongoose, { Schema } from 'mongoose';
 import validator from 'mongoose-id-validator';
 import autoPopulate from 'mongoose-autopopulate';
-import {getRandomItemId} from '../../helpers/helper';
-import moment from 'moment';
+import { getRandomItemId, getFormattedCurrentDate } from '../../helpers/helper';
+import schemaOptions from '../schemaOptions';
 
 const ShopCart = new mongoose.Schema({
-        userId: {
-            type: Schema.Types.ObjectId,
-            ref: 'users'
-        },
-        anonymousId: {
-            type: String,
-            default: getRandomItemId()
-        },
-        products: [
-            {
-                productId: {
-                    type: Schema.Types.ObjectId,
-                    ref: 'products',
-                    required: [true, 'Product id must be specified']
-                },
-                sizeId: {
-                    type: Schema.Types.ObjectId,
-                    ref: 'sizes'
-                },
-                colorId: {
-                    type: Schema.Types.ObjectId,
-                    ref: 'colors'
-                },
-                cartQuantity: {
-                    type: Number,
-                    default: 0,
-                    min: 0
-                },
-            },
-        ],
-        createdDate: {
-            type: Date,
-            default: moment.utc().format('MM-DD-YYYY'),
-        },
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'users',
+  },
+  anonymousId: {
+    type: String,
+    default: getRandomItemId(),
+  },
+  products: [
+    {
+      productId: {
+        type: Schema.Types.ObjectId,
+        ref: 'products',
+        required: [true, 'must be specified'],
+      },
+      sizeId: {
+        type: Schema.Types.ObjectId,
+        ref: 'sizes',
+      },
+      colorId: {
+        type: Schema.Types.ObjectId,
+        ref: 'colors',
+      },
+      cartQuantity: {
+        type: Number,
+        required: [true, 'must be specified'],
+        min: 1,
+      },
     },
-    schemaOptions
-);
+  ],
+  createdDate: {
+    type: Date,
+    default: getFormattedCurrentDate(),
+  },
+},
+schemaOptions);
 
 ShopCart.plugin(validator);
 ShopCart.plugin(autoPopulate);

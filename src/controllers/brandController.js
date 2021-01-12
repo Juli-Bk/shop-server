@@ -1,159 +1,127 @@
 import Brand from '../models/schemas/Brand';
-import {log} from '../helpers/helper';
-import moment from 'moment';
+import { log, getFormattedCurrentDate } from '../helpers/helper';
 
-export const addBrand = (req, res, next) => {
-    const filePath = req.file ? req.file.path : null;
+export const addBrand = async (req, res) => {
+  const filePath = req.file ? req.file.path : null;
 
-    const data = {
-        ...req.body,
-        createdDate: moment.utc().format('MM-DD-YYYY'),
-        imageUrl: filePath,
-    };
+  const data = {
+    ...req.body,
+    createdDate: getFormattedCurrentDate(),
+    imageUrl: filePath,
+  };
 
-    const newItem = new Brand(data);
-    newItem
-        .save()
-        .then(item => res
-            .status(200)
-            .json({
-                message: 'success',
-                item,
-            }),
-        )
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `New brand adding error: ${error}`,
-                    });
-                next(error);
-            },
-        );
+  try {
+    const newBrand = await new Brand(data).save();
+    return res.status(200).json({
+      message: 'success',
+      newBrand,
+    });
+  } catch (e) {
+    const message = `New brand adding error. 💥 ${e.message}`;
+    log(message);
+    return res.status(400).json({ message });
+  }
 };
 
-export const getAllBrands = (req, res, next) => {
-    Brand
-        .find()
-        .lean()
-        .then(items => res.status(200).send({
-            count: items.length,
-            items,
-        }))
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `Getting brands list error: ${error}`,
-                    });
-                next(error);
-            },
-        );
+export const getAllBrands = async (req, res) => {
+  try {
+    const items = await Brand.find().lean();
+    return res.status(200).send({
+      count: items.length,
+      items,
+    });
+  } catch (e) {
+    const message = `Getting brands list error. 💥 ${e.message}`;
+    log(message);
+    return res.status(400).json({ message });
+  }
 };
 
-export const getBrandById = (req, res, next) => {
-    const id = req.params.id;
+export const getBrandById = async (req, res) => {
+  const { id } = req.params;
 
-    Brand
-        .findById(id)
-        .lean()
-        .then(item => {
-            if (!item) {
-                res.status(400)
-                    .json({
-                        message: `Brand with id ${id} is not found`,
-                    });
-            } else {
-                res.status(200).json(item);
-            }
-        })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `Error happened on server: "${error}" `,
-                    });
-                log(error);
-                next(error);
-            },
-        );
+  try {
+    const item = await Brand
+      .findById(id)
+      .lean();
+    if (!item) {
+      return res.status(400)
+        .json({
+          message: `Brand with id ${id} is not found`,
+        });
+    }
+
+    return res.status(200).json(item);
+  } catch (e) {
+    const message = `Getting brand by id error. 💥 ${e.message}`;
+    log(message);
+    return res.status(400).json({ message });
+  }
 };
 
-export const updateBrandById = (req, res, next) => {
-    const id = req.params.id;
+export const updateBrandById = async (req, res) => {
+  const { id } = req.params;
 
-    const filePath = req.file ? req.file.path : null;
+  const filePath = req.file ? req.file.path : null;
 
-    const data = {
-        ...req.body,
-        updatedDate: moment.utc().format('MM-DD-YYYY'),
-        imageUrl: filePath,
-    };
+  const data = {
+    ...req.body,
+    updatedDate: getFormattedCurrentDate(),
+    imageUrl: filePath,
+  };
 
-    Brand.findByIdAndUpdate(
-        //filter
-        id,
-        //what we update
-        {$set: data},
-        //options. returns new updated data
-        {new: true, runValidators: true},
-    )
-        .lean()
-        .then(item => {
-            if (!item) {
-                res.status(200).json({
-                    message: `Brand with id ${id} is not found`,
-                });
-            } else {
-                res.status(200).json(item);
-            }
-        })
-        .catch(err => {
-                res.status(400).json({
-                    message: `Error happened on server: "${err}" `,
-                });
-                next(err);
-            },
-        );
+  try {
+    const item = await Brand.findByIdAndUpdate(
+      id, // filter
+      { $set: data }, // what we update
+      { new: true, runValidators: true }, // options. returns new updated data
+    ).lean();
+    if (!item) {
+      return res.status(200).json({
+        message: `Brand with id ${id} is not found`,
+      });
+    }
+
+    return res.status(200).json(item);
+  } catch (e) {
+    const message = `Updating brand by id error. 💥 ${e.message}`;
+    log(message);
+    return res.status(400).json({ message });
+  }
 };
 
-export const deleteBrandById = (req, res, next) => {
-    const id = req.params.id;
-    Brand.findByIdAndRemove(id)
-        .then((item) => {
-            if (!item) {
-                res.status(200).json({
-                    message: `Brand with id ${id} is not found`,
-                });
-            } else {
-                res.status(200)
-                    .json({
-                        message: `Brand with id ${req.params.id} is deleted`,
-                    });
-            }
-        })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `delete Brand error: "${error.message}" `,
-                    });
-                log(error);
-                next(error);
-            },
-        );
+export const deleteBrandById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const item = await Brand.findByIdAndRemove(id);
+    if (!item) {
+      return res.status(200).json({
+        message: `Brand with id ${id} is not found`,
+      });
+    }
+
+    return res.status(200)
+      .json({
+        message: `Brand with id ${req.params.id} is deleted`,
+      });
+  } catch (e) {
+    const message = `Deleting brand by id error. 💥 ${e.message}`;
+    log(message);
+    return res.status(400).json({ message });
+  }
 };
 
-export const deleteAllBrands = (req, res, next) => {
-    Brand.deleteMany({})
-        .then(() => res.status(200)
-            .json({
-                message: 'all brands are deleted',
-            }),
-        )
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `delete brand list error "${error.message}" `,
-                    });
-                log(error);
-                next(error);
-            },
-        );
+export const deleteAllBrands = async (req, res) => {
+  try {
+    await Brand.deleteMany({});
+
+    return res.status(200).json({
+      message: 'all brands are deleted',
+    });
+  } catch (e) {
+    const message = `Deleting brands list error. 💥 ${e.message}`;
+    log(message);
+    return res.status(400).json({ message });
+  }
 };

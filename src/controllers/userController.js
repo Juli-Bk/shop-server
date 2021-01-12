@@ -1,838 +1,693 @@
-import User from '../models/schemas/User';
-import RefreshToken from '../models/schemas/RefreshToken';
-import {log} from '../helpers/helper';
 import bcrypt from 'bcryptjs';
-import signUpRecover from '../auth/authJWTRecover';
-import signUp from '../auth/authJWT';
 import moment from 'moment';
 import jwt from 'jsonwebtoken';
-import {getRefTokenFromCookie, getTokenFromCookie} from '../auth/jwt';
-import {sendEmailAddressConfirmation, sendRecoveryPasswordLetter} from '../mailing/mailgun';
 import validator from 'validator';
+import { promisify } from 'util';
+import User from '../models/schemas/User';
+import RefreshToken from '../models/schemas/RefreshToken';
+import { log, getFormattedCurrentDate } from '../helpers/helper';
+import signUpRecover from '../auth/authJWTRecover';
+import signUp from '../auth/authJWT';
+import { getTokenFromCookie, getRefreshTokenFromCookie } from '../auth/jwt';
+import { sendEmailAddressConfirmation, sendRecoveryPasswordLetter } from '../mailing/mailgun';
 import config from '../config';
+import { validateObjectId } from '../helpers/filterParamsHelper';
 
-export const createUser = (req, res, next) => {
-    const data = req.body;
-    const {email, login, password} = data;
+const getCookieProps = () => {
+  if (config.environment === 'development') {
+    return {
+      // Secure: If present, the cookie is only sent when the URL begins with https://,
+      // and will not be sent over an insecure connection.
+      // to test from localhost or postman in development mode
 
-    if (!(email || login) || !password) {
-        return res.status(400)
-            .json({message: 'Email or login, password are required'});
+      sameSite: 'None',
+      secure: false,
+    };
+  }
+
+  return {
+    sameSite: 'None',
+    secure: true,
+  };
+};
+
+export const createUser = async (req, res) => {
+  const data = req.body;
+  const { email, login, password } = data;
+
+  if (!email || !password) {
+    return res.status(400).json({
+      message: 'Email and password are required',
+    });
+  }
+
+  try {
+    const customer = await User.findOne({ $or: [{ email }, { login }] }).lean();
+    if (customer) {
+      if (customer.email === email) {
+        return res.status(400).json({
+          message: `User with email ${customer.email} is already registered`,
+        });
+      }
+
+      if (customer.login === login) {
+        return res.status(400).json({
+          message: `User with login ${customer.login} is already registered`,
+        });
+      }
     }
 
-    User.findOne({
-        $or: [
-            {email: email},
-            {login: login},
-        ],
-    })
-        .lean()
-        .then(customer => {
-            if (customer) {
-                if (customer.email === email) {
-                    return res
-                        .status(400)
-                        .json({message: `Email ${customer.email} already exists`});
-                }
+    data.createdDate = getFormattedCurrentDate();
+    const newCustomer = new User({
+      email: email && email.trim(),
+      login: login && login.trim(),
+      password: password && password.trim(),
+    });
 
-                if (customer.login === login) {
-                    return res
-                        .status(400)
-                        .json({message: `Login ${customer.login} already exists`});
-                }
-            }
+    try {
+      const salt = await promisify(bcrypt.genSalt)(10);
+      const hash = await promisify(bcrypt.hash)(newCustomer.password, salt);
 
-            data.createdDate = moment.utc().format('MM-DD-YYYY');
-            const newCustomer = new User({
-                email: email.trim(),
-                login: login.trim(),
-                password: password.trim(),
-            });
+      newCustomer.password = hash;
+      newCustomer.createdDate = Date.now();
 
-            bcrypt.genSalt(10, (err, salt) => {
-                bcrypt.hash(newCustomer.password, salt, (err, hash) => {
+      const user = await newCustomer.save();
+      const {
+        token, tokenExpiresInMS,
+        newRefreshToken, refTokenExpiresInMS,
+      } = signUp(user);
 
-                    if (err) {
-                        return res.status(400)
-                            .json({message: `Error happened on server: ${err.message}`});
-                    }
+      const expDate = new Date(moment().add(refTokenExpiresInMS, 'ms'));
+      const expDateShort = new Date(moment().add(tokenExpiresInMS, 'ms'));
 
-                    newCustomer.password = hash;
-                    newCustomer.createdDate = Date.now();
-
-                    newCustomer.save()
-                        .then(customer => {
-                            const {token, tokenExpiresInMS, newRefreshToken, refTokenExpiresInMS} = signUp(customer);
-
-                            const expDate = new Date(moment().add(refTokenExpiresInMS, 'ms'));
-                            const expDateShort = new Date(moment().add(tokenExpiresInMS, 'ms'));
-
-                            return res.status(200)
-                                .cookie('refreshToken', newRefreshToken, {
-                                    expires: expDate,
-                                    httpOnly: true,
-                                    sameSite: 'None',
-                                    secure: true,
-                                })
-                                .cookie('token', token, {
-                                    expires: expDateShort,
-                                    sameSite: 'None',
-                                    secure: true,
-                                })
-                                .json({
-                                    user: {
-                                        _id: customer._id,
-                                        email: customer.email,
-                                        login: customer.login,
-                                    },
-                                    token: {
-                                        token,
-                                        expires: expDateShort,
-                                    },
-                                });
-                        })
-                        .catch(error => {
-                                res.status(400).json({
-                                    message: `Error happened on server: "${error.message}" `,
-                                });
-                                log(error);
-                                next(error);
-                            },
-                        );
-                });
-            });
+      return res.status(200)
+        .cookie('refreshToken', newRefreshToken, {
+          expires: expDate,
+          httpOnly: true,
+          ...getCookieProps(),
         })
-        .catch(error => {
-                res.status(400).json({
-                    message: `Error happened on server: "${error.message}" `,
-                });
-                log(error);
-                next(error);
-            },
-        );
-};
-
-export const getAllUsers = async (req, res, next) => {
-    const perPage = Number(req.query.perPage);
-    const startPage = Number(req.query.startPage);
-
-    const sort = req.query.sort;
-
-    const count = User.countDocuments();
-
-    User
-        .find()
-        .skip(startPage * perPage - perPage)
-        .limit(perPage)
-        .sort(sort)
-        .lean()
-        .then(users => {
-            const usersData = users.map((user) => {
-                //hiding user private data
-                user.phone = 'XXXX-XXXX-' + user.phone.slice(8);
-                user.email = 'XXXX-XXXX-' + user.email.split('@')[1];
-                delete user.password;
-                return user;
-            });
-            return res.status(200).send({usersData, totalCount: count});
+        .cookie('token', token, {
+          expires: expDateShort,
+          ...getCookieProps(),
         })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `Getting products error: ${error}`,
-                    });
-                log(error);
-                next(error);
-            },
-        );
-};
-
-export const getUser = (req, res, next) => {
-    let tokenFromCookie = getTokenFromCookie(req);
-
-    User.findById(req.user.id)
-        .lean()
-        .then(user => {
-            if (!tokenFromCookie) {
-                // means token is expired, but refToken is ok
-                const {fingerprint, email, login, password, firstName, lastName, id} = user;
-
-                const {token, tokenExpiresInMS} = signUp({
-                    fingerprint,
-                    email,
-                    login,
-                    password,
-                    firstName,
-                    lastName,
-                    _id: id,
-                }, fingerprint);
-
-                return res.status(200)
-                    .cookie('token', token, {
-                        expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
-                        sameSite: 'None',
-                        secure: true,
-                    })
-                    .json({
-                        user,
-                        token: {
-                            token,
-                            expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
-                        },
-                    });
-            } else {
-                return res.status(200)
-                    .json({user});
-            }
-        })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `get user data error: "${error.message}" `,
-                    });
-                log(error);
-                next(error);
-            },
-        );
-};
-
-export const confirmEmail = (req, res, next) => {
-    const email = req.query.email;
-    if (!email || (email && !validator.isEmail(email))) {
-        return res.status(400)
-            .json({
-                message: `incorrect email to confirm" `,
-            });
+        .json({
+          user: {
+            _id: user._id,
+            email: user.email,
+            login: user.login,
+          },
+          token: {
+            token,
+            expires: expDateShort,
+          },
+        });
+    } catch (error) {
+      return res.status(400).json({
+        message: `Error happened on server: ${error.message}`,
+      });
     }
-    User.findOne({email: email})
-        .then(user => {
-            if (!user) {
-                return res.status(400)
-                    .json({
-                        message: `user with email: ${email} is not found`,
-                    });
-            }
-            user.confirmedEmail = true;
-            user.save()
-                .then(() => {
-                    return res.status(200).json({user});
-                })
-                .catch(error => {
-                        res.status(400)
-                            .json({
-                                message: `confirmation email. save user data error: "${error.message}" `,
-                            });
-                        log(error);
-                        next(error);
-                    },
-                );
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `Error happened on server: "${error.message}" `,
+    });
+  }
+};
 
+export const getAllUsers = async (req, res) => {
+  const perPage = Number(req.query.perPage);
+  const startPage = Number(req.query.startPage);
+
+  const { sort } = req.query;
+
+  try {
+    const count = await User.countDocuments();
+    const users = await User.find()
+      .skip(startPage * perPage - perPage)
+      .limit(perPage)
+      .sort(sort)
+      .lean();
+
+    const usersData = users.map((user) => {
+      const usr = { ...user };
+      const { phone, email } = usr;
+
+      if (config.hideUsersDataFromAdmin) {
+        // hiding user private data
+        usr.phone = phone ? `XXXX-XXXX-${phone.slice(8)}` : '';
+        usr.email = email ? `XXXX-XXXX-${email.split('@')[1]}` : '';
+      }
+
+      usr.password = 'XXXXX';
+
+      return usr;
+    });
+
+    return res.status(200).json({ usersData, totalCount: count });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `Getting users data error: ${error}`,
+    });
+  }
+};
+
+export const getUser = async (req, res) => {
+  const tokenFromCookie = getTokenFromCookie(req);
+
+  try {
+    const user = await User.findById(req.user.id).lean();
+
+    if (!tokenFromCookie) {
+      // means token is expired, but refToken is ok
+      const {
+        fingerprint, email, login,
+        password, firstName, lastName, id,
+      } = user;
+
+      const { token, tokenExpiresInMS } = signUp({
+        fingerprint,
+        email,
+        login,
+        password,
+        firstName,
+        lastName,
+        _id: id,
+      }, fingerprint);
+
+      user.password = 'XXXXX';
+
+      return res.status(200)
+        .cookie('token', token, {
+          expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
+          ...getCookieProps(),
         })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `confirmation email. get user data error: "${error.message}" `,
-                    });
-                log(error);
-                next(error);
-            },
-        );
+        .json({
+          user,
+          token: {
+            token,
+            expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
+          },
+        });
+    }
+
+    return res.status(200).json({ user });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `get user data error: "${error.message}" `,
+    });
+  }
+};
+
+export const confirmEmail = async (req, res) => {
+  const { email } = req.query;
+  if (!email || (email && !validator.isEmail(email))) {
+    return res.status(400).json({
+      message: 'incorrect email to confirm',
+    });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        message: `user with email: ${email} is not found`,
+      });
+    }
+
+    user.confirmedEmail = true;
+    await user.save();
+    return res.status(200).json({ user });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `email confirmation. get user data error: "${error.message}" `,
+    });
+  }
 };
 
 export const sendConfirmEmailLetter = (req, res) => {
-    const email = req.query.email;
+  const { email } = req.query;
 
-    sendEmailAddressConfirmation(email, (error) => {
-        if (error) {
-            return res.status(400)
-                .json({message: error.message});
-        } else {
-            return res.status(200)
-                .json({message: 'Please, check your email'});
-        }
-    });
+  sendEmailAddressConfirmation(email, (error) => {
+    if (error) {
+      return res.status(400).json({ message: error.message });
+    }
 
+    return res.status(200).json({ message: 'Please, check your email' });
+  });
 };
 
-export const sendRecovery = (req, res, next) => {
-    const email = req.query.email;
-    const fingerprint = req.query.fingerprint;
-    const token = signUpRecover({email}, fingerprint);
+export const sendRecovery = async (req, res) => {
+  const { email } = req.query;
+  const { fingerprint } = req.query;
+  const token = signUpRecover({ email }, fingerprint);
 
-    User.findOne({email: email})
-      .then((user) => {
-        if (user) {
-          sendRecoveryPasswordLetter(email, token, (error) => {
-            if (error) {
-              return res.status(400).json({message: error.message});
-          }   else {
-              return res.status(200).json({message: 'Please, check your email'});
-          }
+  try {
+    const user = await User.findOne({ email });
+    if (user) {
+      try {
+        await promisify(sendRecoveryPasswordLetter)(email, token);
+        return res.status(200).json({ message: 'Please, check your email' });
+      } catch (error) {
+        log(error);
+        return res.status(400).json({
+          message: `send recovery mail error: "${error.message}"`,
         });
-      } else {
-          return res.status(200)
-            .json({message: `User with email ${email} not found`});
       }
-    }).catch(error => {
-          res.status(400)
-            .json({
-              message: `find user by email error: "${error.message}"`,
-           });
-          log(error);
-          next(error);
-  })
-};
-
-export const recoverPassword = (req, res, next) => {
-    const {newPassword, email} = req.body;
-
-    if (!email) {
-        return res.status(400)
-            .json({message: 'To recover your password specify email address'});
+    } else {
+      return res.status(200).json({
+        message: `User with email ${email} not found`,
+      });
     }
-    if (!validator.isEmail(email)) {
-        return res.status(400)
-            .json({message: 'incorrect email for mailing'});
-    }
-
-    if (!newPassword) {
-        return res.status(400)
-            .json({message: 'empty password. rejection'});
-    }
-
-    User.findOne({email: email})
-        .then((user) => {
-            if (user) {
-                bcrypt.genSalt(10, (err, salt) => {
-                    bcrypt.hash(newPassword, salt, (err, hash) => {
-
-                        user.password = hash;
-                        user.updatedDate = moment.utc().format('MM-DD-YYYY');
-                        user.save()
-                            .then(() => {
-                                return res.status(200).json({
-                                    message: `success recovery`,
-                                });
-                            })
-                            .catch(error => {
-                                    res.status(400)
-                                        .json({
-                                            message: `recovery password error: "${error.message}" `,
-                                        });
-                                    log(error);
-                                    next(error);
-                                },
-                            );
-                    });
-                });
-
-            } else {
-                res.status(400)
-                    .json({
-                        message: `Rejection! User  with email is not found ${email}`,
-                    });
-            }
-
-        })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `recovery password error: "${error.message}" `,
-                    });
-                log(error);
-                next(error);
-            },
-        );
-};
-
-export const updateUserInfo = (req, res, next) => {
-
-    const id = req.body.id || req.user.id;
-
-    if (!id) {
-        return res.status(400)
-            .json({
-                message: `update user data error. User id is required`,
-            });
-    }
-    const filePath = req.file ? req.file.path : null;
-
-    const data = {
-        ...req.body,
-        updatedDate: moment.utc().format('MM-DD-YYYY'),
-        avatarUrl: filePath,
-    };
-
-    User.findByIdAndUpdate(id, {$set: data}, {new: true, runValidators: true})
-        .then(user => {
-            if (!user) {
-                return res.status(400)
-                    .json({message: `User with id "${id}" is not found.`});
-            } else {
-                res.status(200).json(user);
-            }
-        })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `update user data error: "${error.message}" `,
-                    });
-                log(error);
-                next(error);
-            },
-        );
-};
-
-export const loginUser = (req, res, next) => {
-    const data = req.body;
-    const {login, password, fingerprint} = data;
-
-    const {cookie} = req.headers;
-    const oldRefToken = cookie && cookie.split('=').length ? cookie.split('=')[1] : null;
-
-    if (!login || !password) {
-        res.status(400)
-            .json({message: 'Login and password are required'});
-        return;
-    }
-
-    User.findOne({
-        $or: [{email: login}, {login: login}],
-    })
-        .then(user => {
-            if (!user) {
-                res.status(400)
-                    .json({
-                        message: 'User is not found. Please check your login and password',
-                    });
-            }
-
-            bcrypt.compare(password, user.password)
-                .then(isMatch => {
-                    if (isMatch) {
-                        user.lastLoginDate = moment.utc();
-                        user.save();
-
-                        const {token, tokenExpiresInMS, newRefreshToken, refTokenExpiresInMS} = signUp(user, fingerprint);
-
-                        const filters = oldRefToken ?
-                            {$and: [{userId: user._id}, {token: oldRefToken}]}
-                            : {userId: user._id};
-
-                        const expDate = new Date(moment().add(refTokenExpiresInMS, 'ms'));
-                        const expDateShort = new Date(moment().add(tokenExpiresInMS, 'ms'));
-
-                        RefreshToken.findOne(filters)
-                            .then(savedRT => {
-                                if (savedRT) {
-                                    if (new Date(savedRT.exp) > Date.now()) {
-                                        // refToken is not expired. just return new plain token and old refresh token
-                                        return res
-                                            .status(200)
-                                            .cookie('refreshToken', savedRT.token, {
-                                                expires: new Date(savedRT.exp),
-                                                httpOnly: true,
-                                                sameSite: 'None',
-                                                secure: true,
-                                            })
-                                            .cookie('token', token, {
-                                                expires: expDateShort,
-                                                sameSite: 'None',
-                                                secure: true,
-                                            })
-                                            .json({
-                                                user,
-                                                token: {
-                                                    token,
-                                                    expires: expDateShort,
-                                                },
-                                            });
-                                    } else {
-                                        // refresh token is expired ->> delete old one from DB, save new one
-                                        savedRT.remove()
-                                            .then(() => {
-                                                const rt = new RefreshToken({
-                                                    token: newRefreshToken,
-                                                    // save exp dateTime in ms in DB
-                                                    exp: Number(moment().add(refTokenExpiresInMS, 'ms')),
-                                                    userId: user._id,
-                                                    createdDate: moment.utc().format('MM-DD-YYYY'),
-                                                });
-                                                rt.save()
-                                                    .then(() => {
-                                                        return res
-                                                            .status(200)
-                                                            .cookie('refreshToken', newRefreshToken, {
-                                                                expires: expDate,
-                                                                httpOnly: true,
-                                                                sameSite: 'None',
-                                                                secure: true,
-                                                            })
-                                                            .cookie('token', token, {
-                                                                expires: expDateShort,
-                                                                sameSite: 'None',
-                                                                secure: true,
-                                                            })
-                                                            .json({
-                                                                user,
-                                                                token: {
-                                                                    token,
-                                                                    expires: expDateShort,
-                                                                },
-                                                            });
-                                                    })
-                                                    .catch(error => {
-                                                        res.status(400)
-                                                            .json({
-                                                                message: `Login process error: "${error.message}" `,
-                                                            });
-                                                        log(error);
-                                                        next(error);
-                                                    });
-                                            })
-                                            .catch(error => {
-                                                    res.status(400)
-                                                        .json({
-                                                            message: `Login process error: "${error.message}" `,
-                                                        });
-                                                    log(error);
-                                                    next(error);
-                                                },
-                                            );
-                                    }
-                                } else {
-                                    // first commit no refresh token yet ->> create new RT in DB
-                                    const rt = new RefreshToken({
-                                        token: newRefreshToken,
-                                        // save exp dateTime in ms in DB
-                                        exp: Number(moment().add(refTokenExpiresInMS, 'ms')),
-                                        userId: user._id,
-                                        createdDate: moment.utc().format('MM-DD-YYYY'),
-                                    });
-                                    rt.save()
-                                        .then(() => {
-                                            return res
-                                                .status(200)
-                                                .cookie('refreshToken', newRefreshToken, {
-                                                    expires: expDate,
-                                                    httpOnly: true,
-                                                    sameSite: 'None',
-                                                    secure: true,
-                                                })
-                                                .cookie('token', token, {
-                                                    expires: expDateShort,
-                                                    sameSite: 'None',
-                                                    secure: true,
-                                                })
-                                                .json({
-                                                    user,
-                                                    token: {
-                                                        token,
-                                                        expires: expDateShort,
-                                                    },
-                                                });
-                                        })
-                                        .catch(error => {
-                                                res.status(400)
-                                                    .json({
-                                                        message: `Login process error: "${error.message}" `,
-                                                    });
-                                                log(error);
-                                                next(error);
-                                            },
-                                        );
-                                }
-                            })
-                            .catch(error => {
-                                    res.status(400)
-                                        .json({
-                                            message: `Login process error: "${error.message}" `,
-                                        });
-                                    log(error);
-                                    next(error);
-                                },
-                            );
-                    } else {
-                        res.status(400)
-                            .json({
-                                message: 'Password doesnt match',
-                            });
-                    }
-                });
-        })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `Login process error: "${error.message}" `,
-                    });
-                log(error);
-                next(error);
-            },
-        );
-};
-
-export const refreshToken = (req, res, next) => {
-    const prefix = config.tokenPrefix;
-    const refToken = getRefTokenFromCookie(req);
-    if (!refToken) {
-        return res.status(200)
-            .json({
-                success: false,
-                message: 'Refresh token is invalid. Please login again',
-            });
-    }
-
-    jwt.verify(refToken, config.secret, (err, data) => {
-        console.log('refToken data: ', data);
-        if (err) {
-            RefreshToken.findOne({token: refToken})
-                .then((t) => {
-                    if (t) {
-                        t.remove()
-                            .then(() => {
-                                console.log('refToken is successfully  removed from db');
-                            })
-                            .catch(error => {
-                                res.status(400)
-                                    .json({
-                                        message: `Refresh token delete error: "${error.message}" `,
-                                    });
-                                log(error);
-                                next(error);
-                            });
-                    }
-                    return res.status(200)
-                        .json({
-                            success: false,
-                            message: 'Refresh token is invalid. Please login again',
-                        });
-
-                })
-                .catch(error => {
-                    res.status(400)
-                        .json({
-                            success: false,
-                            message: `Refresh token delete error: "${error.message}" `,
-                        });
-                    log(error);
-                    next(error);
-                });
-        } else if (Date.now() > data.exp) {
-            return res.status(200)
-                .json({
-                    success: false,
-                    message: 'Refresh token is expired. Please login again',
-                });
-        } else {
-            RefreshToken.findOne({token: prefix + refToken})
-                .then(refToken => {
-                    if (refToken) {
-
-                        const {fingerprint, email, login, password, firstName, lastName, id} = refToken.userId;
-
-                        const {token, tokenExpiresInMS} = signUp({
-                            fingerprint,
-                            email,
-                            login,
-                            password,
-                            firstName,
-                            lastName,
-                            _id: id,
-                        }, fingerprint);
-
-                        return res
-                            .status(200)
-                            .cookie('token', token, {
-                                expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
-                                sameSite: 'None',
-                                secure: true,
-                            })
-                            .json({
-                                success: true,
-                                user: refToken.user,
-                                token: {
-                                    token,
-                                    expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
-                                },
-                            });
-                    } else {
-                        return res.status(200)
-                            .json({
-                                success: false,
-                                message: 'Refresh token is invalid. Please login again',
-                            });
-
-                    }
-                })
-                .catch(error => {
-                    res.status(400)
-                        .json({
-                            success: false,
-                            message: `Refresh token error: "${error.message}" `,
-                        });
-                    log(error);
-                    next(error);
-                });
-        }
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `find user by email error: "${error.message}"`,
     });
+  }
 };
 
-export const logout = (req, res) => {
-    const rerToken = getRefTokenFromCookie(req);
-    const token = getTokenFromCookie(req);
-    if (rerToken || token) {
+export const recoverPassword = async (req, res) => {
+  const { newPassword, email } = req.body;
 
-        RefreshToken.findOne({token: rerToken})
-            .then(savedRT => {
-                if (savedRT) {
-                    savedRT.remove()
-                        .then(() => log('ref token is removed from DB'))
-                        .catch(error => {
-                            res.status(400)
-                                .json({
-                                    message: `Logout error: "${error.message}" `,
-                                });
-                            log(error);
-                        });
-                }
-            })
-            .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `Logout error: "${error.message}" `,
-                    });
-                log(error);
-            });
+  if (!email) {
+    return res.status(400)
+      .json({ message: 'To recover your password specify email address' });
+  }
 
+  if (!validator.isEmail(email)) {
+    return res.status(400)
+      .json({ message: 'incorrect email for mailing' });
+  }
 
-        const expSoon = new Date(moment().add(10, 'ms'));
-        return res
-            .status(200)
-            .cookie('refreshToken', rerToken, {
-                expires: expSoon,
-                httpOnly: true,
-                sameSite: 'None',
-                secure: true,
+  if (!newPassword) {
+    return res.status(400)
+      .json({ message: 'empty password. rejection' });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (user) {
+      const salt = await promisify(bcrypt.genSalt)(10);
+      user.password = await promisify(bcrypt.hash)(newPassword, salt);
+      user.updatedDate = getFormattedCurrentDate();
+      await user.save();
+      return res.status(200).json({ message: 'success recovery' });
+    }
+
+    return res.status(400).json({
+      message: `Rejection! User  with email is not found ${email}`,
+    });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `recovery password error: "${error.message}" `,
+    });
+  }
+};
+
+export const updateUserInfo = async (req, res) => {
+  const id = req.body.id || req.user.id;
+
+  if (!id) {
+    return res.status(400).json({
+      message: 'update user data error. User id is required',
+    });
+  }
+
+  const filePath = req.file ? req.file.path : null;
+
+  const data = {
+    ...req.body,
+    updatedDate: getFormattedCurrentDate(),
+    avatarUrl: filePath,
+  };
+
+  // can't set user is admin
+  delete data.isAdmin;
+
+  try {
+    const user = await User.findByIdAndUpdate(id, { $set: data },
+      { new: true, runValidators: true });
+    if (!user) {
+      return res.status(400)
+        .json({ message: `User with id "${id}" is not found.` });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `update user data error: "${error.message}" `,
+    });
+  }
+};
+
+export const loginUser = async (req, res) => {
+  const data = req.body;
+  const { login, password, fingerprint } = data;
+
+  const { cookie } = req.headers;
+  const oldRefToken = cookie && cookie.split('=').length ? cookie.split('=')[1] : null;
+
+  if (!login || !password) {
+    return res.status(400).json({ message: 'Login and password are required' });
+  }
+
+  try {
+    const user = await User.findOne({
+      $or: [{ email: login }, { login }],
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: 'User is not found. Please check your login and password',
+      });
+    }
+
+    const isMatch = await promisify(bcrypt.compare)(password, user.password);
+
+    if (isMatch) {
+      user.lastLoginDate = moment.utc();
+      await user.save();
+
+      const {
+        token, tokenExpiresInMS, newRefreshToken, refTokenExpiresInMS,
+      } = signUp(user, fingerprint);
+
+      const filters = oldRefToken
+        ? { $and: [{ userId: user._id }, { token: oldRefToken }] }
+        : { userId: user._id };
+
+      const expDate = new Date(moment().add(refTokenExpiresInMS, 'ms'));
+      const expDateShort = new Date(moment().add(tokenExpiresInMS, 'ms'));
+
+      const savedRT = await RefreshToken.findOne(filters);
+
+      if (savedRT) {
+        if (new Date(savedRT.exp) > Date.now()) {
+          // refToken is not expired. just return new plain token and old refresh token
+          return res.status(200)
+            .cookie('refreshToken', savedRT.token, {
+              expires: new Date(savedRT.exp),
+              httpOnly: true,
+              ...getCookieProps(),
             })
             .cookie('token', token, {
-                expires: expSoon,
-                sameSite: 'None',
-                secure: true,
+              expires: expDateShort,
+              ...getCookieProps(),
             })
             .json({
-                message: 'success',
+              user,
+              token: {
+                token,
+                expires: expDateShort,
+              },
             });
+        }
 
-    } else {
-        return res
-            .status(200)
-            .json({
-                message: 'success',
-            });
-    }
-};
+        // refresh token is expired ->> delete old one from DB, save new one
+        await savedRT.remove();
 
-export const updatePassword = (req, res, next) => {
-    const data = req.body;
-    let {oldPassword, newPassword, id} = data;
+        await new RefreshToken({
+          token: newRefreshToken,
 
-    if (!oldPassword || !newPassword) {
-        res.status(400)
-            .json({message: 'newPassword, oldPassword are required'});
-        return;
-    }
+          // save exp dateTime in ms in DB
+          exp: Number(moment().add(refTokenExpiresInMS, 'ms')),
+          userId: user._id,
+          createdDate: getFormattedCurrentDate(),
+        }).save();
 
-    User.findById(id)
-        .then(user => {
-            if (!user) {
-                res.status(400)
-                    .json({
-                        message: 'User is not found',
-                    });
-                return;
-            }
+        return res.status(200)
+          .cookie('refreshToken', newRefreshToken, {
+            expires: expDate,
+            httpOnly: true,
+            ...getCookieProps(),
+          })
+          .cookie('token', token, {
+            expires: expDateShort,
+            ...getCookieProps(),
+          })
+          .json({
+            user,
+            token: {
+              token,
+              expires: expDateShort,
+            },
+          });
+      }
 
-            user.comparePassword(oldPassword, function (err, isMatch) {
-                if (!isMatch) {
-                    res.status(400)
-                        .json({
-                            message: 'old password doesnt match',
-                        });
-                } else {
-                    bcrypt.genSalt(10, (err, salt) => {
-                        bcrypt.hash(newPassword, salt, (err, hash) => {
-                            if (err) throw err;
-                            newPassword = hash;
+      // first login. no refresh token yet ->> create new RT in DB
+      await new RefreshToken({
+        token: newRefreshToken,
+        exp: Number(moment().add(refTokenExpiresInMS, 'ms')), // save exp dateTime in ms in DB
+        userId: user._id,
+        createdDate: getFormattedCurrentDate(),
+      }).save();
 
-                            user.password = newPassword;
-                            user.updatedDate = moment.utc().format('MM-DD-YYYY');
-                            user.save()
-                                .then(user => {
-                                    res.status(200).json({
-                                        message: 'Password successfully changed',
-                                        customer: user,
-                                    });
-                                })
-                                .catch(error => {
-                                        res.status(400)
-                                            .json({
-                                                message: `Update password error: "${error.message}"`,
-                                            });
-                                        log(error);
-                                        next(error);
-                                    },
-                                );
-                        });
-                    });
-                }
-            });
-
+      return res.status(200)
+        .cookie('refreshToken', newRefreshToken, {
+          expires: expDate,
+          httpOnly: true,
+          ...getCookieProps(),
         })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `Update password error: "${error.message}" `,
-                    });
-                log(error);
-                next(error);
-            },
-        );
-};
-
-export const deleteUserById = (req, res, next) => {
-    User.findByIdAndRemove(req.params.id)
-        .then(() => {
-            res.status(200)
-                .json({
-                    message: `User with id "${req.params.id}" is deleted`,
-                });
+        .cookie('token', token, {
+          expires: expDateShort,
+          ...getCookieProps(),
         })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `delete user data error: "${error.message}" `,
-                    });
-                log(error);
-                next(error);
-            },
-        );
+        .json({
+          user,
+          token: {
+            token,
+            expires: expDateShort,
+          },
+        });
+    }
+
+    return res.status(400).json({
+      message: 'Password doesnt match',
+    });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `Login process error: "${error.message}" `,
+    });
+  }
 };
 
-export const deleteAllUsers = (req, res, next) => {
+export const refreshToken = async (req, res) => {
+  const prefix = config.tokenPrefix;
+  const refToken = getTokenFromCookie(req);
+  if (!refToken) {
+    return res.status(200).json({
+      success: false,
+      message: 'Refresh token is invalid. Please login again',
+    });
+  }
 
-    User.deleteMany({isAdmin: false})
-        .then(() => res.status(200)
-            .json({
-                message: 'all users except admins are deleted',
-            }),
-        )
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `delete users error "${error.message}" `,
-                    });
-                log(error);
-                next(error);
+  try {
+    const data = await promisify(jwt.verify)(refToken, config.secret);
+    if (Date.now() > data.exp) {
+      return res.status(200).json({
+        success: false,
+        message: 'Refresh token is expired. Please login again',
+      });
+    }
+
+    try {
+      const savedRefToken = await RefreshToken.findOne({ token: prefix + refToken });
+
+      if (savedRefToken) {
+        const {
+          fingerprint, email, login,
+          password, firstName, lastName, id,
+        } = savedRefToken.userId;
+
+        const { token, tokenExpiresInMS } = signUp({
+          fingerprint,
+          email,
+          login,
+          password,
+          firstName,
+          lastName,
+          _id: id,
+        }, fingerprint);
+
+        return res.status(200)
+          .cookie('token', token, {
+            expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
+            ...getCookieProps(),
+          })
+          .json({
+            success: true,
+            user: savedRefToken.user,
+            token: {
+              token,
+              expires: new Date(moment().add(tokenExpiresInMS, 'ms')),
             },
-        );
+          });
+      }
+
+      return res.status(200)
+        .json({
+          success: false,
+          message: 'Refresh token is invalid. Please login again',
+        });
+    } catch (e) {
+      log(e);
+      return res.status(400).json({
+        success: false,
+        message: `Refresh token error: "${e.message}" `,
+      });
+    }
+  } catch (error) {
+    try {
+      const token = await RefreshToken.findOne({ token: refToken });
+
+      if (token) {
+        await token.remove();
+        log('refToken is successfully  removed from db');
+      }
+
+      return res.status(200).json({
+        success: false,
+        message: 'Refresh token is invalid. Please login again',
+      });
+    } catch (e) {
+      log(error);
+      return res.status(400).json({
+        success: false,
+        message: `Refresh token delete error: "${error.message}" `,
+      });
+    }
+  }
+};
+
+export const logout = async (req, res) => {
+  const refToken = getRefreshTokenFromCookie(req);
+  const token = getTokenFromCookie(req);
+
+  if (refToken || token) {
+    try {
+      const savedRT = await RefreshToken.findOne({ token: refToken });
+      if (savedRT) {
+        await savedRT.remove();
+      }
+    } catch (e) {
+      log(e);
+      return res.status(400).json({
+        message: `Logout error: "${e.message}" `,
+      });
+    }
+
+    const expSoon = new Date(moment().add(10, 'ms'));
+    return res.status(200)
+      .cookie('refreshToken', refToken, {
+        expires: expSoon,
+        httpOnly: true,
+        ...getCookieProps(),
+      })
+      .cookie('token', token, {
+        expires: expSoon,
+        ...getCookieProps(),
+      })
+      .json({
+        message: 'success',
+      });
+  }
+
+  return res.status(200).json({ message: 'success' });
+};
+
+export const updatePassword = async (req, res) => {
+  const data = req.body;
+  let { newPassword } = data;
+  const { oldPassword, id } = data;
+
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ message: 'newPassword, oldPassword are required' });
+  }
+
+  if (!validateObjectId(id)) {
+    return res.status(400).json({ message: 'error: invalid id' });
+  }
+
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(400).json({
+        message: 'User is not found',
+      });
+    }
+
+    const isMatch = await promisify(user.comparePassword).bind(user, oldPassword)();
+    if (!isMatch) {
+      return res.status(400).json({
+        message: 'old password doesnt match',
+      });
+    }
+
+    const salt = await promisify(bcrypt.genSalt)(10);
+    newPassword = await promisify(bcrypt.hash)(newPassword, salt);
+
+    user.password = newPassword;
+    user.updatedDate = getFormattedCurrentDate();
+    const updatedUser = await user.save();
+    const { phoneNumber, email } = updatedUser;
+
+    if (config.hideUsersDataFromAdmin) {
+      // hiding user private data
+      updatedUser.phoneNumber = phoneNumber ? `XXXX-XXXX-${phoneNumber.slice(8)}` : '';
+      updatedUser.email = email ? `XXXX-XXXX-${email.split('@')[1]}` : '';
+    }
+
+    updatedUser.password = 'XXXXX';
+
+    return res.status(200).json({
+      message: 'Password successfully changed',
+      customer: updatedUser,
+    });
+  } catch (error) {
+    log(error.message);
+    return res.status(400).json({
+      message: `Update password error: "${error.message}" `,
+    });
+  }
+};
+
+export const deleteUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await User.findByIdAndRemove(id);
+    if (!item) {
+      return res.status(200).json({
+        message: `User with id ${id} is not found`,
+      });
+    }
+
+    return res.status(200).json({
+      message: `User with id "${id}" is deleted`,
+    });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `delete user data error: "${error.message}" `,
+    });
+  }
+};
+
+export const deleteAllUsers = async (req, res) => {
+  try {
+    await User.deleteMany({ isAdmin: false });
+    return res.status(200).json({
+      message: 'all users except admins are deleted',
+    });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `delete users error "${error.message}" `,
+    });
+  }
 };

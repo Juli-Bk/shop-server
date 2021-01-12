@@ -1,558 +1,650 @@
 import fs from 'fs';
 import path from 'path';
-import {getRandomInt, log} from '../helpers/helper';
+import mongoose from 'mongoose';
+import {
+  getRandomInt, log, trimAndLowerCase, getFormattedCurrentDate,
+} from '../helpers/helper';
 import Brand from '../models/schemas/Brand';
 import Color from '../models/schemas/Color';
 import Size from '../models/schemas/Size';
 import SizeTable from '../models/schemas/SizeTable';
 import Quantity from '../models/schemas/Quantity';
-import moment from 'moment';
 import Category from '../models/schemas/Category';
 import Product from '../models/schemas/Product';
-import mongoose from 'mongoose';
-import config from '../../src/config/index';
+import config from '../config/index';
+import WishList from '../models/schemas/WishList';
+import ShopCart from '../models/schemas/ShopCart';
 
-export const importData = (req, res, next) => {
-    let startTime = new Date();
-    let start = new Date();
-
-    const filePath = req.file ? req.file.path : null;
-
-    if (!filePath) {
-        res.status(400)
-            .json({
-                message: `import data error: json file is required`,
-            });
-        next();
-        return;
-    }
-
-    getImportedProductData(filePath, async (err, products) => {
-        if (err) {
-            res.status(400)
-                .json({
-                    message: `import data error: ${err.message}`,
-                });
-            log(err);
-            next(err);
-        } else if (!products.length) {
-            res.status(400)
-                .json({
-                    message: `import data error: empty json file`,
-                });
-            next();
-        }
-
-        const errorHandler = (error) => {
-            res.status(400)
-                .json({
-                    message: `Error happened on server: "${error.message}" `,
-                });
-            log(error);
-            next(error);
-        };
-
-        const brands = new Set();
-        const sizeTables = new Map();
-        const categoryHierarchy = new Map();
-        const allColorsToImport = new Map();
-
-        products.map(product => {
-            if (product.brand) brands.add(product.brand.trim().toLowerCase());
-            if (product.sizeTable) sizeTables.set(product.sizeType, product.sizeTable);
-
-            const color = product.color;
-            if (color) allColorsToImport.set(color.name.trim().toLowerCase(), color.baseColorName.trim().toLowerCase());
-
-            const categoriesList = product.categoryBreadcrumbs.split('/');
-            fillCategories(categoriesList, categoryHierarchy);
-
-            addBaseImageUrl(product);
-        });
-
-        const categories = Array.from(categoryHierarchy);
-
-        categories.sort((current, next) => {
-            return current[1].key - next[1].key;
-        });
-
-        const importColorsPr = importColors(allColorsToImport, errorHandler);
-        const importBrandsPr = importBrands(brands, errorHandler);
-        const importCategoriesPr = importCategories(categoryHierarchy, errorHandler);
-        const importSizesPr = importSizes(sizeTables, errorHandler);
-
-        Promise
-            .all([
-                importColorsPr,
-                importBrandsPr,
-                importCategoriesPr,
-                importSizesPr,
-            ])
-            .then(async (results) => {
-                const {newColors = []} = results[0];
-                const {newBrands = [], allBrands} = results[1];
-                const {newCategories = [], allCategories} = results[2];
-                const {newSizes = []} = results[3];
-
-                const {newProducts = []} = await importProducts(products, allCategories, allBrands, errorHandler);
-                console.log('products import time: ', (new Date() - startTime) / 1000, 's');
-                startTime = new Date();
-
-                const {newSizeTables = []} = await importSizeTables(products, errorHandler);
-                console.log('size tables import time: ', (new Date() - startTime) / 1000, 's');
-                startTime = new Date();
-
-                const {newQuantity = []} = await importQuantity(products, errorHandler);
-                console.log('quantity import time: ', (new Date() - startTime) / 1000, 's');
-                startTime = new Date();
-
-                console.log('total import time: ', (new Date() - start) / 1000, 's');
-
-                res.status(200)
-                    .json({
-                        'added new brands': newBrands.length,
-                        'added new colors': newColors.length,
-                        'added new categories': newCategories.length,
-                        'added new products': newProducts.length,
-                        'added new sizes': newSizes.length,
-                        'added new sizeTables': newSizeTables.length,
-                        'added new quantity data': newQuantity.length,
-                    });
-            })
-            .catch(e => {
-                errorHandler(e);
-            });
-    });
+const getImportedProductData = (filePath) => {
+  const __dirname = path.resolve();
+  const jsonPath = path.join(__dirname, filePath);
+  try {
+    const data = fs.readFileSync(jsonPath);
+    return { products: JSON.parse(data), error: null };
+  } catch (e) {
+    return { products: null, error: e };
+  }
 };
 
-const getImportedProductData = (filePath, callback) => {
-    try {
-        // eslint-disable-next-line no-undef
-        const jsonPath = path.join(__dirname, '..', '..', filePath);
-        const data = fs.readFileSync(jsonPath);
-        const products = JSON.parse(data);
-
-        callback(null, products);
-    } catch (err) {
-        callback(err, []);
-    }
-};
+function getParentCategoryData(categoryHierarchy, element, breadCrumbs) {
+  return Array.from(categoryHierarchy).find((el) => {
+    const parentCategory = el[1];
+    return parentCategory.name === element.parentName
+        && parentCategory.categoryBreadcrumbs === breadCrumbs;
+  });
+}
 
 const fillCategories = (categoriesList, categoryHierarchy) => {
-    let breadCrumbs = '';
+  let breadCrumbs = '';
 
-    for (let i = 0; i < categoriesList.length; i++) {
-        const item = categoriesList[i].trim().toLowerCase();
-        const prevItem = categoriesList[i - 1]
-            ? categoriesList[i - 1].trim().toLowerCase()
-            : null;
+  for (let i = 0; i < categoriesList.length; i += 1) {
+    const item = trimAndLowerCase(categoriesList[i]);
+    const prevItem = categoriesList[i - 1]
+      ? trimAndLowerCase(categoriesList[i - 1])
+      : null;
 
-        const element = {
-            _id: new mongoose.Types.ObjectId().toString(),
-            name: item,
-            key: i + 1,
-            parentName: prevItem,
-            createdDate: moment.utc().format('MM-DD-YYYY'),
-        };
+    const category = {
+      _id: new mongoose.Types.ObjectId().toString(),
+      name: item,
+      key: i + 1,
+      parentName: prevItem,
+      createdDate: getFormattedCurrentDate(),
+    };
 
-        if (element.parentName) {
-            const parentCategoryData = Array.from(categoryHierarchy).find((item) => {
-                const parentCategory = item[1];
-                return parentCategory.name === element.parentName
-                    && parentCategory.categoryBreadcrumbs === breadCrumbs;
-            });
-
-            element.parentId = parentCategoryData[1]._id;
-        }
-
-        breadCrumbs += `${item}/`;
-
-        element.categoryBreadcrumbs = breadCrumbs;
-        const saved = categoryHierarchy.get(breadCrumbs);
-
-        if (!saved) {
-            element.level = element.key;
-            categoryHierarchy.set(breadCrumbs, element);
-        }
+    if (category.parentName) {
+      const parent = getParentCategoryData(categoryHierarchy, category, breadCrumbs);
+      category.parentId = parent[1]._id;
     }
+
+    breadCrumbs += `${item}/`;
+
+    category.categoryBreadcrumbs = breadCrumbs;
+    const saved = categoryHierarchy.get(breadCrumbs);
+
+    if (!saved) {
+      category.level = category.key;
+      categoryHierarchy.set(breadCrumbs, category);
+    }
+  }
 };
 
 const addBaseImageUrl = (product) => {
-    const baseUlr = config.imageStorageBaseAddress;
-    if (!baseUlr) throw new Error('imageStorageBaseAddress env variable is not specified');
-    if (product.imageUrls) {
-        product.imageUrls = product.imageUrls.map(imgAdr => baseUlr + imgAdr);
-    }
-    if (product.videoUrl) {
-        product.videoUrl = baseUlr + product.videoUrl;
-    }
+  const baseUlr = config.imageStorageBaseAddress;
+  let imageUrls = null;
+  let videoUrl = null;
+
+  if (product.imageUrls) {
+    imageUrls = product.imageUrls.map((imgAdr) => baseUlr + imgAdr);
+  }
+
+  if (product.videoUrl) {
+    videoUrl = baseUlr + product.videoUrl;
+  }
+
+  return { imageUrls, videoUrl };
 };
 
 const saveCategories = async (insertedValues) => {
-    const rez = [];
-    for (const newCategory of insertedValues) {
-        newCategory.createdDate = moment.utc().format('MM-DD-YYYY');
-        const category = await new Category(newCategory).save();
-        rez.push(category);
-    }
-    return rez;
+  const rez = [];
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const newCategory of insertedValues) {
+    newCategory.createdDate = getFormattedCurrentDate();
+
+    // eslint-disable-next-line no-await-in-loop
+    const category = await new Category(newCategory).save();
+    rez.push(category);
+  }
+
+  return rez;
 };
 
 const saveColors = (insertedValues) => {
-    const arr = insertedValues.map(newColor => {
-        return {
-            name: newColor[0],
-            baseColorName: newColor[1],
-            createdDate: moment.utc().format('MM-DD-YYYY'),
-        };
-    });
+  const arr = insertedValues.map((newColor) => ({
+    name: newColor[0],
+    baseColorName: newColor[1],
+    createdDate: getFormattedCurrentDate(),
+  }));
 
-    return Color.insertMany(arr);
+  return Color.insertMany(arr);
 };
 
 const saveSizes = (insertedValues) => {
-    const arr = insertedValues.map(newSize => {
-        return {
-            ...newSize,
-            createdDate: moment.utc().format('MM-DD-YYYY'),
-        };
-    });
-    return Size.insertMany(arr);
+  const arr = insertedValues.map((newSize) => ({
+    ...newSize,
+    createdDate: getFormattedCurrentDate(),
+  }));
+  return Size.insertMany(arr);
 };
 
 const saveSizeTables = (insertedValues) => {
-    const arr = insertedValues.map(newSizeTable => {
-        return {
-            ...newSizeTable,
-            createdDate: moment.utc().format('MM-DD-YYYY'),
-        };
-    });
-    return SizeTable.insertMany(arr);
+  const arr = insertedValues.map((newSizeTable) => ({
+    ...newSizeTable,
+    createdDate: getFormattedCurrentDate(),
+  }));
+  return SizeTable.insertMany(arr);
 };
 
 const saveBrands = (insertedValues) => {
-    const arr = insertedValues.map(newBrand => {
-        return {
-            name: newBrand,
-            createdDate: moment.utc().format('MM-DD-YYYY'),
-        };
-    });
-    return Brand.insertMany(arr);
+  const arr = insertedValues.map((newBrand) => ({
+    name: newBrand,
+    createdDate: getFormattedCurrentDate(),
+  }));
+  return Brand.insertMany(arr);
 };
 
 const saveProducts = (insertedValues) => {
-    const arr = insertedValues.map(newProduct => {
-        return {
-            ...newProduct,
-            createdDate: moment.utc().format('MM-DD-YYYY'),
-        };
-    });
-    return Product.insertMany(arr);
+  const arr = insertedValues.map((newProduct) => ({
+    ...newProduct,
+    createdDate: getFormattedCurrentDate(),
+  }));
+  return Product.insertMany(arr);
 };
 
 const saveQuantity = (insertedValues) => {
-    const arr = insertedValues.map(newQuantityItem => {
-        return {
-            ...newQuantityItem,
-            createdDate: moment.utc().format('MM-DD-YYYY'),
-        };
+  const arr = insertedValues.map((newQuantityItem) => ({
+    ...newQuantityItem,
+    createdDate: getFormattedCurrentDate(),
+  }));
+
+  return Quantity.insertMany(arr);
+};
+
+const importColors = async (colorsToImport, errorHandler) => {
+  const colors = Array.from(colorsToImport);
+
+  try {
+    const savedColors = await Color.find({}, { _id: 1, name: 1 }).lean();
+    let colorsToInsert;
+
+    if (savedColors.length) {
+      const savedColorNames = savedColors.map((c) => trimAndLowerCase(c.name));
+      colorsToInsert = colors.filter((cl) => !savedColorNames.includes(cl[0]));
+    } else {
+      colorsToInsert = colors;
+    }
+
+    const newColors = await saveColors(colorsToInsert);
+    const allColors = [].concat(savedColors).concat(newColors);
+
+    return {
+      newColors, allColors,
+    };
+  } catch (e) {
+    errorHandler(e);
+    return null;
+  }
+};
+
+const getSizes = (data) => {
+  const sizes = [];
+  const importedSizeTables = Array.from(data);
+  importedSizeTables.forEach((st) => {
+    const sizeType = st[0];
+    const sizeTable = st[1];
+
+    sizeTable.forEach((s) => {
+      const allSizeNames = Object.getOwnPropertyNames(s);
+      allSizeNames.forEach((sizeName) => {
+        if (trimAndLowerCase(sizeName) !== 'quantity') {
+          sizes.push({
+            name: sizeName,
+            sizeType,
+          });
+        }
+      });
     });
-
-    return Quantity.insertMany(arr);
+  });
+  return sizes;
 };
 
+const getSizesToInsert = (data, savedSizes) => {
+  const sizes = getSizes(data);
+  let sizesToInsert;
 
-const importColors = (allColorsToImport, errorHandler) => {
-    const colors = Array.from(allColorsToImport);
-
-    return Color
-        .find({}, {_id: 1, name: 1})
-        .lean()
-        .then(async (savedColors) => {
-            let colorsToInsert = [];
-
-            if (savedColors.length) {
-                const savedColorNames = savedColors.map(c => c.name.trim().toLowerCase());
-                colorsToInsert = colors.filter(cl => !savedColorNames.includes(cl[0]));
-            } else {
-                colorsToInsert = colors;
-            }
-
-            const newColors = await saveColors(colorsToInsert);
-            const allColors = [].concat(savedColors).concat(newColors);
-
-            return {
-                newColors, allColors,
-            };
-        })
-        .catch(error => {
-            errorHandler(error);
-        });
-};
-
-const importSizes = (importedSizeTables, errorHandler) => {
-    const stbls = Array.from(importedSizeTables);
-
-    const sizes = [];
-
-    stbls.map(st => {
-        const sizeType = st[0];
-        const sizeTable = st[1];
-        sizeTable.map(s => {
-            const allSizeNames = Object.getOwnPropertyNames(s);
-            allSizeNames.map(sizeName => {
-                if (sizeName.toLowerCase() !== 'quantity') {
-                    sizes.push({
-                        name: sizeName,
-                        sizeType: sizeType,
-                    });
-                }
-            });
-        });
+  if (savedSizes.length) {
+    const saved = savedSizes.map((s) => s.sizeTypeSizeName);
+    sizesToInsert = sizes.filter((s) => {
+      const searchStr = `${s.sizeType}/${s.name}`.toLowerCase();
+      return !saved.includes(searchStr);
     });
+  } else {
+    sizesToInsert = sizes;
+  }
 
-    return Size
-        .find({}, {_id: 1, sizeTypeSizeName: 1})
-        .lean()
-        .then(async (savedSizes) => {
-            let sizesToInsert = [];
-
-            if (savedSizes.length) {
-                const sizeTypeSizeNames = savedSizes.map(s => s.sizeTypeSizeName);
-                sizesToInsert = sizes.filter(s => !sizeTypeSizeNames.includes(`${s.sizeType}/${s.name}`.toLowerCase()));
-            } else {
-                sizesToInsert = sizes;
-            }
-
-            try {
-                const newSizes = await saveSizes(sizesToInsert);
-                const allSizes = [].concat(newSizes).concat(savedSizes);
-
-                return {
-                    newSizes, allSizes,
-                };
-            } catch (error) {
-                errorHandler(error);
-            }
-        })
-        .catch(error => {
-            errorHandler(error);
-        });
+  return sizesToInsert;
 };
 
-const importBrands = (allBrandsToImport, errorHandler) => {
-    const brArr = Array.from(allBrandsToImport);
+const importSizes = async (data, errorHandler) => {
+  let newSizes = [];
+  let allSizes = [];
+  const savedSizes = await Size.find({}, { _id: 1, sizeTypeSizeName: 1 }).lean();
+  const sizesToInsert = getSizesToInsert(data, savedSizes);
 
-    return Brand
-        .find({}, {name: 1})
-        .lean()
-        .then(async (savedBrands) => {
-            let brandsToInsert = [];
+  try {
+    newSizes = await saveSizes(sizesToInsert);
+    allSizes = [].concat(newSizes).concat(savedSizes);
+  } catch (error) {
+    errorHandler(error);
+  }
 
-            if (savedBrands.length) {
-                const savedBrandNames = savedBrands.map(b => b.name.trim().toLowerCase());
-                brandsToInsert = brArr.filter(br => !savedBrandNames.includes(br));
-            } else {
-                brandsToInsert = brArr;
-            }
-
-            const newBrands = await saveBrands(brandsToInsert);
-            const allBrands = [].concat(savedBrands).concat(newBrands);
-
-            return {
-                newBrands, allBrands,
-            };
-        })
-        .catch(error => {
-            errorHandler(error);
-        });
+  return {
+    newSizes, allSizes,
+  };
 };
 
-const importCategories = async (allCategoriesToImport, errorHandler) => {
-    const categories = Array.from(allCategoriesToImport);
+const getBrandsToInsert = (data, savedBrands) => {
+  let brandsToInsert;
+  const brArr = Array.from(data);
+  if (savedBrands.length) {
+    const savedBrandNames = savedBrands.map((b) => trimAndLowerCase(b.name));
+    brandsToInsert = brArr.filter((br) => !savedBrandNames.includes(br));
+  } else {
+    brandsToInsert = brArr;
+  }
 
-    return Category
-        .find({}, {_id: 1, categoryBreadcrumbs: 1})
-        .lean()
-        .then(async (savedCategories) => {
-
-
-            const categoriesHierarchy = categories.map(category => {
-                const sc = savedCategories.find(sc => sc.categoryBreadcrumbs === category[0]);
-                const categoryData = category[1];
-                const genId = categoryData._id;
-                if (sc) {
-                    const savedId = sc._id.toString();
-                    categoryData._id = savedId;
-                    categories.map(cat => {
-                        if (cat[1].parentId === genId) {
-                            cat[1].parentId = savedId;
-                        }
-                    });
-                }
-                return categoryData;
-            });
-
-            const saved = savedCategories.map(sc => sc.categoryBreadcrumbs);
-            const categoriesToInsert = categoriesHierarchy
-                .filter(category => !saved.includes(category.categoryBreadcrumbs));
-
-            const newCategories = await saveCategories(categoriesToInsert);
-            const allCategories = [].concat(savedCategories).concat(newCategories);
-            return {
-                newCategories, allCategories,
-            };
-        })
-        .catch(error => {
-            errorHandler(error);
-        });
+  return brandsToInsert;
 };
 
-const importProducts = (productsToImport, allCategories, allBrands, errorHandler) => {
+const importBrands = async (data, errorHandler) => {
+  let newBrands = [];
+  let allBrands = [];
+  const savedBrands = await Brand.find({}, { name: 1 }).lean();
+  const brandsToInsert = getBrandsToInsert(data, savedBrands);
 
-    return Product.find({})
-        .then(async (savedProducts) => {
-            const newProducts = [];
-            const savedProductsId = savedProducts.map(pr => pr.productId);
+  try {
+    newBrands = await saveBrands(brandsToInsert);
+    allBrands = [].concat(savedBrands).concat(newBrands);
+  } catch (error) {
+    errorHandler(error);
+  }
 
+  return {
+    newBrands, allBrands,
+  };
+};
 
-            const newToInsert = productsToImport
-                .filter((product) => !savedProductsId.includes(product.productId));
+const getCategoriesToInsert = (data, savedCategories) => {
+  const categories = Array.from(data);
 
-            for (const newProduct of newToInsert) {
+  const categoriesHierarchy = categories.map((category) => {
+    const [name, categoryData] = category;
+    const sc = savedCategories.find((el) => el.categoryBreadcrumbs === name);
+    const genId = categoryData._id;
+    if (sc) {
+      const savedId = sc._id.toString();
+      categoryData._id = savedId;
+      categories.forEach((cat) => {
+        const { parentId } = cat[1];
+        if (parentId === genId) {
+          // eslint-disable-next-line no-param-reassign
+          cat[1].parentId = savedId;
+        }
+      });
+    }
 
-                const productBrand = newProduct.brand.trim().toLowerCase();
-                const brand = allBrands.find(br => br.name === productBrand);
-                newProduct.brandId = brand ? brand._id.toString() : null;
+    return categoryData;
+  });
 
-                const categoryBreadcrumbs = newProduct.categoryBreadcrumbs.trim().toLowerCase();
-                const category = allCategories.find(cat => cat.categoryBreadcrumbs === `${categoryBreadcrumbs}/`);
-                newProduct.categoryId = category ? category._id.toString() : null;
+  const saved = savedCategories.map((sc) => sc.categoryBreadcrumbs);
+  return categoriesHierarchy
+    .filter((category) => !saved.includes(category.categoryBreadcrumbs));
+};
 
-                newProduct.createdDate = moment.utc().format('MM-DD-YYYY');
-                newProduct.isOnSale = newProduct.salePrice >= 0 && newProduct.salePrice < newProduct.price;
-                newProduct.rating = getRandomInt(0, 5);
+const importCategories = async (data, errorHandler) => {
+  let newCategories = [];
+  let allCategories = [];
+  const saved = await Category.find({}, { _id: 1, categoryBreadcrumbs: 1 }).lean();
+  const toInsert = getCategoriesToInsert(data, saved);
 
-                newProducts.push(newProduct);
-            }
+  try {
+    newCategories = await saveCategories(toInsert);
+    allCategories = [].concat(saved).concat(newCategories);
+  } catch (e) {
+    errorHandler(e);
+  }
 
-            const rez = await saveProducts(newProducts);
-            return {
-                newProducts: rez,
-                allProducts: savedProducts,
-            };
-        })
-        .catch(error => {
-            errorHandler(error);
-        });
+  return {
+    newCategories, allCategories,
+  };
+};
+
+const getProductsToInsert = (data, savedProducts, categories, brands) => {
+  const savedProductsIds = savedProducts.map((pr) => pr.productId);
+  const newToInsert = data.filter((product) => !savedProductsIds.includes(product.productId));
+
+  return newToInsert.map((item) => {
+    const newProduct = { ...item };
+    const productBrand = trimAndLowerCase(newProduct.brand);
+    const brand = brands.find((br) => br.name === productBrand);
+    newProduct.brandId = brand ? brand._id.toString() : null;
+
+    const categoryBreadcrumbs = trimAndLowerCase(newProduct.categoryBreadcrumbs);
+    const category = categories
+      .find((cat) => cat.categoryBreadcrumbs === `${categoryBreadcrumbs}/`);
+    newProduct.categoryId = category ? category._id.toString() : null;
+
+    newProduct.createdDate = getFormattedCurrentDate();
+    newProduct.isOnSale = newProduct.salePrice >= 0 && newProduct.salePrice < newProduct.price;
+    newProduct.rating = getRandomInt(0, 5);
+
+    return newProduct;
+  });
+};
+
+const importProducts = async (productsToImport, categories, brands, errorHandler) => {
+  const saved = await Product.find({});
+  const productsToInsert = getProductsToInsert(productsToImport, saved, categories, brands);
+  let newProducts = [];
+
+  try {
+    newProducts = await saveProducts(productsToInsert);
+  } catch (e) {
+    errorHandler(e);
+  }
+
+  return {
+    newProducts,
+    allProducts: [].concat(saved).concat(newProducts),
+  };
+};
+
+const getSavedProductId = (savedProducts, product) => {
+  const savedProduct = savedProducts.find((pr) => pr.productId === product.productId);
+  return savedProduct ? savedProduct._id.toString() : null;
+};
+
+const getSavedSizeId = (savedSizes, sizeType, sizeName) => {
+  const searchSize = `${sizeType}/${sizeName}`;
+  const size = savedSizes.find((as) => as.sizeTypeSizeName === searchSize);
+  return size ? size._id.toString() : null;
+};
+
+const getSavedColorId = (colors, product) => {
+  const productColor = product.color;
+  const productBaseColorStr = `${productColor.name}/${productColor.baseColorName}`;
+  const color = colors.find((c) => {
+    const colorBaseStr = `${c.name}/${c.baseColorName}`;
+    return colorBaseStr === productBaseColorStr;
+  });
+  return color ? color._id.toString() : null;
+};
+
+const getSizeTablesToInsert = async (products) => {
+  const savedProducts = await Product.find({});
+  const savedSizes = await Size.find({});
+  const sizeTablesData = [];
+
+  products.forEach((product) => {
+    const { sizeType, sizeTable } = product;
+    const productId = getSavedProductId(savedProducts, product);
+    let sizeId = null;
+
+    sizeTable.forEach((table) => {
+      const allSizeNames = Object.getOwnPropertyNames(table);
+      allSizeNames.forEach((sizeName) => {
+        if (sizeName.toLowerCase() !== 'quantity') {
+          sizeId = getSavedSizeId(savedSizes, sizeType, sizeName);
+          const measurementsData = table[sizeName];
+          const item = {
+            productId,
+            sizeId,
+            ...measurementsData,
+          };
+          sizeTablesData.push(item);
+        }
+      });
+    });
+  });
+  return sizeTablesData;
 };
 
 const importSizeTables = async (products, errorHandler) => {
+  let newSizeTables = [];
+  const sizeTablesData = await getSizeTablesToInsert(products);
+  log(`size tables: ${sizeTablesData.length}`);
+  try {
+    newSizeTables = await saveSizeTables(sizeTablesData);
+  } catch (e) {
+    errorHandler(e);
+  }
 
-    return Product.find({})
-        .then(async (savedProducts) => {
-            const savedSizes = await Size.find({});
+  return {
+    newSizeTables,
+  };
+};
 
-            const sizeTablesData = [];
-            products.map(product => {
-                const sizeType = product.sizeType;
-                const sizeTable = product.sizeTable; // is Array of objects
-                const productDB = savedProducts.find(pr => pr.productId === product.productId);
-                const productId = productDB ? productDB._id.toString() : null;
-                let sizeId = null;
+const getQuantityToInsert = async (products) => {
+  const quantityToInsert = [];
+  const savedProducts = await Product.find({});
+  const savedSizes = await Size.find({});
+  const colors = await Color.find({});
 
-                sizeTable.map(s => {
-                    const allSizeNames = Object.getOwnPropertyNames(s);
-                    allSizeNames.map(sizeName => {
-                        // sizeName =>>>>> "4"
-                        const searchSize = `${sizeType}/${sizeName}`;
+  products.forEach((product) => {
+    const { sizeType, sizeTable } = product;
+    const productId = getSavedProductId(savedProducts, product);
+    const colorId = getSavedColorId(colors, product);
 
-                        if (sizeName.toLowerCase() !== 'quantity') {
-                            const size = savedSizes.find(as => {
-                                const isEqual = as.sizeTypeSizeName === searchSize;
-                                return isEqual;
-                            });
-                            sizeId = size ? size._id.toString() : null;
-                            const measurementsData = s[sizeName]; // objects with props
+    sizeTable.forEach((s) => {
+      const allSizeNames = Object.getOwnPropertyNames(s);
+      allSizeNames.forEach((sizeName) => {
+        if (sizeName.toLowerCase() === 'quantity') return;
+        const sizeId = getSavedSizeId(savedSizes, sizeType, sizeName);
 
-                            const item = Object.assign({
-                                productId,
-                                sizeId,
-                            }, measurementsData);
-                            sizeTablesData.push(item);
-                        }
-                    });
-                });
-            });
+        const item = {
+          productId,
+          colorId,
+          sizeId,
+          quantity: s.quantity || null,
+        };
+        quantityToInsert.push(item);
+      });
+    });
+  });
 
-            try {
-                const newSizeTables = await saveSizeTables(sizeTablesData);
-
-                return {
-                    newSizeTables,
-                };
-            } catch (e) {
-                errorHandler(e);
-            }
-
-        })
-        .catch(error => {
-            errorHandler(error);
-        });
+  return quantityToInsert;
 };
 
 const importQuantity = async (products, errorHandler) => {
+  const quantityToInsert = await getQuantityToInsert(products);
+  log(`quantities: ${quantityToInsert.length}`);
+  let newQuantity = [];
 
-    return Product.find({})
-        .then(async (savedProducts) => {
+  try {
+    newQuantity = await saveQuantity(quantityToInsert);
+  } catch (e) {
+    errorHandler(e);
+  }
 
-            const newQuantityData = [];
-
-            const savedSizes = await Size.find({});
-            const colors = await Color.find({});
-
-            products.map(product => {
-                const sizeType = product.sizeType;
-                const sizeTable = product.sizeTable;
-                const productDB = savedProducts.find(pr => pr.productId === product.productId);
-                const productId = productDB ? productDB._id.toString() : null;
-                let sizeId = null, quantity = null;
-
-                const productColor = product.color;
-                const productBaseColorStr = `${productColor.name}/${productColor.baseColorName}`;
-                const color = colors.find(c => {
-                    const colorBaseStr = `${c.name}/${c.baseColorName}`;
-                    return colorBaseStr === productBaseColorStr;
-                });
-                const colorId = color ? color._id.toString() : null;
-
-                sizeTable.map(s => {
-                    const allSizeNames = Object.getOwnPropertyNames(s);
-                    quantity = s.quantity;
-                    allSizeNames.map(sizeName => {
-                        if (sizeName.toLowerCase() === 'quantity') return;
-                        const size = savedSizes.find(as => as.sizeTypeSizeName === `${sizeType}/${sizeName}`);
-                        sizeId = size ? size._id.toString() : null;
-
-                        const item = {
-                            productId: productId,
-                            colorId: colorId,
-                            sizeId,
-                            quantity,
-                        };
-
-                        newQuantityData.push(item);
-                    });
-                });
-            });
-
-
-            const rez = await saveQuantity(newQuantityData);
-            return {
-                newQuantity: rez,
-            };
-        })
-        .catch(error => {
-            errorHandler(error);
-        });
+  return {
+    newQuantity,
+  };
 };
+
+const runImport = async (products) => {
+  const errorHandler = (error) => {
+    log(`error handler: ${error.message}`);
+  };
+
+  const brands = new Set();
+  const sizeTableTypes = new Map();
+  const categoryHierarchy = new Map();
+  const allColorsToImport = new Map();
+
+  const productsToSave = products.map((product) => {
+    const productItem = { ...product };
+    if (productItem.brand) brands.add(trimAndLowerCase(productItem.brand));
+    if (productItem.sizeTable) sizeTableTypes.set(productItem.sizeType, product.sizeTable);
+
+    const { color } = productItem;
+    if (color) {
+      const { name, baseColorName } = color;
+      allColorsToImport.set(trimAndLowerCase(name), trimAndLowerCase(baseColorName));
+    }
+
+    const categoriesList = productItem.categoryBreadcrumbs.split('/');
+    fillCategories(categoriesList, categoryHierarchy);
+
+    const { imageUrls, videoUrl } = addBaseImageUrl(productItem);
+    if (imageUrls) {
+      productItem.imageUrls = imageUrls;
+    }
+
+    if (videoUrl) {
+      productItem.videoUrl = videoUrl;
+    }
+
+    return productItem;
+  });
+
+  const categories = Array.from(categoryHierarchy);
+  categories.sort((current,
+    nextCategory) => current[1].key - nextCategory[1].key);
+
+  const results = await Promise.all([
+    importColors(allColorsToImport, errorHandler),
+    importBrands(brands, errorHandler),
+    importCategories(categoryHierarchy, errorHandler),
+    importSizes(sizeTableTypes, errorHandler),
+  ]);
+
+  const { newColors = [] } = results[0];
+  const { newBrands = [], allBrands } = results[1];
+  const { newCategories = [], allCategories } = results[2];
+  const { newSizes = [] } = results[3];
+
+  const jsonData = [productsToSave, allCategories, allBrands, errorHandler];
+
+  const { newProducts = [] } = await importProducts(...jsonData);
+  const { newSizeTables = [] } = await importSizeTables(productsToSave, errorHandler);
+  const { newQuantity = [] } = await importQuantity(productsToSave, errorHandler);
+
+  return {
+    newColors,
+    newBrands,
+    newCategories,
+    newSizes,
+    newProducts,
+    newSizeTables,
+    newQuantity,
+  };
+};
+
+const clearData = () => Promise.all([
+  Product.deleteMany({}),
+  Brand.deleteMany({}),
+  Color.deleteMany({}),
+  Category.deleteMany({}),
+  Size.deleteMany({}),
+  SizeTable.deleteMany({}),
+  Quantity.deleteMany({}),
+  WishList.deleteMany({}),
+  ShopCart.deleteMany({}),
+]);
+
+const importData = async (req, res, next) => {
+  const filePath = req.file ? req.file.path : null;
+
+  if (!filePath) {
+    return res.status(400)
+      .json({
+        message: 'import data error: json file is required',
+      });
+  }
+
+  try {
+    if (config.clearDataBeforeImport) {
+      await clearData();
+    }
+
+    const { products, error } = getImportedProductData(filePath);
+
+    if (error) {
+      return res.status(400).json({
+        message: `import data error: ${error.message}`,
+      });
+    }
+
+    if (!products.length) {
+      return res.status(400).json({
+        message: 'import data error: empty json file',
+      });
+    }
+
+    try {
+      const importResults = await runImport(products);
+      const {
+        newBrands, newColors,
+        newCategories, newProducts,
+        newSizes, newSizeTables,
+        newQuantity,
+      } = importResults;
+
+      return res.status(200).json({
+        'added new brands': newBrands.length,
+        'added new colors': newColors.length,
+        'added new categories': newCategories.length,
+        'added new products': newProducts.length,
+        'added new sizes': newSizes.length,
+        'added new sizeTables': newSizeTables.length,
+        'added new quantity data': newQuantity.length,
+      });
+    } catch (e) {
+      log(e.message);
+      next(e);
+      return res.status(400).json({
+        message: `import data error: ${e.message}`,
+      });
+    }
+  } catch (e) {
+    log(e.message);
+    next(e);
+    return res.status(400).json({
+      message: `import data error: ${e.message}`,
+    });
+  }
+};
+
+export const initialImport = async (filePath) => {
+  if (!filePath) {
+    throw new Error('empty filePath for initial import');
+  }
+
+  if (config.clearDataBeforeImport) {
+    await clearData();
+  }
+
+  const { products, error } = getImportedProductData(filePath);
+
+  if (error) {
+    throw new Error(`import data error: ${error.message}`);
+  }
+
+  if (!products.length) {
+    throw new Error('import data error: empty json file');
+  }
+
+  try {
+    const importResults = await runImport(products);
+    const {
+      newBrands, newColors,
+      newCategories, newProducts,
+      newSizes, newSizeTables,
+      newQuantity,
+    } = importResults;
+
+    log(JSON.stringify({
+      'added new brands': newBrands.length,
+      'added new colors': newColors.length,
+      'added new categories': newCategories.length,
+      'added new products': newProducts.length,
+      'added new sizes': newSizes.length,
+      'added new sizeTables': newSizeTables.length,
+      'added new quantity data': newQuantity.length,
+    }));
+  } catch (e) {
+    log(`import data error: ${e.message}`);
+  }
+};
+
+export default importData;

@@ -1,40 +1,51 @@
 import express from 'express';
 
-import {
-    addCategory,
-    deleteAllCategories,
-    deleteCategoryById,
-    getAllCategories,
-    getCategoryById,
-    updateCategoryById
-} from '../../controllers/categoryController';
 import passport from 'passport';
+import {
+  addCategory,
+  deleteAllCategories,
+  deleteCategoryById,
+  getAllCategories,
+  getCategoryById,
+  updateCategoryById,
+} from '../../controllers/categoryController';
 import uploadAWS from '../../uploading/uploadAWS';
+import config from '../../config/index';
+
+const { options } = config.expressRoutes;
 
 const router = express.Router();
 
-//create
+// create
 router.put('/',
-    passport.authenticate('jwt-admin', {session: false}),
+  [
+    passport.authenticate('jwt-admin', options),
     uploadAWS.single('category-image'),
-    addCategory);
+    addCategory,
+  ]);
 
-//read
+// read
 router.get('/', getAllCategories);
 router.get('/:id', getCategoryById);
 
-//update
+// update
 router.post('/:id',
-    passport.authenticate('jwt-admin', {session: false}),
+  [
+    passport.authenticate('jwt-admin', options),
     uploadAWS.single('category-image'),
-    updateCategoryById);
+    updateCategoryById,
+  ]);
 
-//delete
+// delete
 router.delete('/:id',
-    passport.authenticate('jwt-admin', {session: false}),
-    deleteCategoryById);
+  [
+    passport.authenticate('jwt-admin', options),
+    deleteCategoryById,
+  ]);
 router.delete('/',
-    passport.authenticate('jwt-admin', {session: false}),
-    deleteAllCategories);
+  [
+    passport.authenticate('jwt-admin', options),
+    deleteAllCategories,
+  ]);
 
 export default router;

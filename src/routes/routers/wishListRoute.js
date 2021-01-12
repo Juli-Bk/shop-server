@@ -1,35 +1,45 @@
 import express from 'express';
 
-import {
-    addProductToWishList,
-    deleteAllWishes,
-    deleteProductFromWishlist,
-    getAllWishListData,
-    getUserWishes
-} from '../../controllers/wishListController';
 import passport from 'passport';
+import {
+  addProductToWishList,
+  deleteAllWishes,
+  deleteProductFromWishlist,
+  getAllWishListData,
+  getUserWishes,
+} from '../../controllers/wishListController';
+import config from '../../config/index';
 
+const { options } = config.expressRoutes;
 const router = express.Router();
 
-//create
+// create
 router.put('/',
-    passport.authenticate('jwt', {session: false}),
-    addProductToWishList);
+  [
+    passport.authenticate('jwt', options),
+    addProductToWishList,
+  ]);
 
-//read
+// read
 router.get('/',
-    passport.authenticate('jwt-admin', {session: false}),
-    getAllWishListData);
+  [
+    passport.authenticate('jwt-admin', options),
+    getAllWishListData,
+  ]);
 router.get('/:id', getUserWishes);
 
-//update
+// update
 router.delete('/:id',
-    passport.authenticate('jwt', {session: false}),
-    deleteProductFromWishlist);
+  [
+    passport.authenticate('jwt', options),
+    deleteProductFromWishlist,
+  ]);
 
-//delete
+// delete
 router.delete('/',
-    passport.authenticate('jwt-admin', {session: false}),
-    deleteAllWishes);
+  [
+    passport.authenticate('jwt-admin', options),
+    deleteAllWishes,
+  ]);
 
 export default router;

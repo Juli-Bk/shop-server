@@ -1,46 +1,60 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 
-import {
-    placeOrder,
-    deleteAllOrders,
-    deleteOrderById,
-    getAllOrders,
-    getUserOrders,
-    cancelOrder,
-    updateOrderById,
-    updateOrderPaymentStatus
-} from '../../controllers/orderController';
 import passport from 'passport';
+import {
+  placeOrder,
+  deleteAllOrders,
+  deleteOrderById,
+  getAllOrders,
+  getUserOrders,
+  cancelOrder,
+  updateOrderById,
+  updateOrderPaymentStatus,
+} from '../../controllers/orderController';
+import config from '../../config/index';
 
+const { options } = config.expressRoutes;
 const router = express.Router();
 
-//create
+// create
 router.put('/', placeOrder);
 
-//read
+// read
 router.get('/',
-    passport.authenticate('jwt-admin', {session: false}),
-    getAllOrders);
+  [
+    passport.authenticate('jwt-admin', options),
+    getAllOrders,
+  ]);
 router.get('/:id',
-    passport.authenticate('jwt', {session: false}),
-    getUserOrders);
+  [
+    passport.authenticate('jwt', options),
+    getUserOrders,
+  ]);
 
-//update
+// update
 router.post('/cancel/:id', cancelOrder);
 
 // application/x-www-form-urlencoded parser
-const urlencodedParser = bodyParser.urlencoded({ extended: false })
-router.post('/liqpay/order-payment', urlencodedParser, updateOrderPaymentStatus);
+const urlencodedParser = bodyParser.urlencoded({ extended: false });
+router.post('/liqpay/order-payment',
+  [
+    urlencodedParser,
+    updateOrderPaymentStatus,
+  ]);
 
 router.post('/:id', updateOrderById);
 
-//delete
+// delete
 router.delete('/',
-    passport.authenticate('jwt-admin', {session: false}),
-    deleteAllOrders);
+  [
+    passport.authenticate('jwt-admin', options),
+    deleteAllOrders,
+  ]);
 router.delete('/:id',
-    passport.authenticate('jwt', {session: false}),
-    deleteOrderById);
+  [
+    passport.authenticate('jwt', options),
+    deleteOrderById,
+  ]);
 
 export default router;

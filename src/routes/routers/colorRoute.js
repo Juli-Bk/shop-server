@@ -1,37 +1,48 @@
 import express from 'express';
 
-import {
-    addColor,
-    getAllColors,
-    getColorById,
-    deleteAllColors,
-    deleteColorById,
-    updateColorById
-} from '../../controllers/colorController';
 import passport from 'passport';
+import {
+  addColor,
+  getAllColors,
+  getColorById,
+  deleteAllColors,
+  deleteColorById,
+  updateColorById,
+} from '../../controllers/colorController';
+import config from '../../config';
+
+const { options } = config.expressRoutes;
 
 const router = express.Router();
 
-//create
+// create
 router.put('/',
-    passport.authenticate('jwt-admin', {session: false}),
-    addColor);
+  [
+    passport.authenticate('jwt-admin', options),
+    addColor,
+  ]);
 
-//read
+// read
 router.get('/', getAllColors);
 router.get('/:id', getColorById);
 
-//update
+// update
 router.post('/:id',
-    passport.authenticate('jwt-admin', {session: false}),
-    updateColorById);
+  [
+    passport.authenticate('jwt-admin', options),
+    updateColorById,
+  ]);
 
-//delete
+// delete
 router.delete('/:id',
-    passport.authenticate('jwt-admin', {session: false}),
-    deleteColorById);
+  [
+    passport.authenticate('jwt-admin', options),
+    deleteColorById,
+  ]);
 router.delete('/',
-    passport.authenticate('jwt-admin', {session: false}),
-    deleteAllColors);
+  [
+    passport.authenticate('jwt-admin', options),
+    deleteAllColors,
+  ]);
 
 export default router;

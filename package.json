@@ -13,12 +13,12 @@
     "start:dev": "npm run eslint && nodemon .",
     "start:prod": "nodemon port=PORT .",
     "start:debug": "npm run eslint && nodemon port=PORT --inspect-brk .",
-    "eslint": "eslint \"src/**/*.js\"",
+    "eslint": "eslint \"src/**/*.js\" index.js",
     "eslint-fix": "eslint --fix \"src/**/*.js\""
   },
   "license": "ISC",
   "dependencies": {
-    "@babel/cli": "^7.6.2",
+    "@babel/cli": "^7.12.10",
     "@babel/core": "^7.9.6",
     "@babel/node": "^7.8.7",
     "@babel/preset-env": "^7.9.6",
@@ -52,8 +52,12 @@
     "webp-converter": "^2.2.3"
   },
   "devDependencies": {
-    "eslint": "^6.8.0",
-    "eslint-plugin-node": "^11.1.0"
+    "@types/mongoose": "^5.10.3",
+    "eslint": "^7.9.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1"
   },
   "engines": {
     "node": ">=8.10.0"

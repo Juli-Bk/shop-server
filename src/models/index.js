@@ -5,21 +5,21 @@ import SizeTable from './schemas/SizeTable';
 import Size from './schemas/Size';
 import Product from './schemas/Product';
 import User from './schemas/User';
-import WishList from "./schemas/WishList";
-import ShopCart from "./schemas/ShopCart";
-import Order from "./schemas/Order";
-import RefreshToken from "./schemas/RefreshToken";
+import WishList from './schemas/WishList';
+import ShopCart from './schemas/ShopCart';
+import Order from './schemas/Order';
+import RefreshToken from './schemas/RefreshToken';
 
 export default {
-    Category,
-    Brand,
-    Product,
-    Size,
-    SizeTable,
-    Quantity,
-    User,
-    WishList,
-    ShopCart,
-    Order,
-    RefreshToken
+  Category,
+  Brand,
+  Product,
+  Size,
+  SizeTable,
+  Quantity,
+  User,
+  WishList,
+  ShopCart,
+  Order,
+  RefreshToken,
 };

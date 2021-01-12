@@ -1,147 +1,121 @@
 import Size from '../models/schemas/Size';
-import {log} from '../helpers/helper';
-import moment from 'moment';
+import { log, getFormattedCurrentDate } from '../helpers/helper';
 
-export const addSize = (req, res, next) => {
-    const data = {
-        ...req.body,
-        createdDate: moment.utc().format('MM-DD-YYYY')
-    };
+export const addSize = async (req, res) => {
+  const data = {
+    ...req.body,
+    createdDate: getFormattedCurrentDate(),
+  };
 
-    const newItem = new Size(data);
-    newItem
-        .save()
-        .then(item => res
-            .status(200)
-            .json({
-                message: 'success',
-                item,
-            }),
-        )
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `New Size adding error: ${error}`,
-                    });
-                next(error);
-            },
-        );
+  try {
+    const item = await new Size(data).save();
+    return res.status(200).json({
+      message: 'success',
+      item,
+    });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `New Size adding error: ${error}`,
+    });
+  }
 };
 
-export const getAllSizes = (req, res, next) => {
-    Size
-        .find({}, {_id: 1, name: 1, sizeType: 1})
-        .lean()
-        .then(items => res.status(200).json({
-            count: items.length,
-            items,
-        }))
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `Getting Sizes list error: ${error}`,
-                    });
-                next(error);
-            },
-        );
+export const getAllSizes = async (req, res) => {
+  try {
+    const items = await Size.find({}, { _id: 1, name: 1, sizeType: 1 }).lean();
+    return res.status(200).json({
+      count: items.length,
+      items,
+    });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `Getting Sizes list error: ${error}`,
+    });
+  }
 };
 
-export const getSizeById = (req, res, next) => {
-    const id = req.params.id;
+export const getSizeById = async (req, res) => {
+  const { id } = req.params;
 
-    Size
-        .findById(id, {_id: 1, name: 1, sizeType: 1})
-        .lean()
-        .then(item => {
-            if (!item) {
-                res.status(400)
-                    .json({
-                        message: `Size with id ${id} is not found`,
-                    });
-            } else {
-                res.status(200).json(item);
-            }
-        })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `Error happened on server: "${error}" `,
-                    });
-                log(error);
-                next(error);
-            },
-        );
+  try {
+    const item = await Size.findById(id, { _id: 1, name: 1, sizeType: 1 }).lean();
+    if (!item) {
+      return res.status(400).json({
+        message: `Size with id ${id} is not found`,
+      });
+    }
+
+    return res.status(200).json(item);
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `Error happened on server: "${error}" `,
+    });
+  }
 };
 
-export const updateSizeById = (req, res, next) => {
-    const id = req.params.id;
+export const updateSizeById = async (req, res) => {
+  const { id } = req.params;
+  const data = {
+    ...req.body,
+    updatedDate: getFormattedCurrentDate(),
+  };
 
-    Size.findByIdAndUpdate(
-        //filter
-        id,
-        //what we update
-        {$set: {...req.body, updatedDate: moment.utc().format('MM-DD-YYYY')}},
-        //options. returns new updated data
-        {new: true, runValidators: true},
-    )
-        .then(item => {
-            if (!item) {
-                res.status(200).json({
-                    message: `Size with id ${id} is not found`,
-                });
-            } else {
-                res.status(200).json(item);
-            }
-        })
-        .catch(err => {
-                res.status(400).json({
-                    message: `Error happened on server: "${err}" `,
-                });
-                next(err);
-            },
-        );
+  try {
+    const item = await Size.findByIdAndUpdate(
+      id,
+      { $set: data },
+      { new: true, runValidators: true },
+    );
+
+    if (!item) {
+      return res.status(200).json({
+        message: `Size with id ${id} is not found`,
+      });
+    }
+
+    return res.status(200).json(item);
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `Error happened on server: "${error}" `,
+    });
+  }
 };
 
-export const deleteSizeById = (req, res, next) => {
-    const id = req.params.id;
-    Size.findByIdAndRemove(id)
-        .then((item) => {
-            if (!item) {
-                res.status(200).json({
-                    message: `Size with id ${id} is not found`,
-                });
-            } else {
-                res.status(200)
-                    .json({
-                        message: `Size with id ${req.params.id} is deleted`,
-                    });
-            }
-        })
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `delete Size error: "${error.message}" `,
-                    });
-                log(error);
-                next(error);
-            },
-        );
+export const deleteSizeById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const item = await Size.findByIdAndRemove(id).lean();
+    if (!item) {
+      return res.status(200).json({
+        message: `Size with id ${id} is not found`,
+      });
+    }
+
+    return res.status(200).json({
+      message: `Size with id ${req.params.id} is deleted`,
+    });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `delete Size error: "${error.message}" `,
+    });
+  }
 };
 
-export const deleteAllSizes = (req, res, next) => {
-    Size.deleteMany({})
-        .then(() => res.status(200)
-            .json({
-                message: 'all Sizes are deleted',
-            }),
-        )
-        .catch(error => {
-                res.status(400)
-                    .json({
-                        message: `delete Size list error "${error.message}" `,
-                    });
-                log(error);
-                next(error);
-            },
-        );
+export const deleteAllSizes = async (req, res) => {
+  try {
+    await Size.deleteMany({});
+    return res.status(200).json({
+      message: 'all Sizes are deleted',
+    });
+  } catch (error) {
+    log(error);
+    return res.status(400).json({
+      message: `delete Size list error "${error.message}" `,
+    });
+  }
 };

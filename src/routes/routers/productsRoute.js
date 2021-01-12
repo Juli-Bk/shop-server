@@ -1,47 +1,56 @@
 import express from 'express';
 
+import passport from 'passport';
 import {
-    addProduct,
-    deleteAllProducts,
-    deleteProductById,
-    getAllProducts,
-    getProductById,
-    getProductsByFilterParams,
-    searchProducts,
-    updateProductById,
-    getMaxPrice
+  addProduct,
+  deleteAllProducts,
+  deleteProductById,
+  getAllProducts,
+  getProductById,
+  getProductsByFilterParams,
+  searchProducts,
+  updateProductById,
+  getMaxPrice,
 } from '../../controllers/productController';
 
-import passport from 'passport';
 import uploadAWS from '../../uploading/uploadAWS';
+import config from '../../config/index';
 
+const { options } = config.expressRoutes;
 const router = express.Router();
 
-//create
+// create
 router.put('/',
-    passport.authenticate('jwt-admin', {session: false}),
+  [
+    passport.authenticate('jwt-admin', options),
     uploadAWS.array('product-images'),
-    addProduct);
+    addProduct,
+  ]);
 
-//read
+// read
 router.get('/', getAllProducts);
 router.get('/max', getMaxPrice);
 router.get('/filter', getProductsByFilterParams);
 router.post('/search', searchProducts);
 router.get('/:id', getProductById);
 
-//update
+// update
 router.post('/:id',
-    passport.authenticate('jwt-admin', {session: false}),
+  [
+    passport.authenticate('jwt-admin', options),
     uploadAWS.array('product-images'),
-    updateProductById);
+    updateProductById,
+  ]);
 
-//delete
+// delete
 router.delete('/:id',
-    passport.authenticate('jwt-admin', {session: false}),
-    deleteProductById);
+  [
+    passport.authenticate('jwt-admin', options),
+    deleteProductById,
+  ]);
 router.delete('/',
-    passport.authenticate('jwt-admin', {session: false}),
-    deleteAllProducts);
+  [passport.authenticate('jwt-admin', options),
+    deleteAllProducts,
+  ]);
 
 export default router;
