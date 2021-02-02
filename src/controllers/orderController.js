@@ -12,10 +12,19 @@ const checkIsInStock = async (products) => {
   const isInStock = { error: false };
 
   const queries = products.map(async (product) => {
-    const { quantity, productId } = product;
+    const {
+      quantity, productId, sizeId, colorId,
+    } = product;
+
+    if (!quantity) {
+      throw new Error(`placing order: for product${productId} with size
+       ${sizeId} and color ${colorId} quantity is required`);
+    }
 
     const conditions = {
-      ...product,
+      productId,
+      sizeId,
+      colorId,
       quantity: {
         $gt: 0,
       },
@@ -95,11 +104,17 @@ export const placeOrder = async (req, res) => {
   data.totalSum = await getOrderTotalSum(data.products);
 
   data.createdDate = getFormattedCurrentDate();
-  const inStock = await checkIsInStock(data.products);
+  try {
+    const inStock = await checkIsInStock(data.products);
 
-  if (inStock.error) {
+    if (inStock.error) {
+      return res.status(400).json({
+        message: inStock.errorMessage,
+      });
+    }
+  } catch (e) {
     return res.status(400).json({
-      message: inStock.errorMessage,
+      message: e.message,
     });
   }
 
