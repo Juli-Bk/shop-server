@@ -322,7 +322,7 @@ export const getProductsByFilterParams = async (req, res) => {
 
   if ('_id' in req.query) {
     const { _id } = req.query;
-    const ids = _id.split(',');
+    const ids = _id.split(',').filter((x) => validateObjectId(x));
     if (ids.length >= 2) {
       const { isInvalid, invalidId } = await checkFilters(ids);
 
