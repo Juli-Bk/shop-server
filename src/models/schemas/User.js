@@ -5,16 +5,20 @@ import moment from 'moment';
 import validationRules from '../../config/validation';
 import schemaOptions from '../schemaOptions';
 
+function setFirstToUpperCase(value) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 const UserSchema = new Schema({
   firstName: {
     type: String,
-    lowercase: true,
     trim: true,
+    set: setFirstToUpperCase,
   },
   lastName: {
     type: String,
-    lowercase: true,
     trim: true,
+    set: setFirstToUpperCase,
   },
   phoneNumber: {
     type: String,
@@ -34,7 +38,7 @@ const UserSchema = new Schema({
       validator(birthDate) {
         const bd = moment(birthDate);
         return bd.isValid()
-                        && (bd.format('MM-DD-YYYY') < moment.utc().format('MM-DD-YYYY'));
+            && (bd.format('MM-DD-YYYY') < moment.utc().format('MM-DD-YYYY'));
       },
 
       message: (props) => `${props.value} is not a valid!`,
@@ -117,8 +121,6 @@ const UserSchema = new Schema({
 },
 schemaOptions);
 
-UserSchema.index({ '$**': 'text' });
-
 // must be function declaration because of this inside
 // eslint-disable-next-line func-names
 UserSchema.methods.comparePassword = function (candidatePassword, cb) {
@@ -128,5 +130,7 @@ UserSchema.methods.comparePassword = function (candidatePassword, cb) {
     cb(null, isMatch);
   });
 };
+
+UserSchema.index({ '$**': 'text' });
 
 export default model('users', UserSchema);
