@@ -277,15 +277,7 @@ async function processColorAndSizeFilters(colorsFilter, sizesFilter) {
   return inStock;
 }
 
-const checkFilters = (filterArr) => filterArr.some((id) => {
-  let invalidId = '';
-  const isValid = validateObjectId(id.trim());
-  if (!isValid) {
-    invalidId = id;
-  }
-
-  return { isInvalid: !isValid, invalidId };
-});
+const checkFilters = (filterArr) => filterArr.find((id) => !validateObjectId(id.trim()));
 
 export const getProductsByFilterParams = async (req, res) => {
   const startTime = new Date();
@@ -320,38 +312,30 @@ export const getProductsByFilterParams = async (req, res) => {
     }
   }
 
-  if ('_id' in req.query) {
-    const { _id } = req.query;
-    const ids = _id.split(',').filter((x) => validateObjectId(x));
-    if (ids.length >= 1) {
-      const { isInvalid, invalidId } = await checkFilters(ids);
-
-      if (isInvalid) {
-        return res.status(400).json({
-          message: `invalid filter _id: ${invalidId}`,
-        });
-      }
-    } else if (!validateObjectId(_id)) {
-      return res.status(400).json({
-        message: `invalid _id filter: ${_id}`,
-      });
-    }
-  }
-
   const inStock = await processColorAndSizeFilters(colorsFilter, sizesFilter);
 
   const filterArr = Array.from(inStock);
   if (filterArr.length > 0) {
-    const { isInvalid, invalidId } = await checkFilters(filterArr);
+    const invalidId = checkFilters(filterArr);
 
-    if (isInvalid) {
+    if (invalidId) {
       return res.status(400).json({
-        message: `invalid filters: "${invalidId}" `,
+        message: `invalid filters: ${invalidId}`,
       });
     }
 
     if ('_id' in req.query) {
-      req.query._id = `${req.query._id},${filterArr.join(',')}`;
+      const { _id } = req.query;
+      const ids = _id.split(',');
+      const invId = checkFilters(ids);
+      if (invId) {
+        return res.status(400).json({
+          message: `invalid _id filters: ${invId}`,
+        });
+      }
+
+      const idFilters = ids.concat(filterArr);
+      req.query._id = idFilters.join(',');
     } else {
       req.query._id = filterArr.join(',');
     }
