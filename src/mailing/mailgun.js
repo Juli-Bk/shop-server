@@ -11,6 +11,7 @@ const fromVigo = `${config.mail_user_name} <${config.mail_from}>`;
 const mailgun = mailgunjs({
   apiKey: config.mail_api_key,
   domain: config.mail_domain,
+  host: 'api.eu.mailgun.net',
 });
 
 const emailSendingHandler = (error, body, callback) => {

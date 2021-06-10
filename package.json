@@ -12,9 +12,9 @@
     "start": "if-env NODE_ENV=production ?? npm run start:prod || npm run start:dev",
     "start:dev": "npm run eslint && nodemon .",
     "start:prod": "nodemon port=PORT .",
-    "start:debug": "npm run eslint && nodemon port=PORT --inspect-brk .",
-    "eslint": "eslint \"src/**/*.js\" index.js",
-    "eslint-fix": "eslint --fix \"src/**/*.js\""
+    "start:debug": "npm run eslint && nodemon port=PORT --inspect .",
+    "eslint": "eslint \"src/**/*.js\" .",
+    "eslint-fix": "eslint --fix \"src/**/*.js\" ."
   },
   "license": "ISC",
   "dependencies": {
