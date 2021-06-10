@@ -21,14 +21,25 @@ const checkIsInStock = async (products) => {
        ${sizeId} and color ${colorId} quantity is required`);
     }
 
-    const conditions = {
+    let conditions = {
       productId,
-      sizeId,
-      colorId,
       quantity: {
         $gt: 0,
       },
     };
+    if (colorId) {
+      conditions = {
+        ...conditions,
+        colorId,
+      };
+    }
+
+    if (sizeId) {
+      conditions = {
+        ...conditions,
+        sizeId,
+      };
+    }
     const stock = await Quantity.find(conditions);
 
     const rez = {};
@@ -96,9 +107,12 @@ export const placeOrder = async (req, res) => {
   } else if (!data.email) {
     const fieldsToSelect = ['email', 'phoneNumber', 'firstName', 'lastName'];
     const user = await User.findById(data.userId, fieldsToSelect).lean();
-    data.email = user.email;
-    data.phoneNumber = user.phoneNumber;
-    data.userName = `${user.firstName} ${user.lastName}`;
+    const {
+      firstName = 'empty', lastName = 'empty', phoneNumber, email,
+    } = user;
+    data.email = email;
+    data.phoneNumber = phoneNumber;
+    data.userName = `${firstName} ${lastName}`;
   }
 
   data.totalSum = await getOrderTotalSum(data.products);
