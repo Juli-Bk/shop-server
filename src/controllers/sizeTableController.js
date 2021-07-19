@@ -1,15 +1,15 @@
 import SizeTable from '../models/schemas/SizeTable';
-import { log, getFormattedCurrentDate } from '../helpers/helper';
+import { log, getFormattedCurrentUTCDate } from '../helpers/helper';
 import { validateObjectId } from '../helpers/filterParamsHelper';
 
 export const addSizeTable = async (req, res) => {
   const data = {
     ...req.body,
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
   };
 
   try {
-    const item = new SizeTable(data).save();
+    const item = await new SizeTable(data).save();
     return res.status(200).json({
       message: 'success',
       item,
@@ -25,7 +25,6 @@ export const addSizeTable = async (req, res) => {
 export const getAllSizeTables = async (req, res) => {
   try {
     const items = await SizeTable.find().lean();
-    log(`total size table count: ${items.length}`);
     return res.status(200).send(items);
   } catch (error) {
     log(error.message);
@@ -99,7 +98,7 @@ export const updateSizeTableById = async (req, res) => {
   const { id } = req.params;
   const data = {
     ...req.body,
-    updatedDate: getFormattedCurrentDate(),
+    updatedDate: getFormattedCurrentUTCDate(),
   };
   try {
     const item = await SizeTable.findByIdAndUpdate(

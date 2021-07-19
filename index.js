@@ -22,6 +22,7 @@ const startServer = async () => {
       throw new Error(err.message);
     }
 
+    log(`running: ${config.environment} environment`);
     log(`🛡  Server is listening: ${os.hostname()} 🏆  on port: ${config.port}`);
     log(`🛡  environment: ${config.environment}`);
   });
@@ -42,7 +43,7 @@ mongoose.connection.once('open', async () => {
 
   if (config.initial_import) {
     log('🚀🚀🚀  Initial data import performing ...');
-    await initialImport('public/product.json');
+    await initialImport('postman/product.json');
   }
 
   await startServer();
@@ -64,9 +65,12 @@ if (config.mongoDebugMode) {
 }
 
 process.once('uncaughtException', (error) => {
-  log(`💥💥💥 ${error.message}`);
+  log('uncaughtException: 💥💥💥');
+
+  log(error.message);
+  log(error.stack);
 
   // force exit process anyway
   // eslint-disable-next-line no-process-exit
-  process.exit(1);
+  process.exit(0);
 });

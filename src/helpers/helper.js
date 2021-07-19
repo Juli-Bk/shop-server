@@ -11,7 +11,8 @@ export const getRandomInt = (min, max) => Math.round(Math.random() * (max - min)
 
 export const isObject = (value) => value !== null && typeof value === 'object';
 
-export const getFormattedCurrentDate = () => moment.utc().format('MM-DD-YYYY');
+export const getFormattedCurrentUTCDate = () => moment.utc().format('MM-DD-YYYY');
+export const getFormattedCurrentUTCDateTime = () => moment.utc().format();
 
 export const log = (msg) => {
   if (isObject(msg)) {

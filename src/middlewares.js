@@ -11,7 +11,7 @@ import { log } from './helpers/helper';
 const addMiddlewares = (app) => {
   if (config.allowCors) {
     // allows cors from only few addresses:
-    const whitelist = [config.baseAddress];
+    const whitelist = [config.clientBaseAddress, config.serverBaseAddress];
 
     app.use(cors({
       origin: (origin, callback) => {

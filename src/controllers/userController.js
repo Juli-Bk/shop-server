@@ -5,7 +5,7 @@ import validator from 'validator';
 import { promisify } from 'util';
 import User from '../models/schemas/User';
 import RefreshToken from '../models/schemas/RefreshToken';
-import { log, getFormattedCurrentDate } from '../helpers/helper';
+import { log, getFormattedCurrentUTCDate } from '../helpers/helper';
 import signUpRecover from '../auth/authJWTRecover';
 import signUp from '../auth/authJWT';
 import { getTokenFromCookie, getRefreshTokenFromCookie } from '../auth/jwt';
@@ -57,7 +57,7 @@ export const createUser = async (req, res) => {
       }
     }
 
-    data.createdDate = getFormattedCurrentDate();
+    data.createdDate = getFormattedCurrentUTCDate();
     const newCustomer = new User({
       email: email && email.trim(),
       login: login && login.trim(),
@@ -241,8 +241,7 @@ export const sendConfirmEmailLetter = (req, res) => {
 
 export const sendRecovery = async (req, res) => {
   const { email } = req.query;
-  const { fingerprint } = req.query;
-  const token = signUpRecover({ email }, fingerprint);
+  const token = signUpRecover({ email }, config.secret);
 
   try {
     const user = await User.findOne({ email });
@@ -292,7 +291,7 @@ export const recoverPassword = async (req, res) => {
     if (user) {
       const salt = await promisify(bcrypt.genSalt)(10);
       user.password = await promisify(bcrypt.hash)(newPassword, salt);
-      user.updatedDate = getFormattedCurrentDate();
+      user.updatedDate = getFormattedCurrentUTCDate();
       await user.save();
       return res.status(200).json({ message: 'success recovery' });
     }
@@ -317,11 +316,11 @@ export const updateUserInfo = async (req, res) => {
     });
   }
 
-  const filePath = req.file ? req.file.path : null;
+  const filePath = req.file ? req.file.path || req.file.location : null;
 
   const data = {
     ...req.body,
-    updatedDate: getFormattedCurrentDate(),
+    updatedDate: getFormattedCurrentUTCDate(),
     avatarUrl: filePath,
   };
 
@@ -417,7 +416,7 @@ export const loginUser = async (req, res) => {
           // save exp dateTime in ms in DB
           exp: Number(moment().add(refTokenExpiresInMS, 'ms')),
           userId: user._id,
-          createdDate: getFormattedCurrentDate(),
+          createdDate: getFormattedCurrentUTCDate(),
         }).save();
 
         return res.status(200)
@@ -444,7 +443,7 @@ export const loginUser = async (req, res) => {
         token: newRefreshToken,
         exp: Number(moment().add(refTokenExpiresInMS, 'ms')), // save exp dateTime in ms in DB
         userId: user._id,
-        createdDate: getFormattedCurrentDate(),
+        createdDate: getFormattedCurrentUTCDate(),
       }).save();
 
       return res.status(200)
@@ -479,7 +478,7 @@ export const loginUser = async (req, res) => {
 
 export const refreshToken = async (req, res) => {
   const prefix = config.tokenPrefix;
-  const refToken = getTokenFromCookie(req);
+  const refToken = getRefreshTokenFromCookie(req);
   if (!refToken) {
     return res.status(200).json({
       success: false,
@@ -604,7 +603,8 @@ export const logout = async (req, res) => {
 export const updatePassword = async (req, res) => {
   const data = req.body;
   let { newPassword } = data;
-  const { oldPassword, id } = data;
+  const { oldPassword } = data;
+  const { id } = req.user;
 
   if (!oldPassword || !newPassword) {
     return res.status(400).json({ message: 'newPassword, oldPassword are required' });
@@ -633,7 +633,7 @@ export const updatePassword = async (req, res) => {
     newPassword = await promisify(bcrypt.hash)(newPassword, salt);
 
     user.password = newPassword;
-    user.updatedDate = getFormattedCurrentDate();
+    user.updatedDate = getFormattedCurrentUTCDate();
     const updatedUser = await user.save();
     const { phoneNumber, email } = updatedUser;
 

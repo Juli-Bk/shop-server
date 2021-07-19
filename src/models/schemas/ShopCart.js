@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import validator from 'mongoose-id-validator';
 import autoPopulate from 'mongoose-autopopulate';
-import { getRandomItemId, getFormattedCurrentDate } from '../../helpers/helper';
+import { getRandomItemId, getFormattedCurrentUTCDate } from '../../helpers/helper';
 import schemaOptions from '../schemaOptions';
 
 const ShopCart = new mongoose.Schema({
@@ -11,7 +11,6 @@ const ShopCart = new mongoose.Schema({
   },
   anonymousId: {
     type: String,
-    default: getRandomItemId(),
   },
   products: [
     {
@@ -37,12 +36,20 @@ const ShopCart = new mongoose.Schema({
   ],
   createdDate: {
     type: Date,
-    default: getFormattedCurrentDate(),
+    default: getFormattedCurrentUTCDate(),
   },
 },
 schemaOptions);
 
+async function setAnonymousId(next) {
+  if (!this.userId) {
+    this.anonymousId = getRandomItemId();
+    next();
+  }
+}
+
 ShopCart.plugin(validator);
+ShopCart.pre('save', setAnonymousId);
 ShopCart.plugin(autoPopulate);
 
 export default mongoose.model('shopcarts', ShopCart);

@@ -1,12 +1,12 @@
 import Brand from '../models/schemas/Brand';
-import { log, getFormattedCurrentDate } from '../helpers/helper';
+import { log, getFormattedCurrentUTCDate } from '../helpers/helper';
 
 export const addBrand = async (req, res) => {
-  const filePath = req.file ? req.file.path : null;
+  const filePath = req.file ? req.file.path || req.file.location : null;
 
   const data = {
     ...req.body,
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
     imageUrl: filePath,
   };
 
@@ -62,11 +62,11 @@ export const getBrandById = async (req, res) => {
 export const updateBrandById = async (req, res) => {
   const { id } = req.params;
 
-  const filePath = req.file ? req.file.path : null;
+  const filePath = req.file ? req.file.path || req.file.location : null;
 
   const data = {
     ...req.body,
-    updatedDate: getFormattedCurrentDate(),
+    updatedDate: getFormattedCurrentUTCDate(),
     imageUrl: filePath,
   };
 

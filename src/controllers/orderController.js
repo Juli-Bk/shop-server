@@ -2,11 +2,12 @@ import moment from 'moment';
 import crypto from 'crypto';
 import Order from '../models/schemas/Order';
 import User from '../models/schemas/User';
-import { log, getFormattedCurrentDate } from '../helpers/helper';
+import { log, getFormattedCurrentUTCDate } from '../helpers/helper';
 import { sendOrderLetter } from '../mailing/mailgun';
 import config from '../config/index';
 import Quantity from '../models/schemas/Quantity';
 import Product from '../models/schemas/Product';
+import { validateObjectId } from '../helpers/filterParamsHelper';
 
 const checkIsInStock = async (products) => {
   const isInStock = { error: false };
@@ -96,29 +97,35 @@ export const placeOrder = async (req, res) => {
     });
   }
 
-  if (!data.userId) {
-    data.orderAsGuest = true;
-
-    if (!data.email) {
-      return res.status(400).json({
-        message: 'error: email is required',
-      });
-    }
-  } else if (!data.email) {
-    const fieldsToSelect = ['email', 'phoneNumber', 'firstName', 'lastName'];
-    const user = await User.findById(data.userId, fieldsToSelect).lean();
-    const {
-      firstName = 'empty', lastName = 'empty', phoneNumber, email,
-    } = user;
-    data.email = email;
-    data.phoneNumber = phoneNumber;
-    data.userName = `${firstName} ${lastName}`;
-  }
-
-  data.totalSum = await getOrderTotalSum(data.products);
-
-  data.createdDate = getFormattedCurrentDate();
   try {
+    if (!data.userId) {
+      data.orderAsGuest = true;
+
+      if (!data.email) {
+        return res.status(400).json({
+          message: 'error: email is required',
+        });
+      }
+    } else if (!data.email) {
+      const fieldsToSelect = ['email', 'phoneNumber', 'firstName', 'lastName'];
+      if (!validateObjectId(data.userId)) {
+        return res.status(400).json({
+          message: 'error: userId is invalid',
+        });
+      }
+      const user = await User.findById(data.userId, fieldsToSelect).lean();
+      const {
+        firstName = 'empty', lastName = 'empty', phoneNumber, email,
+      } = user;
+      data.email = email;
+      data.phoneNumber = phoneNumber;
+      data.userName = `${firstName} ${lastName}`;
+    }
+
+    data.totalSum = await getOrderTotalSum(data.products);
+
+    data.createdDate = getFormattedCurrentUTCDate();
+
     const inStock = await checkIsInStock(data.products);
 
     if (inStock.error) {
@@ -127,9 +134,8 @@ export const placeOrder = async (req, res) => {
       });
     }
   } catch (e) {
-    return res.status(400).json({
-      message: e.message,
-    });
+    const message = `Placing order error. 💥 ${e.message}`;
+    return res.status(400).json({ message });
   }
 
   try {
@@ -153,16 +159,10 @@ export const placeOrder = async (req, res) => {
 
     const mail = newOrder.email || email;
     sendOrderLetter(mail, orderData, (error, body) => {
-      let letterStatus = {
-        message: body,
-        error: false,
+      const letterStatus = {
+        message: error ? error.message : body,
+        error: !!error,
       };
-      if (error) {
-        letterStatus = {
-          message: error.message,
-          error: true,
-        };
-      }
 
       return res.status(200).json({
         message: 'Success operation. The order is placed',
@@ -170,7 +170,6 @@ export const placeOrder = async (req, res) => {
         newOrder,
       });
     });
-
     return '';
   } catch (e) {
     const message = `Placing order error. 💥 ${e.message}`;
@@ -191,7 +190,7 @@ export const getAllOrders = async (req, res) => {
 };
 
 export const getUserOrders = async (req, res) => {
-  const userId = req.params.id;
+  const userId = req.user.id;
 
   if (!userId) {
     return res.status(400).json({
@@ -222,7 +221,7 @@ export const cancelOrder = async (req, res) => {
     }
 
     order.canceled = true;
-    order.updatedDate = getFormattedCurrentDate();
+    order.updatedDate = getFormattedCurrentUTCDate();
     order.status = 'canceled';
     await order.save();
 
@@ -292,14 +291,14 @@ export const deleteAllOrders = async (req, res) => {
   }
 };
 
-const checkLickPaySignature = (data) => {
-  const privateKey = config.liqpay_private_key;
-  const signString = privateKey + data + privateKey;
+const checkLiqPaySignature = (data) => {
   const signatureFromReq = data.signature;
   if (!signatureFromReq) {
     return false;
   }
 
+  const privateKey = config.liqpay_private_key;
+  const signString = privateKey + data + privateKey;
   const sha1 = crypto.createHash('sha1');
   sha1.update(signString);
   const signature = sha1.digest('base64');
@@ -321,7 +320,7 @@ const getDecodedPaymentData = (data) => {
   return {
     orderId: secured.order_id,
     status: secured.status,
-    secured,
+    dataDecoded: secured,
   };
 };
 
@@ -334,7 +333,7 @@ export const updateOrderPaymentStatus = async (req, res) => {
     });
   }
 
-  if (checkLickPaySignature(liqPayment)) {
+  if (checkLiqPaySignature(liqPayment)) {
     return res.status(400).json({
       message: 'updateOrderPaymentStatus error: signature does not match',
     });

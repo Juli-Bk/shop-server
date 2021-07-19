@@ -1,0 +1,5387 @@
+{
+	"info": {
+		"_postman_id": "6007026a-798b-4f8b-ab42-6a9badf000df",
+		"name": "VigoShop",
+		"description": "Vigo server side REST API testing set",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "logoutAdmin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const runImport = pm.environment.get('runImport');",
+									"",
+									"if(!JSON.parse(runImport)) {",
+									"    postman.setNextRequest('PUT add new product');",
+									" }"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/users/logout/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"logout",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "loginAsAdmin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Cookie is present\", () => {",
+									"    pm.expect(pm.cookies.has('refreshToken')).to.be.true;",
+									"    pm.expect(pm.cookies.has('token')).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"login\": \"{{adminEmail}}\",\n\t\"password\": \"{{adminPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/users/login/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT import data",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiYW5uYS5seXBvdmVua29AZ21haWwuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkeC5sWWpsM0JoeVJWNlgyYjRqZDNsdUpUUzhqSmFkY2s2NGFsdU9Ma1E2N3o3MkxmOTUxN2kiLCJpZCI6IjVlY2U3MjZlZWY2OTg1MDAyNWQ3ZjFjYSIsImV4cCI6MTU5NDE3MTU3MiwiaWF0IjoxNTkxNDcxNTcyfQ.Ic7ayLwtUkYGITVhWVVZvCEOTOnv6eVebFRe_xj4V-s",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "products-json",
+									"contentType": "application/json",
+									"type": "file",
+									"src": "product.json"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/import-data/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"import-data",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT add new product",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsCategory = {",
+									"  'method': 'GET',",
+									"  'url': pm.environment.get(\"url\") + '/categories/'",
+									"};",
+									"",
+									"pm.sendRequest(optionsCategory, function (err, res) {",
+									"    if(err) {",
+									"        console.error(`${pm.info.requestName}`, err);",
+									"        throw err;",
+									"    }",
+									"    const categoryId = res.json().plainList[0]._id;",
+									"    console.log(\"selected categoryId\", categoryId);",
+									"    pm.environment.set(\"categoryId\", categoryId);",
+									"});",
+									"",
+									"",
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log(`${pm.info.requestName} - running request as admin`);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"try {",
+									"    const newPrData = pm.response.json();",
+									"    const productId = newPrData.product ? newPrData.product._id.toString(): null;",
+									"    console.log(`${pm.info.requestName} - new product id: ${productId}`);",
+									"    if(!productId) throw 'adding new product failed!';",
+									"    pm.environment.set(\"newProductId\", productId);",
+									"} catch(e){",
+									"    console.error('request error:', e.message);",
+									"}",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "product-images",
+									"contentType": "multipart/mixed",
+									"type": "file",
+									"src": [
+										"01_001.jpg",
+										"01_002.jpg",
+										"01_video.mp4"
+									]
+								},
+								{
+									"key": "name",
+									"value": "red skirt",
+									"type": "text"
+								},
+								{
+									"key": "price",
+									"value": "200",
+									"type": "text"
+								},
+								{
+									"key": "categoryId",
+									"value": "{{categoryId}}",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "woman red skirt clothing",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/products",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET product by Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/products/{{newProductId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"{{newProductId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST update product by Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log('running request as admin');",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"warning": "This is a duplicate header and will be overridden by the Content-Type header generated by Postman.",
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "manufacturedCountry",
+									"value": "manufacturedCountry",
+									"type": "text"
+								},
+								{
+									"key": "price",
+									"value": "300",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "red skirt UPDATED",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "red skirt UPDATED",
+									"type": "text"
+								},
+								{
+									"key": "product-images",
+									"type": "file",
+									"src": [
+										"01_001.jpg",
+										"01_002.jpg",
+										"01_video.mp4"
+									]
+								},
+								{
+									"key": "salePrice",
+									"value": "290",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/products/{{newProductId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"{{newProductId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE product by id",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvMUBnbWFpbC5jb20iLCJsb2dpbiI6IkFubmExIiwicGFzc3dvcmQiOiIkMmEkMTAkcFFuSlNRS2RFUWJTYXdwSEEuUkdMdVFQOTlYc2xZYkVObDAxUjAwMDRVVEV6dDRwTGZ5aVciLCJpZCI6IjVlYmMyYTQ0NDE4ZGNiNmZlYzI3YjlmNyIsImV4cCI6MTU5MjA5MDI5MiwiaWF0IjoxNTg5MzkwMjkyfQ.P8LQFGel_4emfT-skQEvruPFoXsSENv9Pvv-oqfGq68",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/products/{{newProductId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"{{newProductId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET products by filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/products/filter?perPage=2&color=silver,green&size=s,m",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"filter"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "4,gree",
+									"disabled": true
+								},
+								{
+									"key": "categoryId",
+									"value": "5fad3a919906fc5ae415fe2f",
+									"disabled": true
+								},
+								{
+									"key": "perPage",
+									"value": "2"
+								},
+								{
+									"key": "startPage",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "-name",
+									"disabled": true
+								},
+								{
+									"key": "isOnSale",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "color",
+									"value": "silver,green"
+								},
+								{
+									"key": "size",
+									"value": "s,m"
+								},
+								{
+									"key": "_id",
+									"value": "5fad3a999906fc5ae4160153,  5fad3a999906fc5ae4160153",
+									"disabled": true
+								},
+								{
+									"key": "new",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST search product query",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"query\":\"belted\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/products/search",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"search"
+							],
+							"query": [
+								{
+									"key": "Authorization",
+									"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET all products",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/products?perPage=10&startPage=2",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products"
+							],
+							"query": [
+								{
+									"key": "perPage",
+									"value": "10"
+								},
+								{
+									"key": "startPage",
+									"value": "2"
+								},
+								{
+									"key": "sort",
+									"value": "-name",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET product max price",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/products/max",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products",
+								"max"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "401",
+					"item": [
+						{
+							"name": "PUT add new Unauthorized",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const options = {",
+											"  'method': 'POST',",
+											"  'url': pm.environment.get(\"url\") + '/users/logout/'",
+											"};",
+											"",
+											"pm.sendRequest(options, function (err) {",
+											"    if(err) {",
+											"        console.error(err);",
+											"        throw err;",
+											"    }",
+											"    console.log(\"logged out\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "path",
+										"value": "category",
+										"type": "text",
+										"disabled": true
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"test\",\n    \"categoryBreadcrumbs\": \"women/\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/categories/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"categories",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete category",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const options = {",
+											"  'method': 'POST',",
+											"  'url': pm.environment.get(\"url\") + '/users/logout/'",
+											"};",
+											"",
+											"pm.sendRequest(options, function (err) {",
+											"    if(err) {",
+											"        console.error(err);",
+											"        throw err;",
+											"    }",
+											"    console.log(\"logged out\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "category-image",
+											"type": "file",
+											"src": "01_002.jpg"
+										},
+										{
+											"key": "name",
+											"value": "clothing updated",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{url}}/categories/{{newCategoryId}}",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"categories",
+										"{{newCategoryId}}"
+									],
+									"query": [
+										{
+											"key": "Authorization",
+											"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST update category",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const options = {",
+											"  'method': 'POST',",
+											"  'url': pm.environment.get(\"url\") + '/users/logout/'",
+											"};",
+											"",
+											"pm.sendRequest(options, function (err) {",
+											"    if(err) {",
+											"        console.error(err);",
+											"        throw err;",
+											"    }",
+											"    console.log(\"logged out\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "category-image",
+											"type": "file",
+											"src": "01_002.jpg"
+										},
+										{
+											"key": "name",
+											"value": "test1",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{url}}/categories/{{newCategoryId}}",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"categories",
+										"{{newCategoryId}}"
+									],
+									"query": [
+										{
+											"key": "Authorization",
+											"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "GET all categories",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "javascript"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/categories/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"categories",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT add new category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"try {",
+									"    const newPrData = pm.response.json();",
+									"    const categorytId = newPrData.category ? newPrData.category._id.toString(): null;",
+									"    console.log('new product id', categorytId);",
+									"",
+									"    pm.environment.set(\"newCategoryId\", categorytId);",
+									"} catch(e){",
+									"    console.error('request error:', e.message);",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log('running request as admin');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "path",
+								"value": "category",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"test\",\n    \"categoryBreadcrumbs\": \"women/\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/categories/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"categories",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET category by Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/categories/{{newCategoryId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"categories",
+								"{{newCategoryId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST update category by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category-image",
+									"contentType": "image/jpeg",
+									"type": "file",
+									"src": "01_001.jpg"
+								},
+								{
+									"key": "name",
+									"value": "test1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/categories/{{newCategoryId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"categories",
+								"{{newCategoryId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete category by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{url}}/categories/{{newCategoryId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"categories",
+								"{{newCategoryId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Brand",
+			"item": [
+				{
+					"name": "GET all brands",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/brands/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"brands",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "loginAsAdmin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Cookie is present\", () => {",
+									"    pm.expect(pm.cookies.has('refreshToken')).to.be.true;",
+									"    pm.expect(pm.cookies.has('token')).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"login\": \"{{adminEmail}}\",\n\t\"password\": \"{{adminPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/users/login/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT add new brand",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"try {",
+									"    const newBrandData = pm.response.json();",
+									"    const brandtId = newBrandData.newBrand ? newBrandData.newBrand._id.toString(): null;",
+									"    console.log('new brand id', brandtId);",
+									"",
+									"    pm.environment.set(\"newBrandId\", brandtId);",
+									"} catch(e){",
+									"    console.error('request error:', e.message);",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "test",
+									"type": "text"
+								},
+								{
+									"key": "brand-image",
+									"type": "file",
+									"src": "01_001.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/brands/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"brands",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET brand by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/brands/{{newBrandId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"brands",
+								"{{newBrandId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST update brand by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "tove",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/brands/{{newBrandId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"brands",
+								"{{newBrandId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE brand by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/brands/{{newBrandId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"brands",
+								"{{newBrandId}}"
+							],
+							"query": [
+								{
+									"key": "Authorization",
+									"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Color",
+			"item": [
+				{
+					"name": "GET all colors",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/colors/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"colors",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "loginAsAdmin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Cookie is present\", () => {",
+									"    pm.expect(pm.cookies.has('refreshToken')).to.be.true;",
+									"    pm.expect(pm.cookies.has('token')).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"login\": \"{{adminEmail}}\",\n\t\"password\": \"{{adminPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/users/login/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT add new color",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"try {",
+									"    const newColorData = pm.response.json();",
+									"    const colortId = newColorData.id.toString();",
+									"    console.log('new color id', colortId);",
+									"    if(!colortId) throw 'adding new color failed!';",
+									"",
+									"    pm.environment.set(\"newColorId\", colortId);",
+									"} catch(e){",
+									"    console.error('request error:', e.message);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"test\",\n    \"baseColorName\": \"silver\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/colors/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"colors",
+								""
+							],
+							"query": [
+								{
+									"key": "Authorization",
+									"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET colors by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/colors/{{newColorId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"colors",
+								"{{newColorId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST update color by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"test1\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/colors/{{newColorId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"colors",
+								"{{newColorId}}"
+							],
+							"query": [
+								{
+									"key": "Authorization",
+									"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE color by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/colors/{{newColorId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"colors",
+								"{{newColorId}}"
+							],
+							"query": [
+								{
+									"key": "Authorization",
+									"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "WishList",
+			"item": [
+				{
+					"name": "loginAsUser",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Cookie is present\", () => {",
+									"    pm.expect(pm.cookies.has('refreshToken')).to.be.true;",
+									"    pm.expect(pm.cookies.has('token')).to.be.true;",
+									"});",
+									"",
+									"try {",
+									"    const data = pm.response.json();",
+									"    const userId = data.user ? data.user._id.toString(): null;",
+									"    console.log('logged user id', userId);",
+									"",
+									"    pm.environment.set(\"userId\", userId);",
+									"} catch(e){",
+									"    console.error('request error:', e.message);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"login\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/users/login/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT add to wishList",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const products = {",
+									"  'method': 'GET',",
+									"  'url': pm.environment.get(\"url\") + '/products/'",
+									"};",
+									"",
+									"function randomInteger(min, max) {",
+									"  return Math.floor(Math.random() * (max - min + 1)) + min;",
+									"}",
+									"",
+									"pm.sendRequest(products, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }",
+									"    const products = res.json().products;",
+									"    const prId = products[randomInteger(0, products.length)]._id;",
+									"    console.log('random product for wishlist', prId);",
+									"    pm.environment.set(\"randomProductId\", prId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productId\": \"{{randomProductId}}\",\n    \"userId\": \"{{userId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/wishlist",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"wishlist"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET user wishList",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/wishlist/{{userId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"wishlist",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE product from users wishList",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/wishlist/{{randomProductId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"wishlist",
+								"{{randomProductId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "loginAsAdmin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Cookie is present\", () => {",
+									"    pm.expect(pm.cookies.has('refreshToken')).to.be.true;",
+									"    pm.expect(pm.cookies.has('token')).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"login\": \"{{adminEmail}}\",\n\t\"password\": \"{{adminPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/users/login/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET all users wishList",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/wishlist",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"wishlist"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE all users wishLists",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/wishlist",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"wishlist"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Size",
+			"item": [
+				{
+					"name": "GET all sizes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/sizes/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"sizes",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "loginAsAdmin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Cookie is present\", () => {",
+									"    pm.expect(pm.cookies.has('refreshToken')).to.be.true;",
+									"    pm.expect(pm.cookies.has('token')).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"login\": \"{{adminEmail}}\",\n\t\"password\": \"{{adminPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/users/login/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT add new size",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"try {",
+									"    const data = pm.response.json();",
+									"    const sizeId = data.item._id.toString();",
+									"    console.log('new size id', sizeId);",
+									"",
+									"    pm.environment.set(\"newSizeId\", sizeId);",
+									"} catch(e){",
+									"    console.error('request error:', e.message);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"S\",\n    \"sizeType\": \"belts\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/sizes/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"sizes",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET size by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/sizes/{{newSizeId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"sizes",
+								"{{newSizeId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST update size by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"XS\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/sizes/{{newSizeId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"sizes",
+								"{{newSizeId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE size by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"XS\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/sizes/{{newSizeId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"sizes",
+								"{{newSizeId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SizeTable",
+			"item": [
+				{
+					"name": "GET all sizeTables",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/sizeTables/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"sizeTables",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET sizeTable by product id",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const products = {",
+									"  'method': 'GET',",
+									"  'url': pm.environment.get(\"url\") + '/products/'",
+									"};",
+									"",
+									"function randomInteger(min, max) {",
+									"  return Math.floor(Math.random() * (max - min + 1)) + min;",
+									"}",
+									"",
+									"pm.sendRequest(products, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }",
+									"    const products = res.json().products;",
+									"    const prId = products[randomInteger(0, products.length)]._id;",
+									"    pm.environment.set(\"randomProductId\", prId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/sizeTables/{{randomProductId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"sizeTables",
+								"{{randomProductId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "loginAsAdmin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Cookie is present\", () => {",
+									"    pm.expect(pm.cookies.has('refreshToken')).to.be.true;",
+									"    pm.expect(pm.cookies.has('token')).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"login\": \"{{adminEmail}}\",\n\t\"password\": \"{{adminPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/users/login/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT add new sizeTable",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsCategory = {",
+									"  'method': 'GET',",
+									"  'url': pm.environment.get(\"url\") + '/sizes/'",
+									"};",
+									"",
+									"function randomInteger(min, max) {",
+									"  return Math.floor(Math.random() * (max - min + 1)) + min;",
+									"}",
+									"",
+									"pm.sendRequest(optionsCategory, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }",
+									"    const items = res.json().items;",
+									"    const sizeId = items[randomInteger(0, items.length)]._id;",
+									"     console.log('random size for sizeTable', sizeId);",
+									"    pm.environment.set(\"randomSizeId\", sizeId);",
+									"});",
+									"",
+									"const products = {",
+									"  'method': 'GET',",
+									"  'url': pm.environment.get(\"url\") + '/products/'",
+									"};",
+									"",
+									"pm.sendRequest(products, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }",
+									"    const products = res.json().products;",
+									"    const prId = products[randomInteger(0, products.length)]._id;",
+									"    console.log('random product for sizeTable', prId);",
+									"    pm.environment.set(\"randomProductId\", prId);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"try {",
+									"    const data = pm.response.json();",
+									"    const sizeId = data.item._id.toString();",
+									"    console.log('new sizeTable id', sizeId);",
+									"",
+									"    pm.environment.set(\"newSizeTableId\", sizeId);",
+									"} catch(e){",
+									"    console.error('request error:', e.message);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sizeId\": \"{{randomSizeId}}\",\n    \"productId\": \"{{randomProductId}}\",\n    \"shoeLength\": \"\",\n    \"length\": \"\",\n    \"bust\": \"\",\n    \"shoulder\": \"\",\n    \"sleeve\": \"\",\n    \"waist\": \"\",\n    \"hip\": \"\",\n    \"rise\": \"\",\n    \"sm\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/sizeTables/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"sizeTables",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST update sizeTable by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"length\": {\n        \"inches\": 12,\n        \"cm\": 12\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/sizeTables/{{newSizeTableId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"sizeTables",
+								"{{newSizeTableId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE sizeTable by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/sizeTables/{{newSizeTableId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"sizeTables",
+								"{{newSizeTableId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Quantity",
+			"item": [
+				{
+					"name": "GET all Quantity data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/quantity",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"quantity"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "loginAsAdmin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Cookie is present\", () => {",
+									"    pm.expect(pm.cookies.has('refreshToken')).to.be.true;",
+									"    pm.expect(pm.cookies.has('token')).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"login\": \"{{adminEmail}}\",\n\t\"password\": \"{{adminPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/users/login/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT add new Quantity data",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsCategory = {",
+									"  'method': 'GET',",
+									"  'url': pm.environment.get(\"url\") + '/sizes/'",
+									"};",
+									"",
+									"function randomInteger(min, max) {",
+									"  return Math.floor(Math.random() * (max - min + 1)) + min;",
+									"}",
+									"",
+									"pm.sendRequest(optionsCategory, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }",
+									"    const items = res.json().items;",
+									"    const sizeId = items[randomInteger(0, items.length)]._id;",
+									"     console.log('random size for sizeTable', sizeId);",
+									"    pm.environment.set(\"randomSizeId\", sizeId);",
+									"});",
+									"",
+									"const products = {",
+									"  'method': 'GET',",
+									"  'url': pm.environment.get(\"url\") + '/products/'",
+									"};",
+									"",
+									"pm.sendRequest(products, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }",
+									"    const products = res.json().products;",
+									"    const prId = products[randomInteger(0, products.length)]._id;",
+									"    console.log('random product for sizeTable', prId);",
+									"    pm.environment.set(\"randomProductId\", prId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"try {",
+									"    const data = pm.response.json();",
+									"    const id = data.item._id.toString();",
+									"    console.log('new quantity id', id);",
+									"",
+									"    pm.environment.set(\"newQuantityId\", id);",
+									"} catch(e){",
+									"    console.error('request error:', e.message);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"productId\": \"{{randomProductId}}\",\n\t\"color\": \"#344567\",\n\t\"quantity\": \"12\",\n\t\"sizeId\": \"{{randomSizeId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/quantity/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"quantity",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Quantity data by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/quantity/{{randomProductId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"quantity",
+								"{{randomProductId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST update Quantity data by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"productId\": \"{{randomProductId}}\",\n\t\"color\": \"#344567\",\n\t\"quantity\": \"123\",\n\t\"sizeId\": \"{{randomSizeId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/quantity/{{newQuantityId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"quantity",
+								"{{newQuantityId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Quantity data by id",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/quantity/{{newQuantityId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"quantity",
+								"{{newQuantityId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "register",
+					"item": [
+						{
+							"name": "errors",
+							"item": [
+								{
+									"name": "empty email",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status code is 400\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});",
+													"",
+													"pm.test(\"got error message\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.message).to.eql('Email and password are required');",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"password\": \"{{email}}\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{url}}/users/register/",
+											"host": [
+												"{{url}}"
+											],
+											"path": [
+												"users",
+												"register",
+												""
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "empty password",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status code is 400\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});",
+													"",
+													"pm.test(\"got error message\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.message).to.eql('Email and password are required');",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"login\": \"Y\",\n\t\"email\": \"{{email}}\",\n    \"password\": \"\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{url}}/users/register/",
+											"host": [
+												"{{url}}"
+											],
+											"path": [
+												"users",
+												"register",
+												""
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "already registered email",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status code is 400\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});",
+													"",
+													"pm.test(\"got error message\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.message).to.eql(`User with email ${pm.environment.get('email')} is already registered`);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"email\": \"{{email}}\",\n\t\"password\": \"{{Password}}\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{url}}/users/register/",
+											"host": [
+												"{{url}}"
+											],
+											"path": [
+												"users",
+												"register",
+												""
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "already registered login",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status code is 400\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});",
+													"",
+													"pm.test(\"got error message\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.message).to.eql(`User with login Yuliia is already registered`);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"login\": \"Yuliia\",\n    \"email\": \"{{email}}\",\n\t\"password\": \"{{password}}\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{url}}/users/register/",
+											"host": [
+												"{{url}}"
+											],
+											"path": [
+												"users",
+												"register",
+												""
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "invalid email",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status code is 400\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});",
+													"",
+													"pm.test(\"got error message\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.message).to.eql(`Error happened on server: users validation failed: email: some@@hotmail.com.com is not a valid email!`);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"email\": \"some@@hotmail.com.com\",\n\t\"password\": \"{{password}}\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{url}}/users/register/",
+											"host": [
+												"{{url}}"
+											],
+											"path": [
+												"users",
+												"register",
+												""
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "PUT register",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											" const uuid = require('uuid')().slice(0,15);",
+											" let email = \"postman-test-\" + uuid + '@gmail.com'",
+											" let password = email;",
+											"",
+											" console.log('generated new user data:', uuid, email, password);",
+											"",
+											"pm.environment.set(\"newLogin\", uuid);",
+											"pm.environment.set(\"newEmail\", email);",
+											"pm.environment.set(\"newPassword\", password);",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Cookie is present\", () => {",
+											"    pm.expect(pm.cookies.has('refreshToken')).to.be.true;",
+											"    pm.expect(pm.cookies.has('token')).to.be.true;",
+											"});",
+											"",
+											"const schema = {",
+											"    \"user\": {",
+											"        \"_id\": \"string\",",
+											"        \"email\": \"string\",",
+											"        \"login\": \"string\"",
+											"    }",
+											"};",
+											"",
+											"pm.test('Schema is valid', function() {",
+											"    pm.response.to.have.jsonSchema(schema);",
+											"});",
+											"",
+											"pm.test('Response is valid', function() {",
+											"    const json = pm.response.json();",
+											"    pm.expect(json.user.password).to.eql(undefined);",
+											"    pm.expect(json.user.email).to.eql(pm.environment.get(\"newEmail\"));",
+											"    pm.expect(json.user.login).to.eql(pm.environment.get(\"newLogin\"));",
+											"});",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"login\": \"{{newLogin}}\",\n\t\"email\": \"{{newEmail}}\",\n\t\"password\": \"{{newPassword}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/users/register/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"users",
+										"register",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "login",
+					"item": [
+						{
+							"name": "POST logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Cookies are deleted\", () => {",
+											"    pm.expect(pm.cookies.has('refreshToken')).to.be.false;",
+											"    pm.expect(pm.cookies.has('token')).to.be.false;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/users/logout/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"users",
+										"logout",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"login\": \"{{adminEmail}}\",\n\t\"password\": \"{{adminPassword}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/users/login/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"users",
+										"login",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST login refresh",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Cookies are present\", () => {",
+											"    pm.expect(pm.cookies.has('refreshToken')).to.be.true;",
+											"    pm.expect(pm.cookies.has('token')).to.be.true;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/users/login/refresh",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"users",
+										"login",
+										"refresh"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "get data",
+					"item": [
+						{
+							"name": "GET user data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{url}}/users/customer",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"users",
+										"customer"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET all users data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/users/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"users",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "update",
+					"item": [
+						{
+							"name": "POST update user data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const optionsLogIn = {",
+											"    method: 'POST',",
+											"    url: pm.environment.get(\"url\") + '/users/login/',",
+											"    header: {",
+											"        'Content-Type': 'application/json',",
+											"        'X-Foo': 'bar'",
+											"    },",
+											"    body: {",
+											"        mode: 'raw',",
+											"        raw: JSON.stringify({ ",
+											"            login: pm.environment.get(\"adminEmail\"),",
+											"            password: pm.environment.get(\"adminPassword\"),",
+											"        })",
+											"    }",
+											"};",
+											"",
+											"pm.sendRequest(optionsLogIn, function (err, res) {",
+											"    if(err) {",
+											"        console.error(err);",
+											"        throw err;",
+											"    }   ",
+											"    console.log('running request as admin');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiYW5uYS5seXBvdmVua29AZ21haWwuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkeC5sWWpsM0JoeVJWNlgyYjRqZDNsdUpUUzhqSmFkY2s2NGFsdU9Ma1E2N3o3MkxmOTUxN2kiLCJpZCI6IjVlY2U3MjZlZWY2OTg1MDAyNWQ3ZjFjYSIsImV4cCI6MTU5NDgxNzcyOSwiaWF0IjoxNTkyMTE3NzI5fQ.ZVAhTVSG-c5Zx9QdVRidssVmJtSzhXPaFXY5vQ1BbIs",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "id",
+											"value": "60a7762a2af6674746584f0f",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "user-avatar",
+											"contentType": "image/jpg",
+											"type": "file",
+											"src": "01_001.jpg"
+										},
+										{
+											"key": "firstName",
+											"value": "Юлия",
+											"type": "text"
+										},
+										{
+											"key": "lastName",
+											"value": "Божек",
+											"type": "text"
+										},
+										{
+											"key": "phoneNumber",
+											"value": "+380506860922",
+											"type": "text"
+										},
+										{
+											"key": "birthDate",
+											"value": "23.11.90",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{url}}/users/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"users",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST change password",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const optionsLogIn = {",
+											"    method: 'POST',",
+											"    url: pm.environment.get(\"url\") + '/users/login/',",
+											"    header: {",
+											"        'Content-Type': 'application/json',",
+											"        'X-Foo': 'bar'",
+											"    },",
+											"    body: {",
+											"        mode: 'raw',",
+											"        raw: JSON.stringify({ ",
+											"            login: pm.environment.get(\"adminEmail\"),",
+											"            password: pm.environment.get(\"adminPassword\"),",
+											"        })",
+											"    }",
+											"};",
+											"",
+											"pm.sendRequest(optionsLogIn, function (err, res) {",
+											"    if(err) {",
+											"        console.error(err);",
+											"        throw err;",
+											"    }   ",
+											"    console.log('running request as admin');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiQW5uYSIsInBhc3N3b3JkIjoiJDJhJDEwJExhTzJ2Tlp0VzQ2U1FKaXZCTFdIcGVRbFZkTnhIcUh4SHVMUFV2bEIvOHgwLlFtZkY2Y0RLIiwiaWQiOiI1ZWJiY2JlZjM3OWU5ZTAwMjUxNTBlZmYiLCJleHAiOjE1ODkzNjkzNzIsImlhdCI6MTU4OTM2NTc3Mn0.ld_yyRS8UpUgdiwMFW95YNPyFMDlnfbmFfGkYVsH5vA",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"oldPassword\": \"{{adminPassword}}\",\n\t\"newPassword\": \"{{adminPassword}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/users/password",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"users",
+										"password"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "GET all orders",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log('running request as admin');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiYW5uYS5seXBvdmVua29AZ21haWwuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkeC5sWWpsM0JoeVJWNlgyYjRqZDNsdUpUUzhqSmFkY2s2NGFsdU9Ma1E2N3o3MkxmOTUxN2kiLCJmaXJzdE5hbWUiOiLQkNC90L3QsCIsImxhc3ROYW1lIjoi0JvQuNC_0L7QstC10L3QutC-IiwiaWQiOiI1ZWNlNzI2ZWVmNjk4NTAwMjVkN2YxY2EiLCJleHAiOjE1OTQ4NDIzMDQsImlhdCI6MTU5MjE0MjMwNH0.rDQFkb_X5Ai04NC60ioPoIFvAJsOB-Uhf8E-JB_p-68",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/orders",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE all orders",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log('running request as admin');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiYW5uYS5seXBvdmVua29AZ21haWwuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkeC5sWWpsM0JoeVJWNlgyYjRqZDNsdUpUUzhqSmFkY2s2NGFsdU9Ma1E2N3o3MkxmOTUxN2kiLCJmaXJzdE5hbWUiOiLQkNC90L3QsCIsImxhc3ROYW1lIjoi0JvQuNC_0L7QstC10L3QutC-IiwiaWQiOiI1ZWNlNzI2ZWVmNjk4NTAwMjVkN2YxY2EiLCJleHAiOjE1OTQ4NDIzMDQsImlhdCI6MTU5MjE0MjMwNH0.rDQFkb_X5Ai04NC60ioPoIFvAJsOB-Uhf8E-JB_p-68"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/orders",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT add order as user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"try {",
+									"",
+									"    const json = pm.response.json();",
+									"",
+									"    pm.test('Email is sent', function() {",
+									"        pm.expect(json.letterStatus.error).to.eql(false);",
+									"    });",
+									"",
+									"    pm.test('Order as logged user', function() {",
+									"        pm.expect(json.newOrder.orderAsGuest).to.eql(false);",
+									"    });",
+									"",
+									"    const id = json.newOrder ? json.newOrder._id.toString() : null;",
+									"    pm.environment.set(\"newOrderId\", id);",
+									"    console.log('newOrder id', id);",
+									"",
+									"    const totalSum = json.newOrder ? json.newOrder.totalSum: null;",
+									"    pm.environment.set(\"orderTotalSum\", totalSum);",
+									"",
+									"} catch(e){",
+									"    console.error('PUT add order as user:', e.message);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function randomInteger(min, max) {",
+									"  return Math.floor(Math.random() * (max - min + 1)) + min;",
+									"}",
+									"",
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }",
+									"    ",
+									"    res.code === 200 ",
+									"        ? console.log('running request as admin')",
+									"        : console.log('login failed');",
+									"",
+									"    const data = res.json();",
+									"    pm.environment.set(\"currentUserId\", (data.user && data.user._id )|| null)",
+									"});",
+									"",
+									"const optionsQuantity = {",
+									"  'method': 'GET',",
+									"  'url': pm.environment.get(\"url\") + '/quantity/'",
+									"};",
+									"",
+									"pm.sendRequest(optionsQuantity, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }",
+									"    const items = res.json().items;",
+									"    const orderList = [];",
+									"",
+									"    for(let i = 1; i <= 2; i++) {",
+									"        const item = res.json().items[randomInteger(0, items.length)];",
+									"        const { productId, colorId , sizeId} = item;",
+									"        orderList.push({ productId, colorId , sizeId, quantity: 1});",
+									"    }",
+									"",
+									"    pm.environment.set(\"orderList\", JSON.stringify(orderList));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"{{currentUserId}}\",\n    \"products\": {{orderList}},\n    \"deliveryAddress\": \"some adress\",\n    \"shipping\": \"ukrposhta\",\n    \"paymentInfo\": \"cash\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/orders",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST cancel order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/orders/cancel/{{newOrderId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders",
+								"cancel",
+								"{{newOrderId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET user orders",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log('running request as admin');",
+									"    const data = res.json();",
+									"    pm.environment.set(\"currentUserId\", data.user ? data.user._id : null)",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/orders/{{userId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT add order as guest",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"try {",
+									"    ",
+									"    const json = pm.response.json();",
+									"",
+									"    pm.test('Email is sent', function() {",
+									"        pm.expect(json.letterStatus.error).to.eql(false);",
+									"    });",
+									"",
+									"    pm.test('Order as quest', function() {",
+									"        pm.expect(json.newOrder.orderAsGuest).to.eql(true);",
+									"    });",
+									"",
+									"    const id = json.newOrder._id.toString();",
+									"    console.log('newOrder id', id);",
+									"    pm.environment.set(\"newOrderId\", id);",
+									"",
+									"    const totalSum = json.newOrder.totalSum;",
+									"    pm.environment.set(\"orderTotalSum\", totalSum);",
+									"",
+									"} catch(e){",
+									"    console.error('request error:', e.message);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const options = {",
+									"  'method': 'POST',",
+									"  'url': pm.environment.get(\"url\") + '/users/logout/'",
+									"};",
+									"",
+									"pm.sendRequest(options, function (err) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }",
+									"    console.log(\"logged out\");",
+									"});",
+									"",
+									"const optionsQuantity = {",
+									"  'method': 'GET',",
+									"  'url': pm.environment.get(\"url\") + '/quantity/'",
+									"};",
+									"",
+									"function randomInteger(min, max) {",
+									"  return Math.floor(Math.random() * (max - min + 1)) + min;",
+									"}",
+									"",
+									"pm.sendRequest(optionsQuantity, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }",
+									"    const items = res.json().items;",
+									"    const orderList = [];",
+									"",
+									"    if(items && items.length >= 0) {",
+									"        for(let i = 1; i <= 2; i++) {",
+									"            const item = items[randomInteger(0, items.length)];",
+									"            const { productId, colorId , sizeId} = item;",
+									"            orderList.push({ productId, colorId , sizeId, quantity: 1});",
+									"        }",
+									"     }",
+									"",
+									"    pm.environment.set(\"orderList\", JSON.stringify(orderList));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"products\": {{orderList}},\n\t\"userName\": \"some name\",\n\t\"deliveryAddress\": \"some adress\",\n\t\"shipping\": \"ukrposhta\",\n\t\"paymentInfo\": \"cash\",\n\t\"email\": \"{{email}}\",\n\t\"phoneNumber\": \"{{phoneNumber}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/orders",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "LiqPay",
+			"item": [
+				{
+					"name": "LiqPay API: get data and signature",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const orderId = pm.environment.get(\"newOrderId\");",
+									"const order = {",
+									"    private_key : pm.environment.get(\"liq_pay_private_key\"),",
+									"    public_key  : pm.environment.get(\"liq_pay_public_key\"),",
+									"    server_url  : pm.environment.get(\"url\") + '/orders/liqpay/order-payment',",
+									"    currency    : 'UAH',",
+									"    action      : 'pay',",
+									"    amount      :  pm.environment.get('orderTotalSum'),",
+									"    description : `payment for order ${orderId}`,",
+									"    order_id    : orderId,",
+									"    status      : 'test_from_postman' // optional",
+									"};",
+									"",
+									"pm.environment.set('orderJson', JSON.stringify(order));",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"try {",
+									"",
+									"    const respData = pm.response.json();",
+									"    pm.test('LiqPay signature result is ok', function() {",
+									"        pm.expect(respData.result).to.eql('ok');",
+									"    });",
+									"",
+									"    pm.environment.set(\"liqpay_order_data\", respData.data);",
+									"    pm.environment.set(\"liqpay_order_signature\", respData.signature);",
+									"",
+									"} catch(e) {",
+									"    console.error(e);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "private_key",
+									"value": "{{liq_pay_private_key}}",
+									"type": "text"
+								},
+								{
+									"key": "public_key",
+									"value": "{{liq_pay_public_key}}",
+									"type": "text"
+								},
+								{
+									"key": "json",
+									"value": "{{orderJson}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://www.liqpay.ua/apiweb/sandbox/get_data_signature",
+							"protocol": "https",
+							"host": [
+								"www",
+								"liqpay",
+								"ua"
+							],
+							"path": [
+								"apiweb",
+								"sandbox",
+								"get_data_signature"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LiqPay API: checkout client-server",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// read more info: https://www.liqpay.ua/documentation/data_signature",
+									"",
+									"try {",
+									"    const orderId = pm.environment.get(\"newOrderId\");",
+									"    const private_key = pm.environment.get(\"liq_pay_private_key\");",
+									"    const public_key = pm.environment.get(\"liq_pay_public_key\");",
+									"    const url = pm.environment.get('url') ;",
+									"    const server_url = url + '/orders/liqpay/order-payment'",
+									"",
+									"    const order = {",
+									"        private_key : private_key,",
+									"        public_key  : public_key,",
+									"        server_url  : server_url,",
+									"        currency    : 'UAH',",
+									"        action      : 'pay',",
+									"        amount      :  pm.environment.get('orderTotalSum'),",
+									"        description : `payment for order ${orderId}`,",
+									"        order_id    : orderId",
+									"};",
+									"",
+									"pm.environment.set('orderJson', JSON.stringify(order));",
+									"",
+									"    const options = {",
+									"    'method': 'POST',",
+									"    'url': 'https://www.liqpay.ua/apiweb/sandbox/get_data_signature',",
+									"    'header': {",
+									"        'Content-Type': 'application/x-www-form-urlencoded',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    'body': {",
+									"            'mode': 'urlencoded',",
+									"            urlencoded : [",
+									"                { key: 'private_key',   value: private_key},",
+									"                { key: 'public_key',    value: public_key},",
+									"                { key: 'json',          value: JSON.stringify(order)},",
+									"                { key: 'action',        value: 'pay'},",
+									"                { key: 'currency',      value: 'UAH'},",
+									"                { key: 'amount',        value: pm.environment.get('orderTotalSum')},",
+									"                { key: 'server_url',    value: server_url},",
+									"            ]",
+									"        }",
+									"    };",
+									"",
+									"    pm.sendRequest(options, function (err, res) {",
+									"        if(err) {",
+									"            console.error(err);",
+									"            throw err;",
+									"        }",
+									"",
+									"        if(res.code == 200) {",
+									"            const resData = res.json();",
+									"            pm.environment.set(\"liqpay_order_data\", resData.data);",
+									"            pm.environment.set(\"liqpay_order_signature\", resData.signature);",
+									"        } else {",
+									"            console.error(res.err_description);",
+									"            throw res.err_description;",
+									"        }",
+									"    });",
+									"} catch (error) {",
+									"    console.error(error);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept-Charset",
+								"value": "utf-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "data",
+									"value": "{{liqpay_order_data}}",
+									"type": "text"
+								},
+								{
+									"key": "signature",
+									"value": "{{liqpay_order_signature}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://www.liqpay.ua/api/3/checkout/",
+							"protocol": "https",
+							"host": [
+								"www",
+								"liqpay",
+								"ua"
+							],
+							"path": [
+								"api",
+								"3",
+								"checkout",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST liqpay update Order Payment Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "data",
+									"value": "{{liqpay_order_data}}",
+									"type": "text"
+								},
+								{
+									"key": "signature",
+									"value": "{{liqpay_order_signature}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/orders/liqpay/order-payment",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders",
+								"liqpay",
+								"order-payment"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Emails",
+			"item": [
+				{
+					"name": "send email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"subject\": \"letter subject\", \n\t\"text\": \"letter text\", \n\t\"to\": \"{{sendTo}}\", \n\t\"from\": \"{{sendFrom}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/mail/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"mail",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send recover pasword email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/users/recovery?email={{sendTo}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"recovery"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "{{sendTo}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "recover password with token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{email}}\",\n    \"newPassword\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/users/password-recovery?token={{token}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"password-recovery"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send email for email adr confirmation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/users/confirmation?email={{email}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"confirmation"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "{{email}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "set in DB email is confirmed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/users/email-confirmation?email={{email}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"email-confirmation"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "{{email}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send MAILGUN API",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{mailgunpassword}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "api",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "from",
+									"value": "Excited User <{{sendFrom}}>",
+									"type": "text"
+								},
+								{
+									"key": "to",
+									"value": "{{sendTo}}",
+									"type": "text"
+								},
+								{
+									"key": "subject",
+									"value": "Hello",
+									"type": "text"
+								},
+								{
+									"key": "text",
+									"value": "Testing some Mailgun awesomeness!",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://api.eu.mailgun.net/v3/{{mailgundomain}}/messages",
+							"protocol": "https",
+							"host": [
+								"api",
+								"eu",
+								"mailgun",
+								"net"
+							],
+							"path": [
+								"v3",
+								"{{mailgundomain}}",
+								"messages"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Subscriber",
+			"item": [
+				{
+					"name": "subscribe",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log('running request as admin');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{email}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/subscribers/subscribe",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"subscribers",
+								"subscribe"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "unsubscribe",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log('running request as admin');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{email}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/subscribers/unsubscribe",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"subscribers",
+								"unsubscribe"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all subscribers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log('running request as admin');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/subscribers",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"subscribers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete all subscribers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log('running request as admin');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/subscribers",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"subscribers"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ShopCart",
+			"item": [
+				{
+					"name": "PUT add new shop cart",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function randomInteger(min, max) {",
+									"  return Math.floor(Math.random() * (max - min + 1)) + min;",
+									"}",
+									"",
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log('running request as admin');",
+									"    const data = res.json();",
+									"    pm.environment.set(\"currentUserId\", data.user ? data.user._id : null)",
+									"});",
+									"",
+									"const optionsQuantity = {",
+									"  'method': 'GET',",
+									"  'url': pm.environment.get(\"url\") + '/quantity/'",
+									"};",
+									"",
+									"pm.sendRequest(optionsQuantity, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }",
+									"    const items = res.json().items;",
+									"    const shopCartList = [];",
+									"",
+									"    for(let i = 1; i <= 2; i++) {",
+									"        const item = res.json().items[randomInteger(0, items.length)];",
+									"        const { productId, colorId , sizeId} = item;",
+									"        shopCartList.push({ productId, colorId , sizeId, cartQuantity: 1});",
+									"    }",
+									"    pm.environment.set(\"shopCartList\", JSON.stringify(shopCartList));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.environment.set(\"curentShopCartId\", pm.response.json().cart._id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"{{currentUserId}}\",\n    \"products\": {{shopCartList}}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/cart/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"cart",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET all shop Carts data",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log('running request as admin');",
+									"    const data = res.json();",
+									"    pm.environment.set(\"currentUserId\", data.user ? data.user._id : null)",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiYW5uYS5seXBvdmVua29AZ21haWwuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkeC5sWWpsM0JoeVJWNlgyYjRqZDNsdUpUUzhqSmFkY2s2NGFsdU9Ma1E2N3o3MkxmOTUxN2kiLCJpZCI6IjVlY2U3MjZlZWY2OTg1MDAyNWQ3ZjFjYSIsImV4cCI6MTU5NDU5NTk5MSwiaWF0IjoxNTkxODk1OTkxfQ.x-W-uxnrsd-67z7CRVrkPlsvZn0AwA8JrftaiGYSLa8",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/cart/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"cart",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET shop Cart data by user id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiYW5uYS5seXBvdmVua29AZ21haWwuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkeC5sWWpsM0JoeVJWNlgyYjRqZDNsdUpUUzhqSmFkY2s2NGFsdU9Ma1E2N3o3MkxmOTUxN2kiLCJpZCI6IjVlY2U3MjZlZWY2OTg1MDAyNWQ3ZjFjYSIsImV4cCI6MTU5NDU5NTk5MSwiaWF0IjoxNTkxODk1OTkxfQ.x-W-uxnrsd-67z7CRVrkPlsvZn0AwA8JrftaiGYSLa8"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/cart/{{currentUserId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"cart",
+								"{{currentUserId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST update shop cart by id",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function randomInteger(min, max) {",
+									"  return Math.floor(Math.random() * (max - min + 1)) + min;",
+									"}",
+									"",
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log('running request as admin');",
+									"    const data = res.json();",
+									"    pm.environment.set(\"currentUserId\", data.user ? data.user._id : null)",
+									"});",
+									"",
+									"const optionsQuantity = {",
+									"  'method': 'GET',",
+									"  'url': pm.environment.get(\"url\") + '/quantity/'",
+									"};",
+									"",
+									"pm.sendRequest(optionsQuantity, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }",
+									"    const items = res.json().items;",
+									"    const shopCartList = [];",
+									"",
+									"    for(let i = 1; i <= 2; i++) {",
+									"        const item = res.json().items[randomInteger(0, items.length)];",
+									"        const { productId, colorId , sizeId} = item;",
+									"        shopCartList.push({ productId, colorId , sizeId, cartQuantity: 1});",
+									"    }",
+									"    pm.environment.set(\"shopCartList\", JSON.stringify(shopCartList));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiYW5uYS5seXBvdmVua29AZ21haWwuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkeC5sWWpsM0JoeVJWNlgyYjRqZDNsdUpUUzhqSmFkY2s2NGFsdU9Ma1E2N3o3MkxmOTUxN2kiLCJpZCI6IjVlY2U3MjZlZWY2OTg1MDAyNWQ3ZjFjYSIsImV4cCI6MTU5NDU5NTk5MSwiaWF0IjoxNTkxODk1OTkxfQ.x-W-uxnrsd-67z7CRVrkPlsvZn0AwA8JrftaiGYSLa8"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"products\": {{shopCartList}}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/cart/{{curentShopCartId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"cart",
+								"{{curentShopCartId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE shop cart by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiYW5uYS5seXBvdmVua29AZ21haWwuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkeC5sWWpsM0JoeVJWNlgyYjRqZDNsdUpUUzhqSmFkY2s2NGFsdU9Ma1E2N3o3MkxmOTUxN2kiLCJpZCI6IjVlY2U3MjZlZWY2OTg1MDAyNWQ3ZjFjYSIsImV4cCI6MTU5NDU5NTk5MSwiaWF0IjoxNTkxODk1OTkxfQ.x-W-uxnrsd-67z7CRVrkPlsvZn0AwA8JrftaiGYSLa8"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/cart/{{curentShopCartId}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"cart",
+								"{{curentShopCartId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE all shop carts",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const optionsLogIn = {",
+									"    method: 'POST',",
+									"    url: pm.environment.get(\"url\") + '/users/login/',",
+									"    header: {",
+									"        'Content-Type': 'application/json',",
+									"        'X-Foo': 'bar'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({ ",
+									"            login: pm.environment.get(\"adminEmail\"),",
+									"            password: pm.environment.get(\"adminPassword\"),",
+									"        })",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(optionsLogIn, function (err, res) {",
+									"    if(err) {",
+									"        console.error(err);",
+									"        throw err;",
+									"    }   ",
+									"    console.log('running request as admin');",
+									"    const data = res.json();",
+									"    pm.environment.set(\"currentUserId\", data.user ? data.user._id : null)",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFubmEubHlwb3ZlbmtvQGdtYWlsLmNvbSIsImxvZ2luIjoiYW5uYS5seXBvdmVua29AZ21haWwuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkeC5sWWpsM0JoeVJWNlgyYjRqZDNsdUpUUzhqSmFkY2s2NGFsdU9Ma1E2N3o3MkxmOTUxN2kiLCJpZCI6IjVlY2U3MjZlZWY2OTg1MDAyNWQ3ZjFjYSIsImV4cCI6MTU5NDU5NTk5MSwiaWF0IjoxNTkxODk1OTkxfQ.x-W-uxnrsd-67z7CRVrkPlsvZn0AwA8JrftaiGYSLa8"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"products\":[\n\t\t{\n\t\t\t\"productId\": \"5edf5173cb33a1322b83c1e1\",\n\t\t\t\"cartQuantity\": 1,\n\t\t\t\"sizeId\": \"5edf4f5de55cc632053b8298\",\n\t\t\t\"colorId\": \"5edf4ea4fb3a6231dd8f3b78\"\n\t\t},\n\t\t{\n\t\t\t\"productId\": \"5edf5170cb33a1322b83c1d5\",\n\t\t\t\"cartQuantity\": 1,\n\t\t\t\"sizeId\": \"5edf4f5de55cc632053b8298\",\n\t\t\t\"colorId\": \"5edf4ea4fb3a6231dd8f3b78\"\n\t\t}\n\t]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/cart",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"cart"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

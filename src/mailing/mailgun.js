@@ -67,7 +67,7 @@ export const sendEmailAddressConfirmation = (email, callback) => {
     callback(new Error('incorrect email address to confirm'));
   }
 
-  const { baseAddress } = config;
+  const { clientBaseAddress } = config;
 
   const data = {
     from: fromVigo,
@@ -75,7 +75,7 @@ export const sendEmailAddressConfirmation = (email, callback) => {
     subject: 'Vigo shop registration',
     template: 'confirm_email',
     'h:X-Mailgun-Variables':
-            `{"confirm_email_link": "${baseAddress}/confirmation?email=${email}"}`,
+            `{"confirm_email_link": "${clientBaseAddress}/confirmation?email=${email}"}`,
   };
 
   mailgun.messages().send(data, (error, body) => {
@@ -92,7 +92,7 @@ export const sendRecoveryPasswordLetter = (email, token, callback) => {
     callback(new Error('token is required for password recover'));
   }
 
-  const address = config.baseAddress;
+  const address = config.clientBaseAddress;
   const link = `${address}/recovery?email=${email}&token=${token}`;
 
   const data = {
@@ -141,7 +141,7 @@ export const sendOrderLetter = (email, orderData, callback) => {
     products_list: getProductsMarkup(orderData.products),
     total: orderData.total,
 
-    link_to_order: `${config.baseAddress}/account`,
+    link_to_order: `${config.clientBaseAddress}/account`,
     vigo_address: dataSet.vigo_address,
     our_email: config.mail_from,
   };
@@ -153,7 +153,6 @@ export const sendOrderLetter = (email, orderData, callback) => {
 
     // eslint-disable-next-line no-restricted-syntax
     for (const [key, value] of Object.entries(variables)) {
-      log(`${key}: ${value}`);
       template = template.replace(`{{${key}}}`, value);
     }
   } catch (e) {

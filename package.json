@@ -11,10 +11,12 @@
   "scripts": {
     "start": "if-env NODE_ENV=production ?? npm run start:prod || npm run start:dev",
     "start:dev": "npm run eslint && nodemon .",
-    "start:prod": "nodemon port=PORT .",
-    "start:debug": "npm run eslint && nodemon port=PORT --inspect .",
-    "eslint": "eslint \"src/**/*.js\" .",
-    "eslint-fix": "eslint --fix \"src/**/*.js\" ."
+    "start:prod": "nodemon .",
+    "start:debug": "npm run eslint && nodemon --inspect .",
+    "eslint": "eslint src/**/*.js postman/*.js .",
+    "eslint-fix": "eslint --fix src/**/*.js .",
+    "integration-tests": "rimraf postman/results && babel-node postman/tests.js",
+    "ci": "server-test :3000 integration-tests"
   },
   "license": "ISC",
   "dependencies": {
@@ -43,6 +45,8 @@
     "mongoose-id-validator": "^0.6.0",
     "multer": "^1.4.2",
     "multer-s3": "^2.9.0",
+    "newman": "^5.2.3",
+    "newman-reporter-htmlextra": "^1.21.0",
     "nodemon": "^2.0.7",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
@@ -57,7 +61,8 @@
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.2.1"
+    "eslint-plugin-promise": "^4.2.1",
+    "start-server-and-test": "^1.12.6"
   },
   "engines": {
     "node": ">=8.10.0"

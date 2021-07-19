@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import mongoose from 'mongoose';
 import {
-  getRandomInt, log, trimAndLowerCase, getFormattedCurrentDate,
+  getRandomInt, log, trimAndLowerCase, getFormattedCurrentUTCDate,
 } from '../helpers/helper';
 import Brand from '../models/schemas/Brand';
 import Color from '../models/schemas/Color';
@@ -48,7 +48,7 @@ const fillCategories = (categoriesList, categoryHierarchy) => {
       name: item,
       key: i + 1,
       parentName: prevItem,
-      createdDate: getFormattedCurrentDate(),
+      createdDate: getFormattedCurrentUTCDate(),
     };
 
     if (category.parentName) {
@@ -89,7 +89,7 @@ const saveCategories = async (insertedValues) => {
 
   // eslint-disable-next-line no-restricted-syntax
   for (const newCategory of insertedValues) {
-    newCategory.createdDate = getFormattedCurrentDate();
+    newCategory.createdDate = getFormattedCurrentUTCDate();
 
     // eslint-disable-next-line no-await-in-loop
     const category = await new Category(newCategory).save();
@@ -103,7 +103,7 @@ const saveColors = (insertedValues) => {
   const arr = insertedValues.map((newColor) => ({
     name: newColor[0],
     baseColorName: newColor[1],
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
   }));
 
   return Color.insertMany(arr);
@@ -112,7 +112,7 @@ const saveColors = (insertedValues) => {
 const saveSizes = (insertedValues) => {
   const arr = insertedValues.map((newSize) => ({
     ...newSize,
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
   }));
   return Size.insertMany(arr);
 };
@@ -120,7 +120,7 @@ const saveSizes = (insertedValues) => {
 const saveSizeTables = (insertedValues) => {
   const arr = insertedValues.map((newSizeTable) => ({
     ...newSizeTable,
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
   }));
   return SizeTable.insertMany(arr);
 };
@@ -128,7 +128,7 @@ const saveSizeTables = (insertedValues) => {
 const saveBrands = (insertedValues) => {
   const arr = insertedValues.map((newBrand) => ({
     name: newBrand,
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
   }));
   return Brand.insertMany(arr);
 };
@@ -136,7 +136,7 @@ const saveBrands = (insertedValues) => {
 const saveProducts = (insertedValues) => {
   const arr = insertedValues.map((newProduct) => ({
     ...newProduct,
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
   }));
   return Product.insertMany(arr);
 };
@@ -144,7 +144,7 @@ const saveProducts = (insertedValues) => {
 const saveQuantity = (insertedValues) => {
   const arr = insertedValues.map((newQuantityItem) => ({
     ...newQuantityItem,
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
   }));
 
   return Quantity.insertMany(arr);
@@ -324,7 +324,7 @@ const getProductsToInsert = (data, savedProducts, categories, brands) => {
       .find((cat) => cat.categoryBreadcrumbs === `${categoryBreadcrumbs}/`);
     newProduct.categoryId = category ? category._id.toString() : null;
 
-    newProduct.createdDate = getFormattedCurrentDate();
+    newProduct.createdDate = getFormattedCurrentUTCDate();
     newProduct.isOnSale = newProduct.salePrice >= 0 && newProduct.salePrice < newProduct.price;
     newProduct.rating = getRandomInt(0, 5);
 
@@ -543,7 +543,7 @@ const clearData = () => Promise.all([
 ]);
 
 const importData = async (req, res, next) => {
-  const filePath = req.file ? req.file.path : null;
+  const filePath = req.file ? req.file.path || req.file.location : null;
 
   if (!filePath) {
     return res.status(400)

@@ -1,6 +1,6 @@
 import moment from 'moment';
 import Product from '../models/schemas/Product';
-import { log, getFormattedCurrentDate } from '../helpers/helper';
+import { getFormattedCurrentUTCDate, log } from '../helpers/helper';
 import filterParamsHelper, { validateObjectId } from '../helpers/filterParamsHelper';
 import Category from '../models/schemas/Category';
 import Quantity from '../models/schemas/Quantity';
@@ -20,11 +20,11 @@ const productFieldsToSelect = {
 };
 
 export const addProduct = async (req, res) => {
-  const filePath = req.files ? req.files.map((file) => file.path) : [];
+  const filePath = req.files ? req.files.map((file) => file.path || file.location) : [];
 
   const productData = {
     ...req.body,
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
     imageUrls: filePath,
     isOnSale: req.body.salePrice >= 0 && req.body.salePrice < req.body.price,
   };
@@ -90,8 +90,9 @@ export const getProductById = async (req, res) => {
 
 export const updateProductById = async (req, res) => {
   const productId = req.params.id;
-  const filePath = req.files ? req.files.map((file) => file.path) : [];
+  const filePath = req.files ? req.files.map((file) => file.path || file.location) : [];
 
+  // todo save files to s3 if needed
   const productData = filePath.length
     ? {
       ...req.body,
@@ -103,7 +104,7 @@ export const updateProductById = async (req, res) => {
       isOnSale: req.body.salePrice >= 0 && req.body.salePrice < req.body.price,
     };
 
-  productData.updatedDate = getFormattedCurrentDate();
+  productData.updatedDate = getFormattedCurrentUTCDate();
 
   try {
     const product = await Product.findOne({ _id: productId }).lean();

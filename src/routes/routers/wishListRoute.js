@@ -26,20 +26,20 @@ router.get('/',
     passport.authenticate('jwt-admin', options),
     getAllWishListData,
   ]);
+
 router.get('/:id', getUserWishes);
 
-// update
-router.delete('/:id',
-  [
-    passport.authenticate('jwt', options),
-    deleteProductFromWishlist,
-  ]);
-
-// delete
 router.delete('/',
   [
     passport.authenticate('jwt-admin', options),
     deleteAllWishes,
+  ]);
+
+// delete
+router.delete('/:id',
+  [
+    passport.authenticate('jwt', options),
+    deleteProductFromWishlist,
   ]);
 
 export default router;

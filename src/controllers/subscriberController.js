@@ -1,6 +1,6 @@
 import validator from 'validator';
 import Subscriber from '../models/schemas/Subscriber';
-import { log, getFormattedCurrentDate } from '../helpers/helper';
+import { log, getFormattedCurrentUTCDate } from '../helpers/helper';
 
 export const subscribe = async (req, res) => {
   const { email } = req.body;
@@ -14,7 +14,7 @@ export const subscribe = async (req, res) => {
   const data = {
     email,
     enabled: true,
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
   };
 
   try {

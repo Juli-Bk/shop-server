@@ -1,11 +1,11 @@
 import Quantity from '../models/schemas/Quantity';
-import { log, getFormattedCurrentDate } from '../helpers/helper';
+import { log, getFormattedCurrentUTCDate } from '../helpers/helper';
 import { validateObjectId } from '../helpers/filterParamsHelper';
 
 export const addQuantity = async (req, res) => {
   const data = {
     ...req.body,
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
   };
 
   if (!data.productId && !validateObjectId(data.productId)) {
@@ -74,7 +74,7 @@ export const updateQuantityById = async (req, res) => {
   const { id } = req.params;
   const data = {
     ...req.body,
-    updatedDate: getFormattedCurrentDate(),
+    updatedDate: getFormattedCurrentUTCDate(),
   };
 
   if ('productId' in data && !validateObjectId(data.productId)) {

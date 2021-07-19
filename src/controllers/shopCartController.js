@@ -1,5 +1,6 @@
 import ShopCart from '../models/schemas/ShopCart';
-import { log, getFormattedCurrentDate } from '../helpers/helper';
+import { log, getFormattedCurrentUTCDate } from '../helpers/helper';
+import { validateObjectId } from '../helpers/filterParamsHelper';
 
 export const createShopCart = async (req, res) => {
   const { products } = req.body;
@@ -15,12 +16,12 @@ export const createShopCart = async (req, res) => {
     });
   }
 
-  const shopCartData = {
-    ...req.body,
-    createdDate: getFormattedCurrentDate(),
-  };
-
   try {
+    const shopCartData = {
+      ...req.body,
+      createdDate: getFormattedCurrentUTCDate(),
+    };
+
     const cart = await new ShopCart(shopCartData).save();
     return res.status(200).json({
       message: 'Success. Products are added to shop cart',
@@ -51,7 +52,7 @@ export const getAllUShopCarts = async (req, res) => {
 
 export const getUserShopCart = async (req, res) => {
   const userId = req.params.id;
-  if (!userId) {
+  if (!userId || !validateObjectId(userId)) {
     return res.status(400).json({
       message: 'User id must be specified to get shop cart',
     });
@@ -79,7 +80,7 @@ export const updateShopCartById = async (req, res) => {
 
   const shopCart = { ...req.body };
 
-  shopCart.updatedDate = getFormattedCurrentDate();
+  shopCart.updatedDate = getFormattedCurrentUTCDate();
   if (!Array.isArray(shopCart.products)) {
     return res.status(400).json({
       message: 'Products must be an Array of products',

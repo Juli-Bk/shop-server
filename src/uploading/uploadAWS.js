@@ -22,11 +22,12 @@ const fileFilter = (req, file, cb) => {
         || file.mimetype === 'video/x-msvideo'
         || file.mimetype === 'video/mp4'
         || file.mimetype === 'video/mp3'
+        || file.mimetype === 'multipart/mixed'
   ) {
     cb(null, true);
   } else {
-    // reject file (if not image/video)
-    log(`rejected file for request: ${JSON.stringify(req)}`);
+    // reject file (if not image/video ets)
+    log(`rejected file for request: ${JSON.stringify(req.body)}`);
     cb(null, false);
   }
 };

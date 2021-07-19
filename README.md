@@ -1,6 +1,4 @@
-Travis CI
-
-[![Build Status](https://travis-ci.com/Juli-Bk/shop-server.svg?branch=master)](https://travis-ci.com/Juli-Bk/shop-server)
+<img height="20px" alt="CI" style="border-radius: 2px;" src="https://img.shields.io/badge/travis ci-%2312100E.svg?&style=for-the-badge&logo=travis&logoColor=white" />[![Build Status](https://travis-ci.com/Juli-Bk/shop-server.svg?branch=master)](https://travis-ci.com/Juli-Bk/shop-server)
 
 ## Vigo-Shop server
 
@@ -15,16 +13,8 @@ This is an open-source node server app for [vigo-shop](https://vigo-shop.herokua
 * JWT token auth, (jsonwebtoken, passport)
 * Mailgun for emailing
 * Joi, validator for validation
-* Eslint, Travis CI
+* Eslint, Postman, Travis CI
 * GIT, GitHub, Jira as a workflow
-
-
-## Testing
-
-To test some REST APIs you can use already deployed [vigo-server](https://vigo-server.herokuapp.com).
-Some APIs are allowed for only admin user. That will be unavailable for you because of security reasons.
-
-Just export `../public/VigoShop_postman_collection.json` file in your locally installed [Postman](https://www.postman.com/) to get **all list of requests**.
 
 ## To start server locally:
 
@@ -41,9 +31,21 @@ After proper configuration run the command below:
 
 `npm run start`
 
+## Testing
+
+To test REST APIs just import `../postman/VigoShop_postman_collection.json` file in your locally installed [Postman](https://www.postman.com/).
+Or fork [public](https://www.getpostman.com/collections/833da82b6af922dd8290) Postman collection.
+
+Set environment variables in `../postman/VigoShop_postman_collection.json` and import the environment into Postman.
+
+After proper configuration you may test APIs using Postman UI or just run the command below:
+
+`npm run integration-tests`
+
 ### Testing data
 
-To have some data for testing as server starts set PERFORM_INITIAL_DATA_IMPORT=true
+To have some initial data for testing as server starts, set an 
+environment variable PERFORM_INITIAL_DATA_IMPORT in .env file to 'true'.
 
 ### To debug this server in chrome
 
@@ -53,7 +55,7 @@ Install globally:
 
 Open chrome and type in:
  
- `about:inspect`
+`about:inspect`
 
 Then in opened window press on the link: 
 
@@ -71,7 +73,12 @@ Now you can start this command in the terminal window:
 
 ### ESLint
 
-[ESLint check](https://www.npmjs.com/package/eslint-plugin-node) will run by default by running `start:dev` or `start:debug` commands. 
+[ESLint check](https://www.npmjs.com/package/eslint-plugin-node) 
+will run by default by running `start:dev` or `start:debug` commands. 
 If there are some troubles with code linting, server will NOT start properly.
+
+### CI
+
+ESLint and Postman integration tests are using in Travis CI. See the .travis.yml file.
 
 

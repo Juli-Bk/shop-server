@@ -1,8 +1,8 @@
 import Category from '../models/schemas/Category';
-import { log, getFormattedCurrentDate } from '../helpers/helper';
+import { log, getFormattedCurrentUTCDate } from '../helpers/helper';
 
 export const addCategory = async (req, res) => {
-  const filePath = req.file ? req.file.path : null;
+  const filePath = req.file ? req.file.path || req.file.location : null;
 
   const { categoryBreadcrumbs } = req.body;
   if (!categoryBreadcrumbs) {
@@ -11,7 +11,7 @@ export const addCategory = async (req, res) => {
 
   const data = {
     ...req.body,
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
     imageUrl: filePath,
   };
 
@@ -28,7 +28,7 @@ export const addCategory = async (req, res) => {
     const newItem = await new Category(data).save();
     return res.status(200).json({
       message: 'success',
-      product: newItem,
+      category: newItem,
     });
   } catch (e) {
     const message = `New category adding error. 💥 ${e.message}`;
@@ -114,7 +114,7 @@ export const updateCategoryById = async (req, res) => {
 
   const data = {
     ...req.body,
-    updatedDate: getFormattedCurrentDate(),
+    updatedDate: getFormattedCurrentUTCDate(),
     imageUrl: filePath,
   };
 

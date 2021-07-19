@@ -8,5 +8,5 @@
   "ignore": [
     "src/**/*.spec.ts"
   ],
-  "exec": "babel-node index.js"
+  "exec": "babel-node --unhandled-rejections=strict index.js"
 }

@@ -53,6 +53,9 @@ const envVarsSchema = joi.object({
   CLIENT_BASE_ADDRESS: joi.string()
     .uri()
     .required(),
+  SERVER_BASE_ADDRESS: joi.string()
+    .uri()
+    .required(),
   ALLOW_CORS: joi.boolean()
     .truthy('TRUE')
     .truthy('true')
@@ -93,9 +96,10 @@ const { error, value: envVars } = envVarsSchema.validate(process.env);
 if (error) {
   throw new Error(`Config validation error: ${error.message}`);
 }
+const port = parseInt(envVars.PORT, 10);
 
 export default {
-  port: parseInt(envVars.PORT, 10),
+  port,
   DB_string: envVars.MONGO_URI,
   allowCors: envVars.ALLOW_CORS,
   initial_import: envVars.PERFORM_INITIAL_DATA_IMPORT,
@@ -121,9 +125,13 @@ export default {
   mail_domain: envVars.MAILGUN_DOMAIN,
   mail_from: envVars.MAILGUN_FROM,
   mail_user_name: envVars.MAILGUN_USER_NAME,
-  baseAddress: envVars.NODE_ENV === 'development'
-    ? 'http://localhost:3000'
-    : envVars.CLIENT_BASE_ADDRESS,
+  clientBaseAddress: envVars.NODE_ENV === 'production' || envVars.NODE_ENV === 'test'
+    ? envVars.CLIENT_BASE_ADDRESS
+    : 'http://localhost:3000', // can`t use PORT env var, because it is different client app
+  serverBaseAddress: envVars.NODE_ENV === 'production' || envVars.NODE_ENV === 'test'
+    ? envVars.SERVER_BASE_ADDRESS
+    : `http://localhost:${port}`,
   liqpay_private_key: envVars.LIQPAY_PRIVATE_KEY,
+  liqpay_public_key: envVars.LIQPAY_PUBLIC_KEY,
   hideUsersDataFromAdmin: true,
 };

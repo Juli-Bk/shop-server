@@ -1,10 +1,11 @@
 import Color from '../models/schemas/Color';
-import { log, getFormattedCurrentDate } from '../helpers/helper';
+import { log, getFormattedCurrentUTCDate } from '../helpers/helper';
+import { validateObjectId } from '../helpers/filterParamsHelper';
 
 export const addColor = async (req, res) => {
   const data = {
     ...req.body,
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
   };
 
   try {
@@ -50,6 +51,12 @@ export const getAllColors = async (req, res) => {
 
 export const getColorById = async (req, res) => {
   const { id } = req.params;
+  if (!validateObjectId(id)) {
+    return res.status(400)
+      .json({
+        message: `Color id ${id} is not valid`,
+      });
+  }
 
   try {
     const item = await Color.findById(id).lean();
@@ -81,7 +88,7 @@ export const updateColorById = async (req, res) => {
 
   const data = {
     ...req.body,
-    updatedDate: getFormattedCurrentDate(),
+    updatedDate: getFormattedCurrentUTCDate(),
   };
 
   try {

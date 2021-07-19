@@ -142,8 +142,7 @@ const logDebugInfo = function () {
   }
 };
 
-// eslint-disable-next-line func-names
-const productIdValidator = async function (next) {
+async function productIdValidator(next) {
   if (this.productId) {
     const pr = await this.constructor.findOne({ productId: this.productId }, { _id: 1 }).lean();
     if (pr) {
@@ -162,7 +161,7 @@ const productIdValidator = async function (next) {
   }
 
   return true;
-};
+}
 
 ProductSchema.pre('validate', productIdValidator);
 

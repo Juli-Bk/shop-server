@@ -1,10 +1,10 @@
 import Size from '../models/schemas/Size';
-import { log, getFormattedCurrentDate } from '../helpers/helper';
+import { log, getFormattedCurrentUTCDate } from '../helpers/helper';
 
 export const addSize = async (req, res) => {
   const data = {
     ...req.body,
-    createdDate: getFormattedCurrentDate(),
+    createdDate: getFormattedCurrentUTCDate(),
   };
 
   try {
@@ -60,7 +60,7 @@ export const updateSizeById = async (req, res) => {
   const { id } = req.params;
   const data = {
     ...req.body,
-    updatedDate: getFormattedCurrentDate(),
+    updatedDate: getFormattedCurrentUTCDate(),
   };
 
   try {
