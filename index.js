@@ -64,13 +64,35 @@ if (config.mongoDebugMode) {
   });
 }
 
-process.once('uncaughtException', (error) => {
-  log('uncaughtException: 💥💥💥');
+const closeMongoConnection = (callback) => {
+  mongoose.connection.close(false, () => {
+    log('🧩 MongoDb connection is closed');
+    callback();
+  });
+};
 
-  log(error.message);
-  log(error.stack);
-
-  // force exit process anyway
+const forceExit = (code) => {
   // eslint-disable-next-line no-process-exit
-  process.exit(0);
+  process.exit(code);
+};
+
+const events = ['unhandledRejection', 'uncaughtException'];
+events.forEach((event) => {
+  process.on(event, (error) => {
+    closeMongoConnection(() => {
+      log(`💥💥💥 error: ${event}:`, error.message);
+      log(error.stack);
+      forceExit(1);
+    });
+  });
+});
+
+const signals = ['SIGTERM', 'SIGINT'];
+signals.forEach((signal) => {
+  process.on(signal, () => {
+    closeMongoConnection(() => {
+      log(`💥💥💥 Received kill signal: ${signal}, shutting down gracefully`);
+      forceExit(0);
+    });
+  });
 });

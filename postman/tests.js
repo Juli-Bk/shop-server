@@ -27,8 +27,7 @@ environment.values = [
   { key: 'token', value: token },
 ];
 
-// todo get current time and data, add it ti report file name
-// print the link to open an report
+// todo print the link in console? to open an report, send a message with report?
 
 const reportPath = `./postman/results/tests-report-${getFormattedCurrentUTCDateTime()}-UTC.html`;
 newman.run({
@@ -44,16 +43,7 @@ newman.run({
   },
   workingDir: './postman/data/',
   environment,
-}).on('start', (err) => {
-  if (err) {
-    log(`collection run encountered an error: ${err}`);
-  } else {
-    log('info: running a collection...');
-  }
-}).on('done', (err, summary) => {
-  if (err || summary.error) {
-    log(`collection run encountered an error: ${err} \n ${summary.error}`);
-  } else {
-    log('Collection run completed.');
-  }
+}, (err) => {
+  if (err) { throw err; }
+  log('collection run complete!');
 });

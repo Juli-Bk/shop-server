@@ -10,9 +10,9 @@
   },
   "scripts": {
     "start": "if-env NODE_ENV=production ?? npm run start:prod || npm run start:dev",
-    "start:dev": "npm run eslint && nodemon .",
-    "start:prod": "nodemon .",
-    "start:debug": "npm run eslint && nodemon --inspect .",
+    "start:dev": "npm run eslint && nodemon",
+    "start:prod": "nodemon",
+    "start:debug": "npm run eslint && nodemon --inspect",
     "eslint": "eslint src/**/*.js postman/*.js .",
     "eslint-fix": "eslint --fix src/**/*.js .",
     "integration-tests": "rimraf postman/results && babel-node postman/tests.js",
