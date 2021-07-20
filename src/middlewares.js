@@ -5,9 +5,6 @@ import config from './config/index';
 import jwt from './auth/jwt';
 import { log } from './helpers/helper';
 
-// import multer from 'multer';
-// const upload = multer();
-
 const allowedByCors = (origin) => {
   // allows cors from only few addresses:
   const whitelist = [config.clientBaseAddress];

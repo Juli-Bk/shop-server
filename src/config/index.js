@@ -19,6 +19,8 @@ const envVarsSchema = joi.object({
 
   LIQPAY_PRIVATE_KEY: joi.string()
     .required(),
+  LIQPAY_PUBLIC_KEY: joi.string()
+    .required(),
 
   AWS_ACCESS_KEY_ID: joi.string()
     .required(),
