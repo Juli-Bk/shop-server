@@ -2,14 +2,16 @@ language: node_js
 node_js:
   - "stable"
 install:
-  - npm install newman
+  - npm install
 before_script:
   - node --version
   - npm --version
   - newman --version
+# keep the npm cache around to speed up installs
 cache:
   directories:
   - node_modules
+  - "$HOME/.npm"
 script:
   - npm run eslint
   - npm run ci
