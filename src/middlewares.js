@@ -8,11 +8,14 @@ import { log } from './helpers/helper';
 // import multer from 'multer';
 // const upload = multer();
 
+const allowedByCors = (origin) => {
+  // allows cors from only few addresses:
+  const whitelist = [config.clientBaseAddress];
+  return whitelist.indexOf(origin) !== -1 || (!config.blockRestTools && !origin);
+};
+
 const addMiddlewares = (app) => {
   if (config.allowCors) {
-    // allows cors from only few addresses:
-    const whitelist = [config.clientBaseAddress, config.serverBaseAddress];
-
     app.use(cors({
       origin: (origin, callback) => {
         // allows cors from any Dynamic Origin (for development mode). not secure
@@ -21,14 +24,13 @@ const addMiddlewares = (app) => {
           return callback(null, true);
         }
 
-        if (whitelist.indexOf(origin) !== -1 || !origin) {
-          log(`${origin}  🧩🧩🧩 allowed by CORS`);
+        if (allowedByCors(origin)) {
           callback(null, true);
         } else {
-          log(`${origin}  💥 Not allowed by CORS`);
-          callback(new Error('Not allowed by CORS'));
+          const msg = `${origin}  💥 Not allowed by CORS`;
+          log(msg);
+          callback(new Error(msg));
         }
-
         return true;
       },
 

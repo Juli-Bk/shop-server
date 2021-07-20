@@ -69,6 +69,12 @@ const envVarsSchema = joi.object({
     .falsy('FALSE')
     .falsy('false')
     .default(false),
+  BLOCK_REST_TOOLS: joi.boolean()
+    .truthy('TRUE')
+    .truthy('true')
+    .falsy('FALSE')
+    .falsy('false')
+    .default(false),
 
   PRODUCT_DEBUG_MODE: joi.boolean()
     .truthy('TRUE')
@@ -134,4 +140,5 @@ export default {
   liqpay_private_key: envVars.LIQPAY_PRIVATE_KEY,
   liqpay_public_key: envVars.LIQPAY_PUBLIC_KEY,
   hideUsersDataFromAdmin: true,
+  blockRestTools: envVars.BLOCK_REST_TOOLS,
 };
