@@ -46,4 +46,6 @@ newman.run({
 }, (err) => {
   if (err) { throw err; }
   log('collection run complete!');
+  // eslint-disable-next-line no-process-exit
+  process.exit(0);
 });
