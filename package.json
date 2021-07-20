@@ -53,7 +53,7 @@
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "serve-favicon": "^2.5.0",
-    "unique-random": "^3.0.0",
+    "unique-random": "^2.1.0",
     "validator": "^13.5.2",
     "webp-converter": "^2.3.1"
   },
