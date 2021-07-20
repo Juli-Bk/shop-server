@@ -22,7 +22,7 @@ const startServer = async () => {
       throw new Error(err.message);
     }
 
-    log(`running: ${config.environment} environment`);
+    log(`🛡  running: ${config.environment} environment`);
     log(`🛡  Server is listening: ${os.hostname()} 🏆  on port: ${config.port}`);
     log(`🛡  environment: ${config.environment}`);
   });
