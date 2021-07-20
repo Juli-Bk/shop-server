@@ -21,7 +21,7 @@ const addMiddlewares = (app) => {
           return callback(null, true);
         }
 
-        if (origin && whitelist.indexOf(origin) !== -1) {
+        if (whitelist.indexOf(origin) !== -1 || !origin) {
           log(`${origin}  🧩🧩🧩 allowed by CORS`);
           callback(null, true);
         } else {
