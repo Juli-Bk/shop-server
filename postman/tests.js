@@ -44,7 +44,12 @@ newman.run({
   workingDir: './postman/data/',
   environment,
 }, (err) => {
-  if (err) { throw err; }
+  if (err) {
+    log(`💥 collection run error: \n ${err.message}`);
+    log(`stack trace: \n ${err.stackTrace}`);
+    // eslint-disable-next-line no-process-exit
+    process.exit(1);
+  }
   log('collection run complete!');
   // eslint-disable-next-line no-process-exit
   process.exit(0);
