@@ -13,7 +13,7 @@ This is an open-source node server app for [vigo-shop](https://vigo-shop.herokua
 * JWT token auth, (jsonwebtoken, passport)
 * Mailgun for emailing
 * Joi, validator for validation
-* Eslint, Postman, Travis CI
+* Eslint, Postman, Newman, Travis CI
 * GIT, GitHub, Jira as a workflow
 
 ## To start server locally:
